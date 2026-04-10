@@ -1,6 +1,7 @@
 'use client';
 
-import type { GeneratorPhase, VersionEntry } from '@/lib/types';
+import type { GeneratorPhase, VersionEntry, FlyerPreferences } from '@/lib/types';
+import { StylePreview } from './StylePreview';
 
 interface CanvasPanelProps {
   phase: GeneratorPhase;
@@ -8,6 +9,7 @@ interface CanvasPanelProps {
   errorMsg: string | null;
   onDownload: () => void;
   onReset: () => void;
+  prefs: FlyerPreferences;
 }
 
 export function CanvasPanel({
@@ -16,6 +18,7 @@ export function CanvasPanel({
   errorMsg,
   onDownload,
   onReset,
+  prefs,
 }: CanvasPanelProps) {
   return (
     <div className="relative h-full flex flex-col bg-[#0d0d0f]">
@@ -30,8 +33,8 @@ export function CanvasPanel({
       />
 
       {/* Canvas area */}
-      <div className="relative flex-1 flex items-center justify-center p-8 min-h-0">
-        {phase === 'idle' && <IdlePlaceholder />}
+      <div className="relative flex-1 flex items-center justify-center p-4 md:p-8 min-h-0">
+        {phase === 'idle' && <StylePreview prefs={prefs} />}
         {phase === 'generating' && <GeneratingState />}
         {phase === 'done' && currentVersion && (
           <FlyerPreview imageDataUrl={currentVersion.imageDataUrl} />
@@ -63,37 +66,6 @@ export function CanvasPanel({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function IdlePlaceholder() {
-  return (
-    <div className="flex flex-col items-center gap-6">
-      {/* Flyer frame mockup */}
-      <div
-        className="relative flex flex-col items-center justify-center rounded-sm border border-dashed border-zinc-700 bg-zinc-900/40"
-        style={{ width: 200, height: 275 }}
-      >
-        <div className="absolute inset-0 flex flex-col gap-2 items-center justify-center opacity-25">
-          {[70, 90, 60, 80, 50].map((w, i) => (
-            <div
-              key={i}
-              className="bg-zinc-600 rounded-sm h-2"
-              style={{ width: `${w}%` }}
-            />
-          ))}
-        </div>
-        <div className="relative z-10 text-3xl opacity-30">◈</div>
-      </div>
-      <div className="text-center">
-        <p className="text-zinc-400 text-sm font-medium">
-          Your flyer will appear here
-        </p>
-        <p className="text-zinc-600 text-xs mt-1">
-          Fill in the details on the right and hit Generate
-        </p>
-      </div>
     </div>
   );
 }

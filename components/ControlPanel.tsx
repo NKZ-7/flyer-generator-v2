@@ -1,333 +1,616 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, Fragment } from 'react';
+import { FloatingField } from './FloatingField';
 import type { FlyerPreferences, GeneratorPhase } from '@/lib/types';
 
 interface ControlPanelProps {
   phase: GeneratorPhase;
   onGenerate: (prefs: FlyerPreferences) => void;
   onReset: () => void;
-  errorMsg: string | null;
+  prefs: FlyerPreferences;
+  onPrefsChange: <K extends keyof FlyerPreferences>(key: K, val: FlyerPreferences[K]) => void;
 }
 
+// Values MUST match TYPO_POOLS keys in n8n Extract Inputs node
 const STYLE_OPTIONS = [
-  { value: 'event', label: 'Event / Concert' },
-  { value: 'sale', label: 'Sale / Promo' },
-  { value: 'hiring', label: 'Hiring / Recruitment' },
-  { value: 'food', label: 'Food / Restaurant' },
-  { value: 'announcement', label: 'Announcement' },
+  { value: 'event',        label: 'Event / Concert',      icon: '🎵' },
+  { value: 'sale',         label: 'Sale / Promo',          icon: '🏷️' },
+  { value: 'hiring',       label: 'Hiring / Recruitment',  icon: '💼' },
+  { value: 'food',         label: 'Food / Restaurant',     icon: '🍽️' },
+  { value: 'announcement', label: 'Announcement',          icon: '📢' },
 ];
 
 const COLOR_OPTIONS = [
-  { value: 'dark', label: 'Dark & Bold', hex: '#1a1a2e' },
-  { value: 'vibrant', label: 'Vibrant & Energetic', hex: '#7c3aed' },
-  { value: 'warm', label: 'Warm & Inviting', hex: '#c2410c' },
-  { value: 'cool', label: 'Cool & Professional', hex: '#1d4ed8' },
-  { value: 'minimal', label: 'Minimal & Clean', hex: '#e5e7eb' },
-  { value: 'gold', label: 'Luxury & Gold', hex: '#b45309' },
+  { value: 'dark',    label: 'Dark & Bold' },
+  { value: 'vibrant', label: 'Vibrant' },
+  { value: 'warm',    label: 'Warm & Inviting' },
+  { value: 'cool',    label: 'Cool & Pro' },
+  { value: 'minimal', label: 'Minimal' },
+  { value: 'gold',    label: 'Luxury Gold' },
 ];
 
-// Values MUST match TYPO_POOLS keys in n8n Extract Inputs node
-const FONT_OPTIONS = [
-  { value: 'modern',       label: 'Bold Impact',      hint: 'Oswald — heavy, all-caps, high energy' },
-  { value: 'classic',      label: 'Editorial Luxury', hint: 'Playfair — refined, elegant, serif' },
-  { value: 'clean',        label: 'Clean Modern',     hint: 'Inter — geometric, balanced, contemporary' },
-  { value: 'highContrast', label: 'High Contrast',    hint: 'Oswald headline + Inter body' },
-  { value: 'vintage',      label: 'Vintage Press',    hint: 'Playfair — old-style, nostalgic' },
-  { value: 'minimalType',  label: 'Minimal Type',     hint: 'Inter light — understated, luxury' },
-];
-
-// 12 preset accent colors in a 6×2 grid
-const ACCENT_PRESETS = [
-  '#f59e0b', '#7c3aed', '#ef4444', '#3b82f6',
-  '#10b981', '#ec4899', '#14b8a6', '#f97316',
-  '#22c55e', '#e11d48', '#64748b', '#d4a76a',
-];
-
-const defaultPrefs: FlyerPreferences = {
-  title: '',
-  tagline: '',
-  eventDate: '',
-  venue: '',
-  contactInfo: '',
-  style: 'event',
-  colorScheme: 'dark',
-  primaryColor: '#f59e0b',
-  fontStyle: 'modern',
+const COLOR_STRIPS: Record<string, string[]> = {
+  dark:    ['#0d0d1a', '#1a1a2e', '#ffffff', '#ef4444'],
+  vibrant: ['#ec4899', '#f59e0b', '#3b82f6', '#7c3aed'],
+  warm:    ['#fef3c7', '#ea580c', '#92400e', '#c2410c'],
+  cool:    ['#1d4ed8', '#3b82f6', '#e0f2fe', '#ffffff'],
+  minimal: ['#ffffff', '#f3f4f6', '#d1d5db', '#111827'],
+  gold:    ['#0f0c00', '#b45309', '#f59e0b', '#fef3c7'],
 };
 
-export function ControlPanel({ phase, onGenerate, onReset }: ControlPanelProps) {
-  const [prefs, setPrefs] = useState<FlyerPreferences>(defaultPrefs);
+const FONT_OPTIONS = [
+  { value: 'modern',       label: 'Bold Impact',      hint: 'Oswald · heavy, all-caps, high energy' },
+  { value: 'classic',      label: 'Editorial Luxury', hint: 'Playfair · refined, elegant, serif' },
+  { value: 'clean',        label: 'Clean Modern',     hint: 'DM Sans · geometric, balanced' },
+  { value: 'highContrast', label: 'High Contrast',    hint: 'Oswald headline + body' },
+  { value: 'vintage',      label: 'Vintage Press',    hint: 'Playfair · nostalgic, old-style' },
+  { value: 'minimalType',  label: 'Minimal Type',     hint: 'DM Sans light · understated' },
+];
+
+const FONT_FAMILY_MAP: Record<string, string> = {
+  modern:       'var(--font-oswald, Oswald, sans-serif)',
+  classic:      'var(--font-playfair, "Playfair Display", serif)',
+  clean:        'var(--font-sans, "DM Sans", sans-serif)',
+  highContrast: 'var(--font-oswald, Oswald, sans-serif)',
+  vintage:      'var(--font-playfair, "Playfair Display", serif)',
+  minimalType:  'var(--font-sans, "DM Sans", sans-serif)',
+};
+
+const FONT_LABEL_CLS: Record<string, string> = {
+  modern:       'font-bold uppercase',
+  classic:      'italic',
+  clean:        '',
+  highContrast: 'font-bold',
+  vintage:      'tracking-wide',
+  minimalType:  'font-light',
+};
+
+// Accent presets — warm top row, cool bottom row
+const ACCENT_PRESETS = [
+  '#f59e0b', '#f97316', '#ef4444', '#ec4899', '#e11d48', '#d4a76a',
+  '#7c3aed', '#3b82f6', '#14b8a6', '#10b981', '#64748b', '#22c55e',
+];
+
+const PLACEHOLDERS: Record<string, { tagline: string; venue: string }> = {
+  event:        { tagline: "e.g. The night you won't forget",       venue: 'e.g. National Theatre, Accra' },
+  sale:         { tagline: 'e.g. Up to 50% off everything',          venue: 'e.g. All branches nationwide' },
+  hiring:       { tagline: 'e.g. Join our growing team',             venue: 'e.g. Head Office, Accra' },
+  food:         { tagline: 'e.g. Taste the difference',              venue: 'e.g. East Legon, Accra' },
+  announcement: { tagline: 'e.g. Important update for all members',  venue: 'e.g. Community Center' },
+};
+
+export function ControlPanel({
+  phase,
+  onGenerate,
+  onReset,
+  prefs,
+  onPrefsChange,
+}: ControlPanelProps) {
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [prevStep, setPrevStep] = useState<1 | 2 | 3 | null>(null);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [transitioning, setTransitioning] = useState(false);
+  const [titleError, setTitleError] = useState(false);
+  const [surpriseSpinning, setSurpriseSpinning] = useState(false);
+  const surpriseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const isGenerating = phase === 'generating';
   const isDone = phase === 'done';
 
-  function set<K extends keyof FlyerPreferences>(key: K, value: FlyerPreferences[K]) {
-    setPrefs((prev) => ({ ...prev, [key]: value }));
+  // Reset step to 1 when user starts fresh
+  useEffect(() => {
+    if (phase === 'idle') {
+      setCurrentStep(1);
+      setPrevStep(null);
+      setTitleError(false);
+    }
+  }, [phase]);
+
+  // Cleanup surprise timer on unmount
+  useEffect(() => {
+    return () => {
+      if (surpriseTimerRef.current) clearInterval(surpriseTimerRef.current);
+    };
+  }, []);
+
+  function navigate(to: 1 | 2 | 3) {
+    if (transitioning || to === currentStep || isGenerating) return;
+    setDirection(to > currentStep ? 'forward' : 'backward');
+    setPrevStep(currentStep);
+    setCurrentStep(to);
+    setTransitioning(true);
+    setTimeout(() => {
+      setPrevStep(null);
+      setTransitioning(false);
+    }, 300);
+  }
+
+  function goNext() {
+    if (currentStep === 1 && !prefs.title.trim()) {
+      setTitleError(true);
+      return;
+    }
+    setTitleError(false);
+    navigate((currentStep + 1) as 1 | 2 | 3);
+  }
+
+  function goBack() {
+    navigate((currentStep - 1) as 1 | 2 | 3);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isGenerating) return;                   // guard 1: no double-submit
+    if (currentStep !== 3 && !isDone) return;   // guard 2: only from step 3 or re-generate
     if (!prefs.title.trim()) return;
     onGenerate(prefs);
   }
 
-  return (
-    <div className="h-full bg-[#111113] flex flex-col">
-      {/* Panel header */}
-      <div className="px-5 py-4 border-b border-zinc-800 shrink-0">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-400">
-          Flyer Setup
-        </h2>
+  function surpriseMe() {
+    if (surpriseSpinning) return;
+    setSurpriseSpinning(true);
+    const finalColor  = COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value;
+    const finalFont   = FONT_OPTIONS[Math.floor(Math.random() * FONT_OPTIONS.length)].value;
+    const finalAccent = ACCENT_PRESETS[Math.floor(Math.random() * ACCENT_PRESETS.length)];
+    let cycles = 0;
+    surpriseTimerRef.current = setInterval(() => {
+      onPrefsChange('colorScheme', COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value as FlyerPreferences['colorScheme']);
+      onPrefsChange('fontStyle',   FONT_OPTIONS[Math.floor(Math.random() * FONT_OPTIONS.length)].value as FlyerPreferences['fontStyle']);
+      onPrefsChange('primaryColor', ACCENT_PRESETS[Math.floor(Math.random() * ACCENT_PRESETS.length)]);
+      if (++cycles >= 5) {
+        clearInterval(surpriseTimerRef.current!);
+        onPrefsChange('colorScheme',  finalColor as FlyerPreferences['colorScheme']);
+        onPrefsChange('fontStyle',    finalFont as FlyerPreferences['fontStyle']);
+        onPrefsChange('primaryColor', finalAccent);
+        setSurpriseSpinning(false);
+      }
+    }, 60);
+  }
+
+  // ── Step label strings ──────────────────────────────────────
+  const STEP_LABELS = ['Content', 'Style', 'Review'];
+
+  function ProgressIndicator({ current }: { current: 1 | 2 | 3 }) {
+    return (
+      <div className="flex items-center justify-center gap-2 px-5 py-3 border-b border-zinc-800 shrink-0">
+        {([1, 2, 3] as const).map((n, i) => (
+          <Fragment key={n}>
+            <div
+              className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold border ${
+                n < current
+                  ? 'bg-amber-400 border-amber-400 text-zinc-950'
+                  : n === current
+                  ? 'bg-amber-400/20 border-amber-400 text-amber-300'
+                  : 'bg-zinc-900 border-zinc-700 text-zinc-600'
+              }`}
+            >
+              {n < current ? '✓' : n}
+            </div>
+            {i < 2 && (
+              <div
+                className={`h-px w-8 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-zinc-700'}`}
+              />
+            )}
+          </Fragment>
+        ))}
+        <span className="ml-2 text-[10px] text-zinc-500 uppercase tracking-widest">
+          {STEP_LABELS[current - 1]}
+        </span>
       </div>
+    );
+  }
 
-      {/* Scrollable form */}
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-        <div className="px-5 py-5 space-y-5">
-          {/* Title */}
-          <Field label="Event / Brand Title" required>
-            <input
-              type="text"
-              value={prefs.title}
-              onChange={(e) => set('title', e.target.value)}
-              placeholder="e.g. Summer Music Festival"
-              disabled={isGenerating}
-              className={inputCls}
-              required
-            />
-          </Field>
+  function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
+    return (
+      <div className="flex justify-between items-center text-xs py-0.5">
+        <span className="text-zinc-500 shrink-0">{label}</span>
+        <span className="text-zinc-200 text-right ml-2">{value}</span>
+      </div>
+    );
+  }
 
-          {/* Tagline */}
-          <Field label="Tagline">
-            <input
-              type="text"
-              value={prefs.tagline}
-              onChange={(e) => set('tagline', e.target.value)}
-              placeholder="e.g. Where music meets the night"
-              disabled={isGenerating}
-              className={inputCls}
-            />
-          </Field>
+  const hints = PLACEHOLDERS[prefs.style as keyof typeof PLACEHOLDERS] ?? PLACEHOLDERS.event;
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* Date */}
-            <Field label="Date">
-              <input
-                type="text"
-                value={prefs.eventDate}
-                onChange={(e) => set('eventDate', e.target.value)}
-                placeholder="e.g. July 19, 2025"
+  function renderStepContent(step: 1 | 2 | 3): React.ReactNode {
+    if (step === 1) {
+      return (
+        <div className="space-y-4">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+            What's your flyer about?
+          </p>
+
+          {/* Flyer type */}
+          <div className="grid grid-cols-1 gap-1.5">
+            {STYLE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onPrefsChange('style', opt.value as FlyerPreferences['style'])}
                 disabled={isGenerating}
-                className={inputCls}
-              />
-            </Field>
-            {/* Venue */}
-            <Field label="Venue">
-              <input
-                type="text"
-                value={prefs.venue}
-                onChange={(e) => set('venue', e.target.value)}
-                placeholder="e.g. Madison Square"
-                disabled={isGenerating}
-                className={inputCls}
-              />
-            </Field>
+                className={`flex items-center gap-2.5 px-3 py-2.5 text-xs rounded border transition-all min-h-[44px] text-left ${
+                  prefs.style === opt.value
+                    ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
+                    : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                <span className="text-base leading-none">{opt.icon}</span>
+                {opt.label}
+              </button>
+            ))}
           </div>
 
-          {/* Contact */}
-          <Field label="Contact / URL">
-            <input
-              type="text"
-              value={prefs.contactInfo}
-              onChange={(e) => set('contactInfo', e.target.value)}
-              placeholder="e.g. tickets@festival.com"
-              disabled={isGenerating}
-              className={inputCls}
-            />
-          </Field>
-
-          {/* Divider */}
           <div className="border-t border-zinc-800" />
 
-          {/* Style */}
-          <Field label="Flyer Type">
-            <div className="grid grid-cols-2 gap-1.5">
-              {STYLE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => set('style', opt.value)}
-                  disabled={isGenerating}
-                  className={`px-3 py-2 text-xs rounded border transition-all text-left ${
-                    prefs.style === opt.value
-                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </Field>
+          {/* Title */}
+          <FloatingField
+            label="Event / Brand Title"
+            required
+            value={prefs.title}
+            onChange={(v) => {
+              onPrefsChange('title', v);
+              if (v.trim()) setTitleError(false);
+            }}
+            placeholder="e.g. Summer Music Festival"
+            disabled={isGenerating}
+            hasError={titleError}
+            errorMsg="Give your flyer a name first"
+          />
+
+          {/* Tagline */}
+          <FloatingField
+            label="Tagline"
+            value={prefs.tagline ?? ''}
+            onChange={(v) => onPrefsChange('tagline', v)}
+            placeholder={hints.tagline}
+            disabled={isGenerating}
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <FloatingField
+              label="Date"
+              value={prefs.eventDate ?? ''}
+              onChange={(v) => onPrefsChange('eventDate', v)}
+              placeholder="e.g. July 19, 2025"
+              disabled={isGenerating}
+            />
+            <FloatingField
+              label="Venue"
+              value={prefs.venue ?? ''}
+              onChange={(v) => onPrefsChange('venue', v)}
+              placeholder={hints.venue}
+              disabled={isGenerating}
+            />
+          </div>
+
+          <FloatingField
+            label="Contact / URL"
+            value={prefs.contactInfo ?? ''}
+            onChange={(v) => onPrefsChange('contactInfo', v)}
+            placeholder="e.g. tickets@festival.com"
+            disabled={isGenerating}
+          />
+        </div>
+      );
+    }
+
+    if (step === 2) {
+      return (
+        <div className="space-y-5">
+          {/* Surprise Me */}
+          <button
+            type="button"
+            onClick={surpriseMe}
+            disabled={isGenerating || surpriseSpinning}
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-xs border border-zinc-700 text-zinc-400 rounded hover:border-zinc-500 hover:text-zinc-200 transition-all min-h-[44px]"
+          >
+            <span className={surpriseSpinning ? 'animate-spin inline-block' : ''}>🎲</span>
+            Surprise Me — random style
+          </button>
 
           {/* Color scheme */}
-          <Field label="Color Scheme">
-            <div className="grid grid-cols-2 gap-1.5">
-              {COLOR_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => set('colorScheme', opt.value)}
-                  disabled={isGenerating}
-                  className={`flex items-center gap-2 px-3 py-2 text-xs rounded border transition-all ${
-                    prefs.colorScheme === opt.value
-                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0 border border-white/10"
-                    style={{ backgroundColor: opt.hex }}
-                  />
-                  {opt.label}
-                </button>
-              ))}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+              Color Scheme
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {COLOR_OPTIONS.map((opt) => {
+                const strips = COLOR_STRIPS[opt.value] ?? [];
+                const isActive = prefs.colorScheme === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onPrefsChange('colorScheme', opt.value as FlyerPreferences['colorScheme'])}
+                    disabled={isGenerating}
+                    className={`rounded-lg border overflow-hidden transition-all ${
+                      isActive
+                        ? 'border-amber-400 scale-[1.03] shadow-lg shadow-amber-400/20'
+                        : 'border-zinc-700 hover:border-zinc-500'
+                    }`}
+                  >
+                    {/* Gradient strip */}
+                    <div className="h-10 flex">
+                      {strips.map((c, i) => (
+                        <div key={i} className="flex-1" style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                    {/* Label */}
+                    <div
+                      className={`px-2 py-1.5 text-xs text-center bg-zinc-900 ${
+                        isActive ? 'text-amber-300' : 'text-zinc-400'
+                      }`}
+                    >
+                      {opt.label}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          </Field>
+          </div>
 
-          {/* Font Style — 6 options in 2-column grid */}
-          <Field label="Font Style">
+          {/* Font style */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+              Font Style
+            </p>
             <div className="grid grid-cols-2 gap-1.5">
-              {FONT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => set('fontStyle', opt.value)}
-                  disabled={isGenerating}
-                  className={`px-3 py-2 text-left rounded border transition-all ${
-                    prefs.fontStyle === opt.value
-                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  <div className="text-xs font-medium">{opt.label}</div>
-                  <div className="text-[10px] opacity-60 mt-0.5 leading-tight">{opt.hint}</div>
-                </button>
-              ))}
+              {FONT_OPTIONS.map((opt) => {
+                const isActive = prefs.fontStyle === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onPrefsChange('fontStyle', opt.value as FlyerPreferences['fontStyle'])}
+                    disabled={isGenerating}
+                    className={`px-3 py-2.5 text-left rounded border transition-all ${
+                      isActive
+                        ? 'bg-amber-400/10 border-amber-400/50'
+                        : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
+                    }`}
+                  >
+                    <div
+                      className={`text-sm ${FONT_LABEL_CLS[opt.value] ?? ''} ${
+                        isActive ? 'text-amber-200' : 'text-zinc-200'
+                      }`}
+                      style={{ fontFamily: FONT_FAMILY_MAP[opt.value] }}
+                    >
+                      {opt.label}
+                    </div>
+                    <div
+                      className="text-[10px] opacity-60 mt-0.5 leading-tight text-zinc-500"
+                      style={{ fontFamily: 'var(--font-sans)' }}
+                    >
+                      {opt.hint}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          </Field>
+          </div>
 
-          {/* Accent Color */}
-          <Field label="Accent Color">
-            {/* Preset swatches — 6 per row */}
-            <div className="grid grid-cols-6 gap-1.5 mb-2">
-              {ACCENT_PRESETS.map((hex) => (
-                <button
-                  key={hex}
-                  type="button"
-                  onClick={() => set('primaryColor', hex)}
-                  disabled={isGenerating}
-                  title={hex}
-                  className={`w-full aspect-square rounded-full border-2 transition-all ${
-                    prefs.primaryColor?.toLowerCase() === hex.toLowerCase()
-                      ? 'border-white scale-110'
-                      : 'border-transparent hover:border-white/50 hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: hex }}
-                />
-              ))}
+          {/* Accent color */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+              Accent Color
+            </p>
+            <div className="grid grid-cols-6 gap-1.5">
+              {ACCENT_PRESETS.map((hex) => {
+                const isActive = prefs.primaryColor?.toLowerCase() === hex.toLowerCase();
+                return (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() => onPrefsChange('primaryColor', hex)}
+                    disabled={isGenerating}
+                    title={hex}
+                    className={`swatch-btn w-full aspect-square rounded-full border-2 relative transition-all ${
+                      isActive ? 'border-white' : 'border-transparent hover:border-white/50'
+                    }`}
+                    style={{
+                      backgroundColor: hex,
+                      '--swatch-color': hex,
+                    } as React.CSSProperties}
+                  >
+                    {isActive && (
+                      <span className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-            {/* Custom hex + color picker */}
+
+            <p className="text-[10px] text-zinc-500 mt-3 mb-1">Or enter your brand color</p>
             <div className="flex items-center gap-2">
               <div className="relative w-9 h-9 rounded border border-zinc-700 overflow-hidden shrink-0">
                 <input
                   type="color"
-                  value={prefs.primaryColor}
-                  onChange={(e) => set('primaryColor', e.target.value)}
+                  value={prefs.primaryColor ?? '#f59e0b'}
+                  onChange={(e) => onPrefsChange('primaryColor', e.target.value)}
                   disabled={isGenerating}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div
                   className="absolute inset-0 rounded"
-                  style={{ backgroundColor: prefs.primaryColor }}
+                  style={{ backgroundColor: prefs.primaryColor ?? '#f59e0b' }}
                 />
               </div>
               <input
                 type="text"
-                value={prefs.primaryColor}
-                onChange={(e) => set('primaryColor', e.target.value)}
+                value={prefs.primaryColor ?? '#f59e0b'}
+                onChange={(e) => onPrefsChange('primaryColor', e.target.value)}
                 disabled={isGenerating}
-                className={`${inputCls} font-mono text-[11px]`}
+                className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-200 font-mono text-[11px] rounded px-3 py-2 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors disabled:opacity-40"
               />
             </div>
-          </Field>
+          </div>
+        </div>
+      );
+    }
+
+    // Step 3: Review
+    const colorLabel = COLOR_OPTIONS.find((o) => o.value === prefs.colorScheme)?.label ?? prefs.colorScheme;
+    const fontLabel  = FONT_OPTIONS.find((o) => o.value === prefs.fontStyle)?.label ?? prefs.fontStyle;
+    const styleLabel = STYLE_OPTIONS.find((o) => o.value === prefs.style)?.label ?? prefs.style;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+          Review & Generate
+        </p>
+
+        {/* Content card */}
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 space-y-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">
+              Content
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(1)}
+              className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors"
+            >
+              Edit
+            </button>
+          </div>
+          <SummaryRow label="Type"    value={styleLabel} />
+          <SummaryRow label="Title"   value={prefs.title || <span className="text-zinc-600 italic">—</span>} />
+          {prefs.tagline   && <SummaryRow label="Tagline"  value={prefs.tagline} />}
+          {prefs.eventDate && <SummaryRow label="Date"     value={prefs.eventDate} />}
+          {prefs.venue     && <SummaryRow label="Venue"    value={prefs.venue} />}
+          {prefs.contactInfo && <SummaryRow label="Contact" value={prefs.contactInfo} />}
         </div>
 
-        {/* Sticky generate button */}
-        <div className="sticky bottom-0 px-5 pb-5 pt-3 bg-[#111113] border-t border-zinc-800">
-          {isDone ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onReset}
-                className="flex-1 py-2.5 text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors"
-              >
-                New flyer
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2.5 text-sm font-semibold bg-zinc-800 text-zinc-200 border border-zinc-700 rounded hover:bg-zinc-700 transition-colors"
-              >
-                Regenerate
-              </button>
-            </div>
+        {/* Style card */}
+        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 space-y-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">
+              Style
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(2)}
+              className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors"
+            >
+              Edit
+            </button>
+          </div>
+          <SummaryRow label="Colors"  value={colorLabel} />
+          <SummaryRow label="Fonts"   value={fontLabel} />
+          <SummaryRow
+            label="Accent"
+            value={
+              <span className="flex items-center gap-1.5">
+                <span
+                  className="w-3 h-3 rounded-full border border-white/20 inline-block"
+                  style={{ backgroundColor: prefs.primaryColor }}
+                />
+                {prefs.primaryColor}
+              </span>
+            }
+          />
+        </div>
+
+        {/* Hero generate button */}
+        <button
+          type="submit"
+          disabled={isGenerating}
+          className={`w-full h-14 text-sm font-semibold rounded transition-colors relative overflow-hidden mt-4 ${
+            isGenerating
+              ? 'bg-amber-400/20 text-amber-400/60 cursor-not-allowed border border-amber-400/20'
+              : 'btn-generate-shimmer text-zinc-950'
+          }`}
+        >
+          {isGenerating ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+              Creating your flyer...
+            </span>
           ) : (
+            'Create My Flyer →'
+          )}
+        </button>
+      </div>
+    );
+  }
+
+  const enterClass = direction === 'forward' ? 'step-enter-forward' : 'step-enter-backward';
+  const exitClass  = direction === 'forward' ? 'step-exit-forward'  : 'step-exit-backward';
+
+  return (
+    <form onSubmit={handleSubmit} className="h-full bg-[#111113] flex flex-col">
+      {/* Progress indicator — hidden when done */}
+      {!isDone && <ProgressIndicator current={currentStep} />}
+
+      {/* Step transition container */}
+      <div className="relative overflow-hidden flex-1 min-h-0">
+        {/* Exiting step — absolute, overflow-hidden to prevent scrollbar during animation */}
+        {prevStep && (
+          <div className={`absolute inset-0 overflow-hidden ${exitClass}`}>
+            <div className="h-full overflow-y-auto px-5 py-5">
+              {renderStepContent(prevStep)}
+            </div>
+          </div>
+        )}
+        {/* Current step — normal flow with its own scroll */}
+        <div className={`h-full overflow-y-auto px-5 py-5 ${transitioning ? enterClass : ''}`}>
+          {renderStepContent(currentStep)}
+        </div>
+      </div>
+
+      {/* Sticky footer */}
+      <div className="shrink-0 px-5 pb-5 pt-3 border-t border-zinc-800 bg-[#111113]">
+        {isDone ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onReset}
+              className="flex-1 py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors"
+            >
+              New flyer
+            </button>
             <button
               type="submit"
-              disabled={isGenerating || !prefs.title.trim()}
-              className={`w-full py-3 text-sm font-semibold rounded transition-all ${
-                isGenerating
-                  ? 'bg-amber-400/20 text-amber-400/60 cursor-not-allowed border border-amber-400/20'
-                  : !prefs.title.trim()
-                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700'
-                  : 'bg-amber-400 text-zinc-950 hover:bg-amber-300 shadow-lg shadow-amber-400/10'
-              }`}
+              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-zinc-800 text-zinc-200 border border-zinc-700 rounded hover:bg-zinc-700 transition-colors"
             >
-              {isGenerating ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
-                  Generating…
-                </span>
-              ) : (
-                'Generate Flyer →'
-              )}
+              Regenerate
             </button>
-          )}
-        </div>
-      </form>
-    </div>
+          </div>
+        ) : currentStep < 3 ? (
+          <div className="flex gap-2">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={isGenerating}
+                className="flex-1 py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← Back
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={isGenerating}
+              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-amber-400 text-zinc-950 rounded hover:bg-amber-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
+        ) : (
+          /* Step 3 footer: back button only (Generate button lives in step content) */
+          <button
+            type="button"
+            onClick={goBack}
+            disabled={isGenerating}
+            className="w-full py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ← Back to Style
+          </button>
+        )}
+      </div>
+    </form>
   );
 }
-
-function Field({
-  label,
-  required,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-        {label}
-        {required && <span className="text-amber-400 ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-const inputCls =
-  'w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded px-3 py-2 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors disabled:opacity-40';
