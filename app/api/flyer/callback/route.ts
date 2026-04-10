@@ -7,11 +7,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { status, jobId, copy, design_spec, error } = body as {
+  const { status, jobId, copy, design_spec, dalle_prompt, error } = body as {
     status: 'done' | 'error';
     jobId: string;
     copy?: FlyerCopy;
-    design_spec?: DesignSpec; // n8n uses snake_case
+    design_spec?: DesignSpec;
+    dalle_prompt?: string;
     error?: string;
   };
 
@@ -19,8 +20,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Missing jobId' }, { status: 400 });
   }
 
-  if (status === 'done' && copy && design_spec) {
-    await completeJob(jobId, copy, design_spec);
+  if (status === 'done' && copy && design_spec && dalle_prompt) {
+    await completeJob(jobId, copy, design_spec, dalle_prompt);
   } else {
     await failJob(jobId, error ?? 'Unknown error from workflow');
   }

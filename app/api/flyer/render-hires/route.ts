@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const printSize = PRINT_SIZES[size] ?? PRINT_SIZES['A4'];
   const scaleFactor = printSize.width / meta.designSpec.width;
 
-  const dataUrl = await renderFlyerToBase64(meta.designSpec, scaleFactor);
+  const dataUrl = await renderFlyerToBase64(meta.designSpec, scaleFactor, meta.dallePrompt ?? undefined);
   const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
   const pngBuffer = Buffer.from(base64, 'base64');
 

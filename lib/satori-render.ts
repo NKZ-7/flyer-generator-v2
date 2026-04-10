@@ -1,8 +1,13 @@
 /**
- * RENDER ENGINE — converts a DesignSpec into a base64 PNG using Satori + Sharp.
+ * RENDER ENGINE — converts a DesignSpec into a base64 PNG.
  *
- * The v2 DesignSpec uses a flat, absolutely-positioned node list:
- *   { width, height, background, nodes: [{ id, type, x, y, width, height, content, style }] }
+ * When `dallePrompt` is provided (hybrid mode):
+ *   1. Calls OpenAI gpt-image-1 to generate the visual background image
+ *   2. Renders Claude's text/shape nodes via Satori (transparent root)
+ *   3. Sharp composites the text SVG over the OpenAI background
+ *
+ * When `dallePrompt` is absent (fallback mode):
+ *   Renders the full flyer using Satori + Sharp with the design_spec background.
  *
  * Pass scaleFactor > 1 for print-resolution rendering (used by render-hires route).
  */
@@ -58,19 +63,74 @@ function getFonts() {
   return _fonts;
 }
 
-export async function renderFlyerToBase64(spec: DesignSpec, scaleFactor = 1): Promise<string> {
+export async function renderFlyerToBase64(
+  spec: DesignSpec,
+  scaleFactor = 1,
+  dallePrompt?: string,
+): Promise<string> {
   const width = Math.round(spec.width * scaleFactor);
   const height = Math.round(spec.height * scaleFactor);
+  const children = (spec.nodes ?? []).map((node) => renderNode(node, scaleFactor));
 
-  // Build background value
+  if (dallePrompt) {
+    // ── Hybrid mode: OpenAI background + Satori text overlay ──────────────────
+    const aiRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt: dallePrompt,
+        n: 1,
+        size: '1024x1536', // portrait — no response_format param, gpt-image-1 always returns b64_json
+        quality: 'low',
+      }),
+    });
+
+    if (!aiRes.ok) {
+      throw new Error(`OpenAI error ${aiRes.status}: ${await aiRes.text()}`);
+    }
+    const aiJson = await aiRes.json();
+    const b64 = aiJson.data?.[0]?.b64_json;
+    if (!b64) throw new Error('OpenAI returned no image data');
+
+    const imgBuffer = Buffer.from(b64, 'base64');
+
+    // Satori: transparent root — Claude's text/shape nodes only, no background color
+    const textRoot = {
+      type: 'div',
+      props: {
+        style: {
+          position: 'relative' as const,
+          display: 'flex' as const,
+          width,
+          height,
+        },
+        children,
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const svg = await satori(textRoot as any, { width, height, fonts: getFonts() });
+
+    // Sharp: resize OpenAI image to canvas dimensions, composite Satori text on top
+    const pngBuffer = await sharp(imgBuffer)
+      .resize(width, height, { fit: 'cover', position: 'center' })
+      .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+      .png()
+      .toBuffer();
+
+    return `data:image/png;base64,${pngBuffer.toString('base64')}`;
+  }
+
+  // ── Fallback mode: solid/gradient Satori render ────────────────────────────
   let background: string;
   if (spec.background.type === 'gradient' && spec.background.gradient?.length === 2) {
     background = `linear-gradient(135deg, ${spec.background.gradient[0]}, ${spec.background.gradient[1]})`;
   } else {
     background = spec.background.color ?? '#1a1a2e';
   }
-
-  const children = (spec.nodes ?? []).map((node) => renderNode(node, scaleFactor));
 
   const root = {
     type: 'div',

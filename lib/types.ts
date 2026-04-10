@@ -64,6 +64,7 @@ export interface JobMeta {
   status: 'pending' | 'done' | 'error';
   copy?: FlyerCopy;
   designSpec?: DesignSpec;
+  dallePrompt?: string;
   error?: string;
 }
 

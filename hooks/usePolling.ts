@@ -20,13 +20,16 @@ export function usePolling({
   intervalMs = POLL_INTERVAL_MS,
   timeoutMs = JOB_TIMEOUT_MS,
 }: UsePollingOptions) {
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Use setTimeout (not setInterval) so only one request is in-flight at a time.
+  // With a ~25s OpenAI render inside the status route, setInterval would fire
+  // 8+ concurrent polls that each trigger a separate OpenAI call.
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startedAtRef = useRef<number>(0);
   const completedRef = useRef(false);
 
   const stop = useCallback(() => {
     if (timerRef.current) {
-      clearInterval(timerRef.current);
+      clearTimeout(timerRef.current);
       timerRef.current = null;
     }
   }, []);
@@ -46,7 +49,10 @@ export function usePolling({
 
       try {
         const res = await fetch(`/api/flyer/status/${jobId}`);
-        if (!res.ok) return; // transient error — keep polling
+        if (!res.ok) {
+          timerRef.current = setTimeout(poll, intervalMs);
+          return;
+        }
 
         const data = await res.json();
         const { meta, render, dataUrl } = data;
@@ -67,15 +73,17 @@ export function usePolling({
           completedRef.current = true;
           stop();
           onComplete(dataUrl, meta);
+          return;
         }
       } catch {
         // Network error — keep trying until timeout
       }
+
+      // Schedule next poll only after this response has been processed
+      timerRef.current = setTimeout(poll, intervalMs);
     };
 
     poll(); // immediate first check
-    timerRef.current = setInterval(poll, intervalMs);
-
     return () => stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);

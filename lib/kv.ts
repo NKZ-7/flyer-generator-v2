@@ -42,8 +42,8 @@ export async function getJobRender(jobId: string): Promise<JobRender | null> {
   return getJson<JobRender>(renderKey(jobId));
 }
 
-export async function completeJob(jobId: string, copy: FlyerCopy, designSpec: DesignSpec): Promise<void> {
-  const meta: JobMeta = { status: 'done', copy, designSpec };
+export async function completeJob(jobId: string, copy: FlyerCopy, designSpec: DesignSpec, dallePrompt: string): Promise<void> {
+  const meta: JobMeta = { status: 'done', copy, designSpec, dallePrompt };
   await getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL });
 }
 

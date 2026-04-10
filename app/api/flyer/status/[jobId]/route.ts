@@ -3,7 +3,7 @@ import { renderFlyerToBase64 } from '@/lib/satori-render';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30; // Satori render takes 2-5s; well within 30s limit
+export const maxDuration = 60; // OpenAI image gen + Satori + Sharp takes ~20-35s
 
 export async function GET(
   _request: Request,
@@ -24,7 +24,7 @@ export async function GET(
   // before the render completes.
   if (meta.status === 'done' && render?.status === 'pending' && meta.designSpec) {
     try {
-      dataUrl = await renderFlyerToBase64(meta.designSpec);
+      dataUrl = await renderFlyerToBase64(meta.designSpec!, 1, meta.dallePrompt);
       await completeRender(jobId);
       render = { status: 'done' };
     } catch (err) {
