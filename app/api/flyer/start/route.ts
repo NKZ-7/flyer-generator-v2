@@ -25,22 +25,38 @@ export async function POST(request: NextRequest) {
   const callbackUrl = `${callbackBase}/api/flyer/callback`;
 
   // Create job in Redis before firing the webhook
-  await createJob(jobId);
+  try {
+    await createJob(jobId);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return Response.json({ error: `Redis error: ${msg}` }, { status: 500 });
+  }
 
-  const webhookUrl = process.env.N8N_WEBHOOK_URL!;
+  const webhookUrl = process.env.N8N_WEBHOOK_URL;
+  if (!webhookUrl) {
+    return Response.json({ error: 'N8N_WEBHOOK_URL env var not set' }, { status: 500 });
+  }
+
   const webhookSecret = process.env.N8N_WEBHOOK_SECRET ?? '11111';
 
-  const webhookRes = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': webhookSecret,
-    },
-    body: JSON.stringify({ jobId, callbackUrl, preferences }),
-  });
+  let webhookRes: Response;
+  try {
+    webhookRes = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': webhookSecret,
+      },
+      body: JSON.stringify({ jobId, callbackUrl, preferences }),
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return Response.json({ error: `Webhook fetch error: ${msg}` }, { status: 502 });
+  }
 
   if (!webhookRes.ok) {
-    return Response.json({ error: 'Failed to trigger workflow' }, { status: 502 });
+    const body = await webhookRes.text().catch(() => '');
+    return Response.json({ error: `Webhook ${webhookRes.status}: ${body.slice(0, 200)}` }, { status: 502 });
   }
 
   return Response.json({ jobId });
