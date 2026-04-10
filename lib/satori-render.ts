@@ -70,7 +70,14 @@ export async function renderFlyerToBase64(
 ): Promise<string> {
   const width = Math.round(spec.width * scaleFactor);
   const height = Math.round(spec.height * scaleFactor);
-  const children = (spec.nodes ?? []).map((node) => renderNode(node, scaleFactor));
+  // Sort so shape nodes always render before text nodes — shapes are background
+  // elements and must not cover text regardless of Claude's output order.
+  const sortedNodes = [...(spec.nodes ?? [])].sort((a, b) => {
+    if (a.type === 'shape' && b.type !== 'shape') return -1;
+    if (a.type !== 'shape' && b.type === 'shape') return 1;
+    return 0;
+  });
+  const children = sortedNodes.map((node) => renderNode(node, scaleFactor));
 
   if (dallePrompt) {
     // ── Hybrid mode: OpenAI background + Satori text overlay ──────────────────
@@ -185,6 +192,9 @@ function renderNode(node: DesignNode, scale = 1) {
   const letterSpacing =
     s.letterSpacing != null ? `${Math.round(s.letterSpacing * scale)}px` : undefined;
 
+  // Outer div: absolute positioning + vertical centering via flexDirection column.
+  // overflow: visible prevents text from being clipped if Claude undersizes the node height.
+  // Inner span: carries all typography styles + word-break for proper wrapping in Satori.
   return {
     type: 'div',
     props: {
@@ -195,18 +205,26 @@ function renderNode(node: DesignNode, scale = 1) {
         width: w,
         height: h,
         display: 'flex' as const,
-        alignItems: 'center' as const,
-        fontFamily: s.fontFamily ?? 'Inter',
-        fontSize,
-        fontWeight,
-        color: s.color ?? '#ffffff',
-        textAlign: (s.textAlign ?? 'left') as 'left' | 'center' | 'right',
-        flexWrap: 'wrap' as const,
-        overflow: 'hidden' as const,
-        opacity: s.opacity ?? 1,
-        ...(letterSpacing ? { letterSpacing } : {}),
+        flexDirection: 'column' as const,
+        justifyContent: 'center' as const,
+        overflow: 'visible' as const,
       },
-      children: node.content ?? '',
+      children: {
+        type: 'span',
+        props: {
+          style: {
+            fontFamily: s.fontFamily ?? 'Inter',
+            fontSize,
+            fontWeight,
+            color: s.color ?? '#ffffff',
+            textAlign: (s.textAlign ?? 'left') as 'left' | 'center' | 'right',
+            wordBreak: 'break-word' as const,
+            opacity: s.opacity ?? 1,
+            ...(letterSpacing ? { letterSpacing } : {}),
+          },
+          children: node.content ?? '',
+        },
+      },
     },
   };
 }
