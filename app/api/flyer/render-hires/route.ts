@@ -5,6 +5,7 @@ import { PRINT_SIZES } from '@/lib/constants';
 import type { DownloadFormat } from '@/lib/types';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // print-res renders can take 10-15s
 
 function blobResponse(data: Buffer | Uint8Array, contentType: string, filename: string): Response {

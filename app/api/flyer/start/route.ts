@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import type { FlyerPreferences } from '@/lib/types';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as { preferences: FlyerPreferences };

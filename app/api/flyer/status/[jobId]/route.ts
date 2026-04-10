@@ -2,6 +2,7 @@ import { getJobMeta, getJobRender, completeRender, failRender } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // Satori render takes 2-5s; well within 30s limit
 
 export async function GET(
