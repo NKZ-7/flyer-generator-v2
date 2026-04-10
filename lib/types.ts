@@ -97,5 +97,6 @@ export interface VersionEntry {
   imageDataUrl: string;
   copy: FlyerCopy;
   designSpec: DesignSpec;
+  dallePrompt: string;
   createdAt: number;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { DownloadFormat } from '@/lib/types';
+import { DIGITAL_PRESETS, PRINT_PRESETS } from '@/lib/constants';
 
 interface DownloadModalProps {
   jobId: string;
@@ -10,28 +10,40 @@ interface DownloadModalProps {
   onNewFlyer: () => void;
 }
 
-const FORMATS: Array<{ value: DownloadFormat; label: string; desc: string }> = [
-  { value: 'jpg', label: 'JPG', desc: 'Best for sharing — small file, great quality' },
-  { value: 'png', label: 'PNG', desc: 'Lossless — ideal for further editing' },
-  { value: 'pdf', label: 'PDF', desc: 'Print-ready — professional output' },
-];
+type Mode = 'digital' | 'print';
 
-const SIZES = [
-  { value: 'A4', label: 'A4', desc: '2480 × 3508 px' },
-  { value: 'US_Letter', label: 'US Letter', desc: '2550 × 3300 px' },
-  { value: 'Square', label: 'Square', desc: '3000 × 3000 px' },
-];
+// Aspect-ratio preview: returns width × height in a capped bounding box
+function AspectBox({ w, h }: { w: number; h: number }) {
+  const MAX = 28;
+  const ratio = w / h;
+  const boxW = ratio >= 1 ? MAX : Math.round(MAX * ratio);
+  const boxH = ratio < 1 ? MAX : Math.round(MAX / ratio);
+  return (
+    <div
+      className="inline-block rounded-sm border border-zinc-500 bg-zinc-700 shrink-0"
+      style={{ width: boxW, height: boxH }}
+    />
+  );
+}
 
-export function DownloadModal({
-  jobId,
-  imageDataUrl,
-  onClose,
-  onNewFlyer,
-}: DownloadModalProps) {
-  const [format, setFormat] = useState<DownloadFormat>('jpg');
-  const [size, setSize] = useState('A4');
+export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer }: DownloadModalProps) {
+  const [mode, setMode] = useState<Mode>('digital');
+  const [preset, setPreset] = useState('social');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function switchMode(m: Mode) {
+    setMode(m);
+    setPreset(m === 'digital' ? 'social' : 'a5');
+  }
+
+  const digitalEntries = Object.entries(DIGITAL_PRESETS);
+  const printEntries = Object.entries(PRINT_PRESETS);
+
+  const downloadLabel =
+    mode === 'print'
+      ? 'Download Print-Ready PDF'
+      : `Download for ${DIGITAL_PRESETS[preset as keyof typeof DIGITAL_PRESETS]?.label ?? 'Social Media'}`;
 
   async function handleDownload() {
     setLoading(true);
@@ -40,7 +52,7 @@ export function DownloadModal({
       const res = await fetch('/api/flyer/render-hires', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, format, size }),
+        body: JSON.stringify({ jobId, preset, useCase: mode }),
       });
 
       if (!res.ok) {
@@ -49,12 +61,24 @@ export function DownloadModal({
       }
 
       const blob = await res.blob();
+      const ext = mode === 'print' ? 'pdf' : (DIGITAL_PRESETS[preset as keyof typeof DIGITAL_PRESETS]?.format ?? 'jpg');
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `flyer.${format}`;
+      a.download = `flyer-${preset}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
+
+      // Web Share API — mobile devices (WhatsApp etc.)
+      if (mode === 'digital' && typeof navigator !== 'undefined' && 'canShare' in navigator) {
+        const mimeType = ext === 'jpg' ? 'image/jpeg' : 'image/png';
+        const file = new File([blob], `flyer-${preset}.${ext}`, { type: mimeType });
+        if (navigator.canShare({ files: [file] })) {
+          setTimeout(() => {
+            navigator.share({ files: [file], title: 'Your Flyer' }).catch(() => {/* user cancelled */});
+          }, 500);
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Download failed');
     } finally {
@@ -65,18 +89,15 @@ export function DownloadModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-[#111113] border border-zinc-800 rounded-lg w-full max-w-lg shadow-2xl">
+      <div className="relative bg-[#111113] border border-zinc-800 rounded-lg w-full max-w-md shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Download Flyer</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Print-resolution export</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Export Flyer</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Choose how you want to use your flyer</p>
           </div>
           <button
             onClick={onClose}
@@ -86,65 +107,104 @@ export function DownloadModal({
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
-          {/* Preview */}
+        <div className="p-5 space-y-4">
+          {/* Flyer thumbnail */}
           <div className="flex gap-4 items-start">
-            <div className="shrink-0 w-20 rounded overflow-hidden border border-zinc-700">
-              <img
-                src={imageDataUrl}
-                alt="Flyer preview"
-                className="w-full object-cover"
-              />
+            <div className="shrink-0 w-16 rounded overflow-hidden border border-zinc-700">
+              <img src={imageDataUrl} alt="Flyer preview" className="w-full object-cover" />
             </div>
-            <div className="flex-1 space-y-3">
-              {/* Format */}
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2">
-                  Format
-                </label>
-                <div className="flex gap-2">
-                  {FORMATS.map((f) => (
-                    <button
-                      key={f.value}
-                      onClick={() => setFormat(f.value)}
-                      className={`flex-1 py-2 text-xs rounded border transition-all ${
-                        format === f.value
-                          ? 'bg-amber-400/10 border-amber-400/50 text-amber-300 font-semibold'
-                          : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-zinc-500 mt-1.5">
-                  {FORMATS.find((f) => f.value === format)?.desc}
-                </p>
-              </div>
 
-              {/* Size */}
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2">
-                  Print Size
-                </label>
-                <div className="flex gap-2">
-                  {SIZES.map((s) => (
-                    <button
-                      key={s.value}
-                      onClick={() => setSize(s.value)}
-                      className={`flex-1 py-2 text-xs rounded border transition-all ${
-                        size === s.value
-                          ? 'bg-amber-400/10 border-amber-400/50 text-amber-300 font-semibold'
-                          : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600'
-                      }`}
-                    >
-                      <div>{s.label}</div>
-                      <div className="text-[9px] font-mono opacity-70 mt-0.5">{s.desc}</div>
-                    </button>
-                  ))}
-                </div>
+            {/* Mode toggle */}
+            <div className="flex-1">
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2">
+                What do you want to do?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => switchMode('digital')}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-medium transition-all ${
+                    mode === 'digital'
+                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
+                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  <span className="text-lg leading-none">📱</span>
+                  Share Online
+                </button>
+                <button
+                  onClick={() => switchMode('print')}
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-medium transition-all ${
+                    mode === 'print'
+                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
+                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  <span className="text-lg leading-none">🖨️</span>
+                  Print It
+                </button>
               </div>
             </div>
+          </div>
+
+          {/* Option list */}
+          <div className="space-y-1.5">
+            {mode === 'digital' ? (
+              <>
+                {digitalEntries.map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    onClick={() => setPreset(key)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                      preset === key
+                        ? 'bg-amber-400/10 border-amber-400/40'
+                        : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-600'
+                    }`}
+                  >
+                    <AspectBox w={cfg.width} h={cfg.height} />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-xs font-semibold ${preset === key ? 'text-amber-200' : 'text-zinc-200'}`}>
+                        {cfg.label}
+                      </div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">{cfg.desc}</div>
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-600 shrink-0">
+                      {cfg.width}×{cfg.height}
+                    </div>
+                  </button>
+                ))}
+                <p className="text-[10px] text-zinc-600 pt-1 pl-1">
+                  ℹ Sized perfectly for sharing — no cropping needed
+                </p>
+              </>
+            ) : (
+              <>
+                {printEntries.map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    onClick={() => setPreset(key)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                      preset === key
+                        ? 'bg-amber-400/10 border-amber-400/40'
+                        : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-600'
+                    }`}
+                  >
+                    <AspectBox w={cfg.widthMm} h={cfg.heightMm} />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-xs font-semibold ${preset === key ? 'text-amber-200' : 'text-zinc-200'}`}>
+                        {cfg.label}
+                      </div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">{cfg.desc}</div>
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-600 shrink-0">
+                      {cfg.widthMm}×{cfg.heightMm}mm
+                    </div>
+                  </button>
+                ))}
+                <p className="text-[10px] text-zinc-600 pt-1 pl-1">
+                  ℹ PDF ready for any print shop — just send the file · 300 DPI · 3mm bleed included
+                </p>
+              </>
+            )}
           </div>
 
           {error && (
@@ -177,7 +237,7 @@ export function DownloadModal({
                 Rendering…
               </span>
             ) : (
-              `Download ${format.toUpperCase()}`
+              downloadLabel
             )}
           </button>
         </div>

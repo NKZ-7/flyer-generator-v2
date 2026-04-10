@@ -27,10 +27,21 @@ const COLOR_OPTIONS = [
   { value: 'gold', label: 'Luxury & Gold', hex: '#b45309' },
 ];
 
+// Values MUST match TYPO_POOLS keys in n8n Extract Inputs node
 const FONT_OPTIONS = [
-  { value: 'modern', label: 'Modern (Oswald)' },
-  { value: 'classic', label: 'Classic (Playfair)' },
-  { value: 'clean', label: 'Clean (Inter)' },
+  { value: 'modern',       label: 'Bold Impact',      hint: 'Oswald — heavy, all-caps, high energy' },
+  { value: 'classic',      label: 'Editorial Luxury', hint: 'Playfair — refined, elegant, serif' },
+  { value: 'clean',        label: 'Clean Modern',     hint: 'Inter — geometric, balanced, contemporary' },
+  { value: 'highContrast', label: 'High Contrast',    hint: 'Oswald headline + Inter body' },
+  { value: 'vintage',      label: 'Vintage Press',    hint: 'Playfair — old-style, nostalgic' },
+  { value: 'minimalType',  label: 'Minimal Type',     hint: 'Inter light — understated, luxury' },
+];
+
+// 12 preset accent colors in a 6×2 grid
+const ACCENT_PRESETS = [
+  '#f59e0b', '#7c3aed', '#ef4444', '#3b82f6',
+  '#10b981', '#ec4899', '#14b8a6', '#f97316',
+  '#22c55e', '#e11d48', '#64748b', '#d4a76a',
 ];
 
 const defaultPrefs: FlyerPreferences = {
@@ -184,48 +195,72 @@ export function ControlPanel({ phase, onGenerate, onReset }: ControlPanelProps) 
             </div>
           </Field>
 
-          {/* Primary color + Font row */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Accent Color">
-              <div className="flex items-center gap-2">
-                <div className="relative w-9 h-9 rounded border border-zinc-700 overflow-hidden shrink-0">
-                  <input
-                    type="color"
-                    value={prefs.primaryColor}
-                    onChange={(e) => set('primaryColor', e.target.value)}
-                    disabled={isGenerating}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div
-                    className="absolute inset-0 rounded"
-                    style={{ backgroundColor: prefs.primaryColor }}
-                  />
-                </div>
+          {/* Font Style — 6 options in 2-column grid */}
+          <Field label="Font Style">
+            <div className="grid grid-cols-2 gap-1.5">
+              {FONT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set('fontStyle', opt.value)}
+                  disabled={isGenerating}
+                  className={`px-3 py-2 text-left rounded border transition-all ${
+                    prefs.fontStyle === opt.value
+                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
+                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  <div className="text-xs font-medium">{opt.label}</div>
+                  <div className="text-[10px] opacity-60 mt-0.5 leading-tight">{opt.hint}</div>
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {/* Accent Color */}
+          <Field label="Accent Color">
+            {/* Preset swatches — 6 per row */}
+            <div className="grid grid-cols-6 gap-1.5 mb-2">
+              {ACCENT_PRESETS.map((hex) => (
+                <button
+                  key={hex}
+                  type="button"
+                  onClick={() => set('primaryColor', hex)}
+                  disabled={isGenerating}
+                  title={hex}
+                  className={`w-full aspect-square rounded-full border-2 transition-all ${
+                    prefs.primaryColor?.toLowerCase() === hex.toLowerCase()
+                      ? 'border-white scale-110'
+                      : 'border-transparent hover:border-white/50 hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: hex }}
+                />
+              ))}
+            </div>
+            {/* Custom hex + color picker */}
+            <div className="flex items-center gap-2">
+              <div className="relative w-9 h-9 rounded border border-zinc-700 overflow-hidden shrink-0">
                 <input
-                  type="text"
+                  type="color"
                   value={prefs.primaryColor}
                   onChange={(e) => set('primaryColor', e.target.value)}
                   disabled={isGenerating}
-                  className={`${inputCls} font-mono text-[11px]`}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div
+                  className="absolute inset-0 rounded"
+                  style={{ backgroundColor: prefs.primaryColor }}
                 />
               </div>
-            </Field>
-
-            <Field label="Font Style">
-              <select
-                value={prefs.fontStyle}
-                onChange={(e) => set('fontStyle', e.target.value)}
+              <input
+                type="text"
+                value={prefs.primaryColor}
+                onChange={(e) => set('primaryColor', e.target.value)}
                 disabled={isGenerating}
-                className={`${inputCls} appearance-none`}
-              >
-                {FONT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
+                className={`${inputCls} font-mono text-[11px]`}
+              />
+            </div>
+          </Field>
         </div>
 
         {/* Sticky generate button */}

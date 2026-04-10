@@ -6,10 +6,13 @@ import { CanvasPanel } from './CanvasPanel';
 import { ControlPanel } from './ControlPanel';
 import { VersionStrip } from './VersionStrip';
 import { DownloadModal } from './DownloadModal';
+import { RefinementChat } from './RefinementChat';
 
 export function StudioLayout() {
   const generator = useGenerator();
   const [showDownload, setShowDownload] = useState(false);
+
+  const showChat = generator.phase === 'done' || generator.isRefining;
 
   return (
     <div className="flex flex-col h-screen bg-[#09090b] text-zinc-100 overflow-hidden font-sans">
@@ -44,14 +47,27 @@ export function StudioLayout() {
           />
         </div>
 
-        {/* Right: controls */}
-        <div className="flex-[2] min-w-0 min-h-0 overflow-y-auto">
-          <ControlPanel
-            phase={generator.phase}
-            onGenerate={generator.generate}
-            onReset={generator.reset}
-            errorMsg={generator.errorMsg}
-          />
+        {/* Right: controls + optional chat panel */}
+        <div className="flex-[2] min-w-0 min-h-0 flex flex-col overflow-hidden divide-y divide-zinc-800">
+          {/* Control panel — scrollable, takes remaining space */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <ControlPanel
+              phase={generator.phase}
+              onGenerate={generator.generate}
+              onReset={generator.reset}
+              errorMsg={generator.errorMsg}
+            />
+          </div>
+
+          {/* Refinement chat — appears when a flyer is done (or refining) */}
+          {showChat && (
+            <div className="h-64 shrink-0">
+              <RefinementChat
+                onRefine={generator.refine}
+                isRefining={generator.isRefining}
+              />
+            </div>
+          )}
         </div>
       </div>
 
