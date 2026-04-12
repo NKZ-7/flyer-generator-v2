@@ -19,10 +19,13 @@ export async function GET(
   let render = await getJobRender(jobId);
   let dataUrl: string | undefined;
 
-  // Synchronous render — triggered exactly once: when n8n is done but render hasn't run yet.
-  // We render here (blocking) rather than fire-and-forget to avoid Vercel killing the function
-  // before the render completes.
-  if (meta.status === 'done' && render?.status === 'pending' && meta.designSpec) {
+  if (meta.status === 'done' && render?.status === 'done' && render.prerenderedDataUrl) {
+    // Composite branch: Sharp already produced the image — return it directly, skip Satori.
+    dataUrl = render.prerenderedDataUrl;
+  } else if (meta.status === 'done' && render?.status === 'pending' && meta.designSpec) {
+    // Standard branch: Satori render — triggered exactly once when n8n is done but render hasn't run.
+    // We render here (blocking) rather than fire-and-forget to avoid Vercel killing the function
+    // before the render completes.
     try {
       dataUrl = await renderFlyerToBase64(meta.designSpec!, 1, meta.dallePrompt);
       await completeRender(jobId);

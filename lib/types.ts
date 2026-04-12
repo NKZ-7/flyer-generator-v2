@@ -91,6 +91,8 @@ export interface JobRender {
   status: 'pending' | 'done' | 'error';
   error?: string;
   // dataUrl is NOT stored in Redis — returned directly in the status HTTP response
+  // prerenderedDataUrl is set by the composite branch (Sharp-composited image, skips Satori)
+  prerenderedDataUrl?: string;
 }
 
 // ──────────────────────────────────────────────

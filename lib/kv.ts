@@ -52,6 +52,23 @@ export async function failJob(jobId: string, error: string): Promise<void> {
   await getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL });
 }
 
+/** Used by the photo compositing branch — Sharp has already produced the image,
+ *  so we store it directly and mark render done to skip Satori. */
+export async function completeJobComposite(
+  jobId: string,
+  copy: FlyerCopy,
+  designSpec: DesignSpec,
+  dallePrompt: string,
+  prerenderedDataUrl: string,
+): Promise<void> {
+  const meta: JobMeta = { status: 'done', copy, designSpec, dallePrompt };
+  const render: JobRender = { status: 'done', prerenderedDataUrl };
+  await Promise.all([
+    getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL }),
+    getRedis().set(renderKey(jobId), JSON.stringify(render), { ex: TTL }),
+  ]);
+}
+
 export async function completeRender(jobId: string): Promise<void> {
   const render: JobRender = { status: 'done' };
   await getRedis().set(renderKey(jobId), JSON.stringify(render), { ex: TTL });
