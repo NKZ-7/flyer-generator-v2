@@ -7,7 +7,7 @@ import { ControlPanel } from './ControlPanel';
 import { VersionStrip } from './VersionStrip';
 import { DownloadModal } from './DownloadModal';
 import { RefinementChat } from './RefinementChat';
-import type { FlyerPreferences } from '@/lib/types';
+import type { FlyerPreferences, UserAsset } from '@/lib/types';
 
 const defaultPrefs: FlyerPreferences = {
   title: '',
@@ -25,9 +25,15 @@ export function StudioLayout() {
   const generator = useGenerator();
   const [showDownload, setShowDownload] = useState(false);
   const [prefs, setPrefs] = useState<FlyerPreferences>(defaultPrefs);
+  const [userAssets, setUserAssets] = useState<UserAsset[]>([]);
 
   function setPrefsKey<K extends keyof FlyerPreferences>(key: K, val: FlyerPreferences[K]) {
     setPrefs((prev) => ({ ...prev, [key]: val }));
+  }
+
+  function handleReset() {
+    setUserAssets([]);
+    generator.reset();
   }
 
   const showChat = generator.phase === 'done' || generator.isRefining;
@@ -70,7 +76,7 @@ export function StudioLayout() {
             currentVersion={generator.currentVersion}
             errorMsg={generator.errorMsg}
             onDownload={() => setShowDownload(true)}
-            onReset={generator.reset}
+            onReset={handleReset}
             prefs={prefs}
           />
         </div>
@@ -81,10 +87,12 @@ export function StudioLayout() {
           <div className="flex-1 min-h-0 overflow-hidden">
             <ControlPanel
               phase={generator.phase}
-              onGenerate={generator.generate}
-              onReset={generator.reset}
+              onGenerate={(prefs) => generator.generate(prefs, userAssets)}
+              onReset={handleReset}
               prefs={prefs}
               onPrefsChange={setPrefsKey}
+              userAssets={userAssets}
+              onAssetsChange={setUserAssets}
             />
           </div>
 
@@ -119,7 +127,7 @@ export function StudioLayout() {
           jobId={generator.currentVersion.jobId}
           imageDataUrl={generator.currentVersion.imageDataUrl}
           onClose={() => setShowDownload(false)}
-          onNewFlyer={generator.reset}
+          onNewFlyer={handleReset}
         />
       )}
     </div>

@@ -7,6 +7,7 @@ import type {
   GeneratorPhase,
   VersionEntry,
   JobMeta,
+  UserAsset,
 } from '@/lib/types';
 import { MAX_VERSION_HISTORY } from '@/lib/constants';
 
@@ -58,7 +59,7 @@ export function useGenerator() {
     onError: handleError,
   });
 
-  const generate = useCallback(async (preferences: FlyerPreferences) => {
+  const generate = useCallback(async (preferences: FlyerPreferences, assets: UserAsset[] = []) => {
     setPhase('generating');
     setErrorMsg(null);
     lastPrefsRef.current = preferences;
@@ -67,7 +68,18 @@ export function useGenerator() {
       const res = await fetch('/api/flyer/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences }),
+        body: JSON.stringify({
+          preferences,
+          userAssets: assets.map((a) => ({
+            id: a.id,
+            image: a.imageBase64,
+            mimeType: a.mimeType,
+            role: a.role,
+            placement_instructions: a.placementInstructions,
+            original_filename: a.originalFilename,
+          })),
+          hasUserAssets: assets.length > 0,
+        }),
       });
 
       if (!res.ok) {

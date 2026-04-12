@@ -54,6 +54,25 @@ export interface FlyerPreferences {
   colorScheme?: string;
   primaryColor?: string;
   fontStyle?: string;
+  additionalContext?: string;
+}
+
+export type AssetRole =
+  | 'main_person'
+  | 'additional_person'
+  | 'product_item'
+  | 'logo'
+  | 'background_scene'
+  | 'other';
+
+export interface UserAsset {
+  id: string;
+  previewUrl: string;
+  imageBase64: string;
+  mimeType: 'image/jpeg';
+  originalFilename: string;
+  role: AssetRole;
+  placementInstructions: string;
 }
 
 // ──────────────────────────────────────────────

@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { FloatingField } from './FloatingField';
-import type { FlyerPreferences, GeneratorPhase } from '@/lib/types';
+import { AssetUploader } from './AssetUploader';
+import type { FlyerPreferences, UserAsset, GeneratorPhase } from '@/lib/types';
 
 interface ControlPanelProps {
   phase: GeneratorPhase;
@@ -10,6 +11,8 @@ interface ControlPanelProps {
   onReset: () => void;
   prefs: FlyerPreferences;
   onPrefsChange: <K extends keyof FlyerPreferences>(key: K, val: FlyerPreferences[K]) => void;
+  userAssets: UserAsset[];
+  onAssetsChange: (assets: UserAsset[]) => void;
 }
 
 // Values MUST match TYPO_POOLS keys in n8n Extract Inputs node
@@ -86,6 +89,8 @@ export function ControlPanel({
   onReset,
   prefs,
   onPrefsChange,
+  userAssets,
+  onAssetsChange,
 }: ControlPanelProps) {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [prevStep, setPrevStep] = useState<1 | 2 | 3 | null>(null);
@@ -220,7 +225,105 @@ export function ControlPanel({
             What's your flyer about?
           </p>
 
-          {/* Flyer type */}
+          {/* ① Title */}
+          <FloatingField
+            label="Event / Brand Title"
+            required
+            value={prefs.title}
+            onChange={(v) => {
+              onPrefsChange('title', v);
+              if (v.trim()) setTitleError(false);
+            }}
+            placeholder="e.g. Summer Music Festival"
+            disabled={isGenerating}
+            hasError={titleError}
+            errorMsg="Give your flyer a name first"
+          />
+
+          {/* ② Tell us more textarea */}
+          <div>
+            <label className="block text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1.5">
+              Tell us more
+              <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
+                (optional)
+              </span>
+            </label>
+            <textarea
+              value={prefs.additionalContext ?? ''}
+              onChange={(e) => onPrefsChange('additionalContext', e.target.value)}
+              disabled={isGenerating}
+              rows={3}
+              placeholder="e.g. The speaker is Pastor Kwame — uploaded photo shows him in a suit. Spiritual, professional vibe."
+              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors resize-none disabled:opacity-40"
+            />
+          </div>
+
+          {/* ③ Photos & Assets */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1">
+              Your Photos & Assets
+              <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
+                — optional
+              </span>
+            </p>
+            <p className="text-[10px] text-zinc-500 mb-2 leading-relaxed">
+              Upload photos of people, products, or logos you want in your flyer.
+              We'll blend them into the design seamlessly.
+            </p>
+            {userAssets.length > 0 && !prefs.additionalContext && (
+              <p className="text-[10px] text-amber-400/70 mb-2 leading-relaxed">
+                Tip: use the text box above to explain who or what is in your photos.
+              </p>
+            )}
+            <AssetUploader
+              assets={userAssets}
+              onAssetsChange={onAssetsChange}
+              disabled={isGenerating}
+            />
+          </div>
+
+          {/* ④ Tagline */}
+          <FloatingField
+            label="Tagline"
+            value={prefs.tagline ?? ''}
+            onChange={(v) => onPrefsChange('tagline', v)}
+            placeholder={hints.tagline}
+            disabled={isGenerating}
+          />
+
+          {/* ⑤ Date + Venue */}
+          <div className="grid grid-cols-2 gap-3">
+            <FloatingField
+              label="Date"
+              value={prefs.eventDate ?? ''}
+              onChange={(v) => onPrefsChange('eventDate', v)}
+              placeholder="e.g. July 19, 2025"
+              disabled={isGenerating}
+            />
+            <FloatingField
+              label="Venue"
+              value={prefs.venue ?? ''}
+              onChange={(v) => onPrefsChange('venue', v)}
+              placeholder={hints.venue}
+              disabled={isGenerating}
+            />
+          </div>
+
+          {/* ⑥ Contact */}
+          <FloatingField
+            label="Contact / URL"
+            value={prefs.contactInfo ?? ''}
+            onChange={(v) => onPrefsChange('contactInfo', v)}
+            placeholder="e.g. tickets@festival.com"
+            disabled={isGenerating}
+          />
+
+          <div className="border-t border-zinc-800" />
+
+          {/* ⑦ Flyer type (moved to end) */}
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+            Flyer type
+          </p>
           <div className="grid grid-cols-1 gap-1.5">
             {STYLE_OPTIONS.map((opt) => (
               <button
@@ -239,57 +342,6 @@ export function ControlPanel({
               </button>
             ))}
           </div>
-
-          <div className="border-t border-zinc-800" />
-
-          {/* Title */}
-          <FloatingField
-            label="Event / Brand Title"
-            required
-            value={prefs.title}
-            onChange={(v) => {
-              onPrefsChange('title', v);
-              if (v.trim()) setTitleError(false);
-            }}
-            placeholder="e.g. Summer Music Festival"
-            disabled={isGenerating}
-            hasError={titleError}
-            errorMsg="Give your flyer a name first"
-          />
-
-          {/* Tagline */}
-          <FloatingField
-            label="Tagline"
-            value={prefs.tagline ?? ''}
-            onChange={(v) => onPrefsChange('tagline', v)}
-            placeholder={hints.tagline}
-            disabled={isGenerating}
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <FloatingField
-              label="Date"
-              value={prefs.eventDate ?? ''}
-              onChange={(v) => onPrefsChange('eventDate', v)}
-              placeholder="e.g. July 19, 2025"
-              disabled={isGenerating}
-            />
-            <FloatingField
-              label="Venue"
-              value={prefs.venue ?? ''}
-              onChange={(v) => onPrefsChange('venue', v)}
-              placeholder={hints.venue}
-              disabled={isGenerating}
-            />
-          </div>
-
-          <FloatingField
-            label="Contact / URL"
-            value={prefs.contactInfo ?? ''}
-            onChange={(v) => onPrefsChange('contactInfo', v)}
-            placeholder="e.g. tickets@festival.com"
-            disabled={isGenerating}
-          />
         </div>
       );
     }
@@ -477,10 +529,27 @@ export function ControlPanel({
           </div>
           <SummaryRow label="Type"    value={styleLabel} />
           <SummaryRow label="Title"   value={prefs.title || <span className="text-zinc-600 italic">—</span>} />
-          {prefs.tagline   && <SummaryRow label="Tagline"  value={prefs.tagline} />}
-          {prefs.eventDate && <SummaryRow label="Date"     value={prefs.eventDate} />}
-          {prefs.venue     && <SummaryRow label="Venue"    value={prefs.venue} />}
-          {prefs.contactInfo && <SummaryRow label="Contact" value={prefs.contactInfo} />}
+          {prefs.tagline     && <SummaryRow label="Tagline"  value={prefs.tagline} />}
+          {prefs.eventDate   && <SummaryRow label="Date"     value={prefs.eventDate} />}
+          {prefs.venue       && <SummaryRow label="Venue"    value={prefs.venue} />}
+          {prefs.contactInfo && <SummaryRow label="Contact"  value={prefs.contactInfo} />}
+          {userAssets.length > 0 && (
+            <SummaryRow
+              label="Photos"
+              value={`${userAssets.length} image${userAssets.length > 1 ? 's' : ''} uploaded`}
+            />
+          )}
+          {prefs.additionalContext && (
+            <SummaryRow
+              label="Context"
+              value={
+                <span className="italic text-zinc-400 truncate max-w-[140px] block">
+                  &ldquo;{prefs.additionalContext.slice(0, 40)}
+                  {prefs.additionalContext.length > 40 ? '…' : ''}&rdquo;
+                </span>
+              }
+            />
+          )}
         </div>
 
         {/* Style card */}

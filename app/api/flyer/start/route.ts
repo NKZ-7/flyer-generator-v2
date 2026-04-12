@@ -6,9 +6,22 @@ import type { FlyerPreferences } from '@/lib/types';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+interface WireAsset {
+  id: string;
+  image: string;
+  mimeType: string;
+  role: string;
+  placement_instructions: string;
+  original_filename: string;
+}
+
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { preferences: FlyerPreferences };
-  const { preferences } = body;
+  const body = (await request.json()) as {
+    preferences: FlyerPreferences;
+    userAssets?: WireAsset[];
+    hasUserAssets?: boolean;
+  };
+  const { preferences, userAssets = [], hasUserAssets = false } = body;
 
   if (!preferences?.title) {
     return Response.json({ error: 'preferences.title is required' }, { status: 400 });
@@ -47,7 +60,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': webhookSecret,
       },
-      body: JSON.stringify({ jobId, callbackUrl, preferences }),
+      body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets }),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
