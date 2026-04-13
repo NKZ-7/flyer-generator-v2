@@ -1,22 +1,17 @@
 import { NextRequest } from 'next/server';
 import sharp from 'sharp';
-import { readFileSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-// ── Font cache (loaded once at cold start) ─────────────────────────────────
-const FONT_CACHE: Record<string, string> = {};
-
-function loadFont(name: string, filename: string): string {
-  if (!FONT_CACHE[name]) {
-    const buf = readFileSync(join(process.cwd(), 'public', 'fonts', filename));
-    FONT_CACHE[name] = buf.toString('base64');
-  }
-  return FONT_CACHE[name];
-}
+// ── Font URLs (file:// so librsvg reads directly from disk — no base64 bloat) ──
+const FONT_URLS = {
+  oswald: pathToFileURL(join(process.cwd(), 'public', 'fonts', 'Oswald-Bold.ttf')).toString(),
+  playfair: pathToFileURL(join(process.cwd(), 'public', 'fonts', 'PlayfairDisplay-Regular.ttf')).toString(),
+};
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -151,13 +146,11 @@ async function removeBackground(imageBase64: string): Promise<string | null> {
 // ── SVG generation ─────────────────────────────────────────────────────────
 
 function makeSvgWrapper(canvasW: number, canvasH: number, content: string): string {
-  const oswaldB64 = loadFont('oswald-bold', 'Oswald-Bold.ttf');
-  const playfairB64 = loadFont('playfair-regular', 'PlayfairDisplay-Regular.ttf');
   return `<svg width="${canvasW}" height="${canvasH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
-      @font-face { font-family: 'Oswald'; src: url('data:font/truetype;base64,${oswaldB64}'); font-weight: bold; }
-      @font-face { font-family: 'Playfair Display'; src: url('data:font/truetype;base64,${playfairB64}'); font-weight: normal; }
+      @font-face { font-family: 'Oswald'; src: url('${FONT_URLS.oswald}'); font-weight: bold; }
+      @font-face { font-family: 'Playfair Display'; src: url('${FONT_URLS.playfair}'); font-weight: normal; }
     </style>
   </defs>
   ${content}
@@ -252,8 +245,8 @@ function layerToSvgContent(layer: Layer, canvasW: number, canvasH: number): stri
         : '';
       const content = escapeXml(specs.content ?? '');
 
-      // Multi-line support: split on \n and render multiple <tspan>
-      const lines = content.split('\\n');
+      // Multi-line support: split on real newline (JSON parses \n → char 10)
+      const lines = content.split('\n');
       const lineH = specs.line_height ?? fontSize * 1.2;
       if (lines.length > 1) {
         const tspans = lines
