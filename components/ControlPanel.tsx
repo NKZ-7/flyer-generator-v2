@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { FloatingField } from './FloatingField';
 import { AssetUploader } from './AssetUploader';
+import { OccasionPicker, OCCASIONS } from './OccasionPicker';
+import { VibePicker, VIBES } from './VibePicker';
 import type { FlyerPreferences, UserAsset, GeneratorPhase } from '@/lib/types';
 
 interface ControlPanelProps {
@@ -15,14 +17,13 @@ interface ControlPanelProps {
   onAssetsChange: (assets: UserAsset[]) => void;
 }
 
-// Values MUST match TYPO_POOLS keys in n8n Extract Inputs node
-const STYLE_OPTIONS = [
-  { value: 'event',        label: 'Event / Concert',      icon: '🎵' },
-  { value: 'sale',         label: 'Sale / Promo',          icon: '🏷️' },
-  { value: 'hiring',       label: 'Hiring / Recruitment',  icon: '💼' },
-  { value: 'food',         label: 'Food / Restaurant',     icon: '🍽️' },
-  { value: 'announcement', label: 'Announcement',          icon: '📢' },
-];
+const OCCASION_PLACEHOLDERS: Record<string, { tagline: string; venue: string }> = {
+  birthday:   { tagline: "e.g. Wishing you all the joy in the world",  venue: 'e.g. The Grand Ballroom, Accra' },
+  sympathy:   { tagline: 'e.g. Forever in our hearts',                  venue: 'e.g. Community Chapel' },
+  congrats:   { tagline: 'e.g. You made it — we always knew you would', venue: 'e.g. Head Office, Accra' },
+  business:   { tagline: 'e.g. Unbeatable deals, every day',            venue: 'e.g. All branches nationwide' },
+  invitation: { tagline: "e.g. The night you won't forget",             venue: 'e.g. National Theatre, Accra' },
+};
 
 const COLOR_OPTIONS = [
   { value: 'dark',    label: 'Dark & Bold' },
@@ -75,13 +76,6 @@ const ACCENT_PRESETS = [
   '#7c3aed', '#3b82f6', '#14b8a6', '#10b981', '#64748b', '#22c55e',
 ];
 
-const PLACEHOLDERS: Record<string, { tagline: string; venue: string }> = {
-  event:        { tagline: "e.g. The night you won't forget",       venue: 'e.g. National Theatre, Accra' },
-  sale:         { tagline: 'e.g. Up to 50% off everything',          venue: 'e.g. All branches nationwide' },
-  hiring:       { tagline: 'e.g. Join our growing team',             venue: 'e.g. Head Office, Accra' },
-  food:         { tagline: 'e.g. Taste the difference',              venue: 'e.g. East Legon, Accra' },
-  announcement: { tagline: 'e.g. Important update for all members',  venue: 'e.g. Community Center' },
-};
 
 export function ControlPanel({
   phase,
@@ -215,7 +209,7 @@ export function ControlPanel({
     );
   }
 
-  const hints = PLACEHOLDERS[prefs.style as keyof typeof PLACEHOLDERS] ?? PLACEHOLDERS.event;
+  const hints = OCCASION_PLACEHOLDERS[prefs.occasion ?? 'birthday'] ?? OCCASION_PLACEHOLDERS.birthday;
 
   function renderStepContent(step: 1 | 2 | 3): React.ReactNode {
     if (step === 1) {
@@ -227,7 +221,7 @@ export function ControlPanel({
 
           {/* ① Title */}
           <FloatingField
-            label="Event / Brand Title"
+            label="Name / Title"
             required
             value={prefs.title}
             onChange={(v) => {
@@ -320,28 +314,25 @@ export function ControlPanel({
 
           <div className="border-t border-zinc-800" />
 
-          {/* ⑦ Flyer type (moved to end) */}
+          {/* ⑦ Occasion */}
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
-            Flyer type
+            Occasion
           </p>
-          <div className="grid grid-cols-1 gap-1.5">
-            {STYLE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => onPrefsChange('style', opt.value as FlyerPreferences['style'])}
-                disabled={isGenerating}
-                className={`flex items-center gap-2.5 px-3 py-2.5 text-xs rounded border transition-all min-h-[44px] text-left ${
-                  prefs.style === opt.value
-                    ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                    : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <span className="text-base leading-none">{opt.icon}</span>
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <OccasionPicker
+            value={prefs.occasion}
+            onChange={(v) => onPrefsChange('occasion', v)}
+            disabled={isGenerating}
+          />
+
+          {/* ⑧ Vibe */}
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mt-3">
+            Vibe
+          </p>
+          <VibePicker
+            value={prefs.vibe}
+            onChange={(v) => onPrefsChange('vibe', v)}
+            disabled={isGenerating}
+          />
         </div>
       );
     }
@@ -503,9 +494,10 @@ export function ControlPanel({
     }
 
     // Step 3: Review
-    const colorLabel = COLOR_OPTIONS.find((o) => o.value === prefs.colorScheme)?.label ?? prefs.colorScheme;
-    const fontLabel  = FONT_OPTIONS.find((o) => o.value === prefs.fontStyle)?.label ?? prefs.fontStyle;
-    const styleLabel = STYLE_OPTIONS.find((o) => o.value === prefs.style)?.label ?? prefs.style;
+    const colorLabel    = COLOR_OPTIONS.find((o) => o.value === prefs.colorScheme)?.label ?? prefs.colorScheme;
+    const fontLabel     = FONT_OPTIONS.find((o) => o.value === prefs.fontStyle)?.label ?? prefs.fontStyle;
+    const occasionLabel = OCCASIONS.find((o) => o.value === prefs.occasion)?.label ?? prefs.occasion ?? '—';
+    const vibeLabel     = VIBES.find((o) => o.value === prefs.vibe)?.label ?? prefs.vibe ?? '—';
 
     return (
       <div className="space-y-4">
@@ -527,7 +519,8 @@ export function ControlPanel({
               Edit
             </button>
           </div>
-          <SummaryRow label="Type"    value={styleLabel} />
+          <SummaryRow label="Occasion" value={occasionLabel} />
+          <SummaryRow label="Vibe"     value={vibeLabel} />
           <SummaryRow label="Title"   value={prefs.title || <span className="text-zinc-600 italic">—</span>} />
           {prefs.tagline     && <SummaryRow label="Tagline"  value={prefs.tagline} />}
           {prefs.eventDate   && <SummaryRow label="Date"     value={prefs.eventDate} />}

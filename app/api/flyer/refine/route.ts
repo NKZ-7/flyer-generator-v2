@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createJob } from '@/lib/kv';
 import { randomUUID } from 'crypto';
-import type { FlyerPreferences, FlyerCopy, DesignSpec } from '@/lib/types';
+import type { FlyerPreferences, TemplateCopy } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,12 +11,12 @@ export async function POST(request: NextRequest) {
     currentJobId: string;
     message: string;
     preferences: FlyerPreferences;
-    copy: FlyerCopy;
-    designSpec: DesignSpec;
-    dallePrompt: string;
+    copy: TemplateCopy;
+    templateId: string;
+    paletteIndex: number;
   };
 
-  const { message, preferences, copy, designSpec, dallePrompt } = body;
+  const { message, preferences, copy, templateId, paletteIndex } = body;
 
   if (!message?.trim()) {
     return Response.json({ error: 'message is required' }, { status: 400 });
@@ -43,14 +43,12 @@ export async function POST(request: NextRequest) {
 
   const webhookSecret = process.env.N8N_WEBHOOK_SECRET ?? '11111';
 
-  // Pass the full refinement context inside preferences so n8n can detect the mode
-  // via preferences.refinementMessage and build the appropriate Claude prompt
   const refinementPreferences = {
     ...preferences,
     refinementMessage: message,
     currentCopy: copy,
-    currentDesignSpec: designSpec,
-    currentDallePrompt: dallePrompt,
+    currentTemplateId: templateId,
+    currentPaletteIndex: paletteIndex,
   };
 
   let webhookRes: Response;

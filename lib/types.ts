@@ -2,6 +2,12 @@
 // Core flyer data types
 // ──────────────────────────────────────────────
 
+export interface TemplateCopy {
+  headline: string;
+  body: string;
+  signoff: string;
+}
+
 export interface FlyerCopy {
   headline: string;
   subheadline: string;
@@ -46,15 +52,21 @@ export interface DesignSpec {
 
 export interface FlyerPreferences {
   title: string;
+  // ── New fields ────────────────────────────────────────────────
+  occasion?: 'birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation';
+  vibe?: 'elegant' | 'warm' | 'playful' | 'bold' | 'church' | 'minimal';
+  // ── Style hints (still sent to n8n for palette/font guidance) ─
+  colorScheme?: string;
+  primaryColor?: string;
+  fontStyle?: string;
+  // ── Content fields ────────────────────────────────────────────
   tagline?: string;
   eventDate?: string;
   venue?: string;
   contactInfo?: string;
-  style?: string;
-  colorScheme?: string;
-  primaryColor?: string;
-  fontStyle?: string;
   additionalContext?: string;
+  // ── Deprecated (kept for StudioLayout defaultPrefs compat) ────
+  style?: string;
 }
 
 export type AssetRole =
@@ -81,10 +93,16 @@ export interface UserAsset {
 
 export interface JobMeta {
   status: 'pending' | 'done' | 'error';
-  copy?: FlyerCopy;
-  designSpec?: DesignSpec;
-  dallePrompt?: string;
   error?: string;
+  // ── Template path (new standard branch) ──────────────────────
+  templateId?: string;
+  copy?: TemplateCopy;
+  paletteIndex?: number; // use !== undefined checks — 0 is a valid index
+  // ── Composite/legacy path (preserved — do not remove) ─────────
+  // REVIEW: Remove legacyCopy/legacyDesignSpec/legacyDallePrompt when composite branch is refactored
+  legacyCopy?: FlyerCopy;
+  legacyDesignSpec?: DesignSpec;
+  legacyDallePrompt?: string;
 }
 
 export interface JobRender {
@@ -116,8 +134,8 @@ export type DownloadFormat = 'png' | 'jpg' | 'pdf';
 export interface VersionEntry {
   jobId: string;
   imageDataUrl: string;
-  copy: FlyerCopy;
-  designSpec: DesignSpec;
-  dallePrompt: string;
+  copy: TemplateCopy | FlyerCopy; // composite uses FlyerCopy, template uses TemplateCopy
+  templateId?: string;
+  paletteIndex?: number;
   createdAt: number;
 }

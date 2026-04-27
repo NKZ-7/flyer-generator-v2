@@ -8,6 +8,7 @@ import type {
   VersionEntry,
   JobMeta,
   UserAsset,
+  TemplateCopy,
 } from '@/lib/types';
 import { MAX_VERSION_HISTORY } from '@/lib/constants';
 
@@ -25,7 +26,7 @@ export function useGenerator() {
   const lastPrefsRef = useRef<FlyerPreferences | null>(null);
 
   const handleComplete = useCallback((dataUrl: string, meta: JobMeta) => {
-    if (!meta.copy || !meta.designSpec) {
+    if (!meta.copy && !meta.legacyCopy) {
       setPhase('error');
       setErrorMsg('Received incomplete result from workflow');
       setIsRefining(false);
@@ -35,9 +36,9 @@ export function useGenerator() {
     const entry: VersionEntry = {
       jobId: jobIdRef.current!,
       imageDataUrl: dataUrl,
-      copy: meta.copy,
-      designSpec: meta.designSpec,
-      dallePrompt: meta.dallePrompt ?? '',
+      copy: meta.copy ?? meta.legacyCopy!,
+      templateId: meta.templateId,
+      paletteIndex: meta.paletteIndex,
       createdAt: Date.now(),
     };
 
@@ -112,9 +113,9 @@ export function useGenerator() {
           currentJobId: currentVersion.jobId,
           message,
           preferences: lastPrefsRef.current,
-          copy: currentVersion.copy,
-          designSpec: currentVersion.designSpec,
-          dallePrompt: currentVersion.dallePrompt,
+          copy: currentVersion.copy as TemplateCopy, // REVIEW: refinement of composite jobs uses cast — deferred to composite refactor
+          templateId: currentVersion.templateId ?? '',
+          paletteIndex: currentVersion.paletteIndex ?? 0,
         }),
       });
 

@@ -1,22 +1,9 @@
-/**
- * RENDER ENGINE — converts a DesignSpec into a base64 PNG.
- *
- * When `dallePrompt` is provided (hybrid mode):
- *   1. Calls OpenAI gpt-image-1 to generate the visual background image
- *   2. Renders Claude's text/shape nodes via Satori (transparent root)
- *   3. Sharp composites the text SVG over the OpenAI background
- *
- * When `dallePrompt` is absent (fallback mode):
- *   Renders the full flyer using Satori + Sharp with the design_spec background.
- *
- * Pass scaleFactor > 1 for print-resolution rendering (used by render-hires route).
- */
-
 import satori from 'satori';
 import sharp from 'sharp';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import type { DesignSpec, DesignNode } from './types';
+import { loadTemplate } from './templates/index';
+import type { TemplateCopy } from './types';
 
 // Cache font buffers in module scope — only read once per process
 let _fonts: Awaited<Parameters<typeof satori>[1]>['fonts'] | null = null;
@@ -64,167 +51,96 @@ function getFonts() {
 }
 
 export async function renderFlyerToBase64(
-  spec: DesignSpec,
+  templateId: string,
+  copy: TemplateCopy,
+  paletteIndex: number,
   scaleFactor = 1,
-  dallePrompt?: string,
 ): Promise<string> {
-  const width = Math.round(spec.width * scaleFactor);
-  const height = Math.round(spec.height * scaleFactor);
-  // Sort so shape nodes always render before text nodes — shapes are background
-  // elements and must not cover text regardless of Claude's output order.
-  const sortedNodes = [...(spec.nodes ?? [])].sort((a, b) => {
-    if (a.type === 'shape' && b.type !== 'shape') return -1;
-    if (a.type !== 'shape' && b.type === 'shape') return 1;
-    return 0;
-  });
-  const children = sortedNodes.map((node) => renderNode(node, scaleFactor));
+  const template = loadTemplate(templateId);
+  const palette = template.palettes[paletteIndex] ?? template.palettes[0];
+  const W = Math.round(template.dimensions.width  * scaleFactor);
+  const H = Math.round(template.dimensions.height * scaleFactor);
 
-  if (dallePrompt) {
-    // ── Hybrid mode: OpenAI background + Satori text overlay ──────────────────
-    const aiRes = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: dallePrompt,
-        n: 1,
-        size: '1024x1536', // portrait — no response_format param, gpt-image-1 always returns b64_json
-        quality: 'low',
-      }),
-    });
+  // Load background PNG from disk — background_url is "/backgrounds/foo.png"
+  // path.join handles the leading slash correctly as a relative segment
+  const bgBuffer = readFileSync(join(process.cwd(), 'public', template.background_url));
 
-    if (!aiRes.ok) {
-      throw new Error(`OpenAI error ${aiRes.status}: ${await aiRes.text()}`);
+  const composites: { input: Buffer; top: number; left: number }[] = [];
+
+  for (const slot of template.slots) {
+    const rawText = copy[slot.id as keyof TemplateCopy] ?? '';
+    // Enforce hard limit before rendering
+    const text = rawText.slice(0, slot.hard_max_chars);
+
+    if (!text) continue; // skip empty slots
+
+    const color = palette[slot.color_token];
+
+    // Auto-fit: reduce font size until text fits within max_lines (char-count heuristic)
+    // REVIEW: uses char-count estimate, not true layout measurement — may under/over-fit for short words or CJK
+    let fontSize = Math.round(slot.ideal_size_px * scaleFactor);
+    const minFontSize = Math.round(slot.min_size_px * scaleFactor);
+    for (let i = 0; i < 10; i++) {
+      const charsPerLine = Math.floor((slot.zone.width * scaleFactor) / (fontSize * 0.55));
+      const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1));
+      if (estimatedLines <= slot.max_lines || fontSize <= minFontSize) break;
+      fontSize -= 2;
     }
-    const aiJson = await aiRes.json();
-    const b64 = aiJson.data?.[0]?.b64_json;
-    if (!b64) throw new Error('OpenAI returned no image data');
 
-    const imgBuffer = Buffer.from(b64, 'base64');
-
-    // Satori: transparent root — Claude's text/shape nodes only, no background color
-    const textRoot = {
+    // Build Satori JSX: full W×H canvas with text absolutely positioned at slot zone
+    const root = {
       type: 'div',
       props: {
         style: {
           position: 'relative' as const,
           display: 'flex' as const,
-          width,
-          height,
+          width: W,
+          height: H,
         },
-        children,
-      },
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const svg = await satori(textRoot as any, { width, height, fonts: getFonts() });
-
-    // Sharp: resize OpenAI image to canvas dimensions, composite Satori text on top
-    const pngBuffer = await sharp(imgBuffer)
-      .resize(width, height, { fit: 'cover', position: 'center' })
-      .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
-      .png()
-      .toBuffer();
-
-    return `data:image/png;base64,${pngBuffer.toString('base64')}`;
-  }
-
-  // ── Fallback mode: solid/gradient Satori render ────────────────────────────
-  let background: string;
-  if (spec.background.type === 'gradient' && spec.background.gradient?.length === 2) {
-    background = `linear-gradient(135deg, ${spec.background.gradient[0]}, ${spec.background.gradient[1]})`;
-  } else {
-    background = spec.background.color ?? '#1a1a2e';
-  }
-
-  const root = {
-    type: 'div',
-    props: {
-      style: {
-        position: 'relative' as const,
-        display: 'flex' as const,
-        width,
-        height,
-        background,
-        overflow: 'hidden',
-      },
-      children,
-    },
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const svg = await satori(root as any, { width, height, fonts: getFonts() });
-  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-  return `data:image/png;base64,${pngBuffer.toString('base64')}`;
-}
-
-function renderNode(node: DesignNode, scale = 1) {
-  const s = node.style ?? {};
-  const x = Math.round(node.x * scale);
-  const y = Math.round(node.y * scale);
-  const w = Math.round(node.width * scale);
-  const h = Math.round(node.height * scale);
-
-  if (node.type === 'shape') {
-    return {
-      type: 'div',
-      props: {
-        style: {
-          position: 'absolute' as const,
-          left: x,
-          top: y,
-          width: w,
-          height: h,
-          backgroundColor: s.backgroundColor ?? s.color ?? 'rgba(255,255,255,0.15)',
-          borderRadius: s.borderRadius ? Math.round(s.borderRadius * scale) : 0,
-          opacity: s.opacity ?? 1,
-        },
-        children: '',
-      },
-    };
-  }
-
-  // text node (default)
-  const fontSize = s.fontSize ? Math.round(s.fontSize * scale) : Math.round(16 * scale);
-  const fontWeight = s.fontWeight === 'bold' ? 700 : 400;
-  const letterSpacing =
-    s.letterSpacing != null ? `${Math.round(s.letterSpacing * scale)}px` : undefined;
-
-  // Outer div: absolute positioning + vertical centering via flexDirection column.
-  // overflow: visible prevents text from being clipped if Claude undersizes the node height.
-  // Inner span: carries all typography styles + word-break for proper wrapping in Satori.
-  return {
-    type: 'div',
-    props: {
-      style: {
-        position: 'absolute' as const,
-        left: x,
-        top: y,
-        width: w,
-        height: h,
-        display: 'flex' as const,
-        flexDirection: 'column' as const,
-        justifyContent: 'center' as const,
-        overflow: 'visible' as const,
-      },
-      children: {
-        type: 'span',
-        props: {
-          style: {
-            fontFamily: s.fontFamily ?? 'Inter',
-            fontSize,
-            fontWeight,
-            color: s.color ?? '#ffffff',
-            textAlign: (s.textAlign ?? 'left') as 'left' | 'center' | 'right',
-            wordBreak: 'break-word' as const,
-            opacity: s.opacity ?? 1,
-            ...(letterSpacing ? { letterSpacing } : {}),
+        children: {
+          type: 'div',
+          props: {
+            style: {
+              position: 'absolute' as const,
+              left:   Math.round(slot.zone.x      * scaleFactor),
+              top:    Math.round(slot.zone.y      * scaleFactor),
+              width:  Math.round(slot.zone.width  * scaleFactor),
+              height: Math.round(slot.zone.height * scaleFactor),
+              display: 'flex' as const,
+              flexDirection: 'column' as const,
+              justifyContent: 'flex-start' as const,
+              overflow: 'visible' as const,
+            },
+            children: {
+              type: 'span',
+              props: {
+                style: {
+                  fontFamily: slot.font_family,
+                  fontSize,
+                  fontWeight: slot.font_weight,
+                  color,
+                  textAlign: slot.alignment as 'left' | 'center' | 'right',
+                  lineHeight: slot.line_height,
+                  wordBreak: 'break-word' as const,
+                },
+                children: text,
+              },
+            },
           },
-          children: node.content ?? '',
         },
       },
-    },
-  };
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const slotSvg = await satori(root as any, { width: W, height: H, fonts: getFonts() });
+    composites.push({ input: Buffer.from(slotSvg), top: 0, left: 0 });
+  }
+
+  const pngBuffer = await sharp(bgBuffer)
+    .resize(W, H, { fit: 'cover', position: 'center' })
+    .composite(composites)
+    .png()
+    .toBuffer();
+
+  return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }

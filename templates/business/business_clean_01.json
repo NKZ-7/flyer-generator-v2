@@ -1,0 +1,59 @@
+{
+  "id": "business_clean_01",
+  "category": "business",
+  "vibe_tags": ["clean", "professional", "minimal", "corporate"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/business_clean_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [20, 55],
+      "max_chars": 65,
+      "hard_max_chars": 80,
+      "font_family": "Oswald",
+      "font_weight": 700,
+      "ideal_size_px": 68,
+      "min_size_px": 40,
+      "zone": { "x": 80, "y": 280, "width": 920, "height": 220 },
+      "alignment": "left",
+      "line_height": 1.15,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 190],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Inter",
+      "font_weight": 400,
+      "ideal_size_px": 26,
+      "min_size_px": 18,
+      "zone": { "x": 80, "y": 580, "width": 860, "height": 300 },
+      "alignment": "left",
+      "line_height": 1.6,
+      "max_lines": 6,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [20, 50],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Inter",
+      "font_weight": 700,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 80, "y": 1090, "width": 860, "height": 120 },
+      "alignment": "left",
+      "line_height": 1.4,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#0F1F3D", "accent": "#2B3F5C", "highlight": "#1A6B8A" },
+    { "primary": "#1A1A2E", "accent": "#333366", "highlight": "#4A7C9B" },
+    { "primary": "#1E2D1E", "accent": "#2E4A2E", "highlight": "#3A7A5A" }
+  ]
+}

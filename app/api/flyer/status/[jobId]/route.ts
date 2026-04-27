@@ -1,9 +1,9 @@
-import { getJobMeta, getJobRender, completeRender, failRender } from '@/lib/kv';
+import { getJobMeta, getJobRender, completeRender, failRender, acquireRenderLock } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // OpenAI image gen + Satori + Sharp takes ~20-35s
+export const maxDuration = 60; // Satori + Sharp takes ~8-15s; composite already pre-rendered
 
 export async function GET(
   _request: Request,
@@ -20,14 +20,24 @@ export async function GET(
   let dataUrl: string | undefined;
 
   if (meta.status === 'done' && render?.status === 'done' && render.prerenderedDataUrl) {
-    // Composite branch: Sharp already produced the image — return it directly, skip Satori.
+    // Composite branch: Sharp already produced the image — return it directly, skip Satori
     dataUrl = render.prerenderedDataUrl;
-  } else if (meta.status === 'done' && render?.status === 'pending' && meta.designSpec) {
-    // Standard branch: Satori render — triggered exactly once when n8n is done but render hasn't run.
-    // We render here (blocking) rather than fire-and-forget to avoid Vercel killing the function
-    // before the render completes.
+
+  } else if (
+    meta.status === 'done' &&
+    render?.status === 'pending' &&
+    meta.templateId &&
+    meta.copy &&
+    meta.paletteIndex !== undefined // must use !== undefined — 0 is a valid palette index
+  ) {
+    // Template branch: Satori render — acquire lock so only one Lambda renders
+    const locked = await acquireRenderLock(jobId);
+    if (!locked) {
+      // Another instance is already rendering — return current state; client re-polls in 3s
+      return Response.json({ meta, render: render ?? { status: 'pending' } });
+    }
     try {
-      dataUrl = await renderFlyerToBase64(meta.designSpec!, 1, meta.dallePrompt);
+      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, 1);
       await completeRender(jobId);
       render = { status: 'done' };
     } catch (err) {
