@@ -48,8 +48,9 @@ export async function completeJob(
   templateId: string,
   copy: TemplateCopy,
   paletteIndex: number,
+  dalleArtUrl?: string,
 ): Promise<void> {
-  const meta: JobMeta = { status: 'done', templateId, copy, paletteIndex };
+  const meta: JobMeta = { status: 'done', templateId, copy, paletteIndex, dalleArtUrl };
   await getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL });
 }
 

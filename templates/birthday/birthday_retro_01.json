@@ -1,22 +1,22 @@
 {
-  "id": "birthday_warm_01",
+  "id": "birthday_retro_01",
   "category": "birthday",
-  "vibe_tags": ["warm", "elegant", "heartfelt"],
+  "vibe_tags": ["retro", "fun", "bold", "pop"],
   "dimensions": { "width": 1080, "height": 1350 },
-  "background_url": "/backgrounds/birthday_warm_01.png",
+  "background_url": "/backgrounds/birthday_retro_01.png",
   "slots": [
     {
       "id": "headline",
-      "ideal_chars": [20, 50],
-      "max_chars": 65,
-      "hard_max_chars": 80,
-      "font_family": "Playfair Display",
+      "ideal_chars": [15, 45],
+      "max_chars": 60,
+      "hard_max_chars": 75,
+      "font_family": "Oswald",
       "font_weight": 700,
-      "ideal_size_px": 72,
-      "min_size_px": 40,
-      "zone": { "x": 80, "y": 280, "width": 920, "height": 220 },
+      "ideal_size_px": 90,
+      "min_size_px": 50,
+      "zone": { "x": 80, "y": 250, "width": 920, "height": 250 },
       "alignment": "center",
-      "line_height": 1.2,
+      "line_height": 1.1,
       "max_lines": 3,
       "color_token": "primary"
     },
@@ -44,7 +44,7 @@
       "font_weight": 400,
       "ideal_size_px": 22,
       "min_size_px": 16,
-      "zone": { "x": 100, "y": 1080, "width": 880, "height": 130 },
+      "zone": { "x": 100, "y": 1085, "width": 880, "height": 125 },
       "alignment": "center",
       "line_height": 1.35,
       "max_lines": 2,
@@ -52,9 +52,8 @@
     }
   ],
   "palettes": [
-    { "primary": "#5C3A1E", "accent": "#7A5C3E", "highlight": "#C8905A" },
-    { "primary": "#3B2314", "accent": "#6B4423", "highlight": "#E8B89A" },
-    { "primary": "#8B5E3C", "accent": "#A67C5B", "highlight": "#D4956A" }
-  ],
-  "art_zone": { "x": 0, "y": 820, "width": 1080, "height": 350, "opacity": 0.45 }
+    { "primary": "#D62828", "accent": "#4A4A4A", "highlight": "#F76C2F" },
+    { "primary": "#1A1A2E", "accent": "#E94560", "highlight": "#F5A623" },
+    { "primary": "#2D4A22", "accent": "#3A6130", "highlight": "#E8C840" }
+  ]
 }

@@ -46,6 +46,16 @@ function getFonts() {
       weight: 700 as const,
       style: 'normal' as const,
     },
+    { name: 'Montserrat', data: readFileSync(join(nm, 'montserrat', 'files', 'montserrat-latin-400-normal.woff2')), weight: 400 as const, style: 'normal' as const },
+    { name: 'Montserrat', data: readFileSync(join(nm, 'montserrat', 'files', 'montserrat-latin-700-normal.woff2')), weight: 700 as const, style: 'normal' as const },
+    { name: 'Poppins',    data: readFileSync(join(nm, 'poppins',    'files', 'poppins-latin-400-normal.woff2')),    weight: 400 as const, style: 'normal' as const },
+    { name: 'Poppins',    data: readFileSync(join(nm, 'poppins',    'files', 'poppins-latin-700-normal.woff2')),    weight: 700 as const, style: 'normal' as const },
+    { name: 'Lora',       data: readFileSync(join(nm, 'lora',       'files', 'lora-latin-400-normal.woff2')),       weight: 400 as const, style: 'normal' as const },
+    { name: 'Lora',       data: readFileSync(join(nm, 'lora',       'files', 'lora-latin-700-normal.woff2')),       weight: 700 as const, style: 'normal' as const },
+    { name: 'Raleway',    data: readFileSync(join(nm, 'raleway',    'files', 'raleway-latin-400-normal.woff2')),    weight: 400 as const, style: 'normal' as const },
+    { name: 'Raleway',    data: readFileSync(join(nm, 'raleway',    'files', 'raleway-latin-700-normal.woff2')),    weight: 700 as const, style: 'normal' as const },
+    { name: 'Dancing Script', data: readFileSync(join(nm, 'dancing-script', 'files', 'dancing-script-latin-400-normal.woff2')), weight: 400 as const, style: 'normal' as const },
+    { name: 'Dancing Script', data: readFileSync(join(nm, 'dancing-script', 'files', 'dancing-script-latin-700-normal.woff2')), weight: 700 as const, style: 'normal' as const },
   ];
   return _fonts;
 }
@@ -55,6 +65,7 @@ export async function renderFlyerToBase64(
   copy: TemplateCopy,
   paletteIndex: number,
   scaleFactor = 1,
+  dalleArtUrl?: string,
 ): Promise<string> {
   const template = loadTemplate(templateId);
   const palette = template.palettes[paletteIndex] ?? template.palettes[0];
@@ -66,6 +77,24 @@ export async function renderFlyerToBase64(
   const bgBuffer = readFileSync(join(process.cwd(), 'public', template.background_url));
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
+
+  // Composite DALL-E art zone between background and text slots
+  if (dalleArtUrl && template.art_zone) {
+    const zone = template.art_zone;
+    const dalleBase64 = dalleArtUrl.replace(/^data:image\/\w+;base64,/, '');
+    const dalleRaw = Buffer.from(dalleBase64, 'base64');
+    const { data, info } = await sharp(dalleRaw)
+      .resize(Math.round(zone.width * scaleFactor), Math.round(zone.height * scaleFactor), { fit: 'cover' })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const opacity = zone.opacity ?? 0.55;
+    for (let i = 3; i < data.length; i += 4) {
+      data[i] = Math.round((data[i] as number) * opacity);
+    }
+    const artBuffer = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+    composites.push({ input: artBuffer, top: Math.round(zone.y * scaleFactor), left: Math.round(zone.x * scaleFactor) });
+  }
 
   for (const slot of template.slots) {
     const rawText = copy[slot.id as keyof TemplateCopy] ?? '';

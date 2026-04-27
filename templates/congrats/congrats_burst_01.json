@@ -1,0 +1,59 @@
+{
+  "id": "congrats_burst_01",
+  "category": "congrats",
+  "vibe_tags": ["energetic", "sunburst", "modern", "slate"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/congrats_burst_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [15, 45],
+      "max_chars": 60,
+      "hard_max_chars": 75,
+      "font_family": "Raleway",
+      "font_weight": 700,
+      "ideal_size_px": 82,
+      "min_size_px": 46,
+      "zone": { "x": 80, "y": 260, "width": 920, "height": 240 },
+      "alignment": "center",
+      "line_height": 1.15,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 160],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Raleway",
+      "font_weight": 400,
+      "ideal_size_px": 28,
+      "min_size_px": 20,
+      "zone": { "x": 100, "y": 565, "width": 880, "height": 280 },
+      "alignment": "center",
+      "line_height": 1.6,
+      "max_lines": 6,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Raleway",
+      "font_weight": 400,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 100, "y": 1085, "width": 880, "height": 125 },
+      "alignment": "center",
+      "line_height": 1.35,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#F5F0E8", "accent": "#E8DCC8", "highlight": "#FFD700" },
+    { "primary": "#FFFFFF", "accent": "#E0D8D0", "highlight": "#F5A623" },
+    { "primary": "#F0EAE0", "accent": "#D8D0C0", "highlight": "#E8C040" }
+  ]
+}

@@ -1,20 +1,20 @@
 {
-  "id": "birthday_warm_01",
+  "id": "birthday_pastel_01",
   "category": "birthday",
-  "vibe_tags": ["warm", "elegant", "heartfelt"],
+  "vibe_tags": ["pastel", "dreamy", "playful", "soft"],
   "dimensions": { "width": 1080, "height": 1350 },
-  "background_url": "/backgrounds/birthday_warm_01.png",
+  "background_url": "/backgrounds/birthday_pastel_01.png",
   "slots": [
     {
       "id": "headline",
       "ideal_chars": [20, 50],
       "max_chars": 65,
       "hard_max_chars": 80,
-      "font_family": "Playfair Display",
+      "font_family": "Poppins",
       "font_weight": 700,
-      "ideal_size_px": 72,
-      "min_size_px": 40,
-      "zone": { "x": 80, "y": 280, "width": 920, "height": 220 },
+      "ideal_size_px": 76,
+      "min_size_px": 42,
+      "zone": { "x": 80, "y": 270, "width": 920, "height": 240 },
       "alignment": "center",
       "line_height": 1.2,
       "max_lines": 3,
@@ -25,13 +25,13 @@
       "ideal_chars": [80, 160],
       "max_chars": 200,
       "hard_max_chars": 240,
-      "font_family": "Inter",
+      "font_family": "Poppins",
       "font_weight": 400,
-      "ideal_size_px": 28,
-      "min_size_px": 20,
+      "ideal_size_px": 27,
+      "min_size_px": 19,
       "zone": { "x": 100, "y": 570, "width": 880, "height": 280 },
       "alignment": "center",
-      "line_height": 1.55,
+      "line_height": 1.6,
       "max_lines": 6,
       "color_token": "accent"
     },
@@ -40,11 +40,11 @@
       "ideal_chars": [15, 40],
       "max_chars": 55,
       "hard_max_chars": 70,
-      "font_family": "Inter",
+      "font_family": "Poppins",
       "font_weight": 400,
-      "ideal_size_px": 22,
-      "min_size_px": 16,
-      "zone": { "x": 100, "y": 1080, "width": 880, "height": 130 },
+      "ideal_size_px": 21,
+      "min_size_px": 15,
+      "zone": { "x": 100, "y": 1085, "width": 880, "height": 125 },
       "alignment": "center",
       "line_height": 1.35,
       "max_lines": 2,
@@ -52,9 +52,8 @@
     }
   ],
   "palettes": [
-    { "primary": "#5C3A1E", "accent": "#7A5C3E", "highlight": "#C8905A" },
-    { "primary": "#3B2314", "accent": "#6B4423", "highlight": "#E8B89A" },
-    { "primary": "#8B5E3C", "accent": "#A67C5B", "highlight": "#D4956A" }
-  ],
-  "art_zone": { "x": 0, "y": 820, "width": 1080, "height": 350, "opacity": 0.45 }
+    { "primary": "#8B4F8B", "accent": "#6A3B7A", "highlight": "#C490C4" },
+    { "primary": "#A0608A", "accent": "#7A4870", "highlight": "#D4A8C8" },
+    { "primary": "#704898", "accent": "#5A3878", "highlight": "#B890D0" }
+  ]
 }

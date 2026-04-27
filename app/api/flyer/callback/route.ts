@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     templateId,
     copy,
     paletteIndex,
+    dalle_art_url,
     // Composite/legacy path fields
     design_spec,
     dalle_prompt,
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
     templateId?: string;
     copy?: TemplateCopy;
     paletteIndex?: number;
+    dalle_art_url?: string;
     design_spec?: DesignSpec;
     dalle_prompt?: string;
     imageBase64?: string;
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
         console.warn('[callback] Copy overflows slots:', validation.overflows);
         // Store anyway — n8n is responsible for retries; renderer truncates at hard_max_chars
       }
-      await completeJob(jobId, templateId, copy, paletteIndex);
+      await completeJob(jobId, templateId, copy, paletteIndex, dalle_art_url);
 
     } else {
       await failJob(jobId, 'Callback missing required fields (templateId+copy+paletteIndex or imageBase64)');

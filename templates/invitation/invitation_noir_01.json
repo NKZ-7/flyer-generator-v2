@@ -1,0 +1,59 @@
+{
+  "id": "invitation_noir_01",
+  "category": "invitation",
+  "vibe_tags": ["noir", "charcoal", "silver", "ultra-elegant"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/invitation_noir_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [15, 50],
+      "max_chars": 65,
+      "hard_max_chars": 80,
+      "font_family": "Raleway",
+      "font_weight": 700,
+      "ideal_size_px": 78,
+      "min_size_px": 44,
+      "zone": { "x": 100, "y": 280, "width": 880, "height": 240 },
+      "alignment": "center",
+      "line_height": 1.2,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 160],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Raleway",
+      "font_weight": 400,
+      "ideal_size_px": 27,
+      "min_size_px": 19,
+      "zone": { "x": 130, "y": 580, "width": 820, "height": 290 },
+      "alignment": "center",
+      "line_height": 1.65,
+      "max_lines": 7,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Raleway",
+      "font_weight": 400,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 130, "y": 1085, "width": 820, "height": 125 },
+      "alignment": "center",
+      "line_height": 1.4,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#E8E8E8", "accent": "#C0C0C0", "highlight": "#A0A8B8" },
+    { "primary": "#F0F0F0", "accent": "#D0D0D0", "highlight": "#B0B8C8" },
+    { "primary": "#D8D8E0", "accent": "#B8B8C8", "highlight": "#9098A8" }
+  ]
+}

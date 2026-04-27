@@ -1,0 +1,59 @@
+{
+  "id": "sympathy_peaceful_01",
+  "category": "sympathy",
+  "vibe_tags": ["nature", "sage", "calm", "horizon"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/sympathy_peaceful_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [20, 55],
+      "max_chars": 70,
+      "hard_max_chars": 85,
+      "font_family": "Lora",
+      "font_weight": 700,
+      "ideal_size_px": 68,
+      "min_size_px": 38,
+      "zone": { "x": 100, "y": 290, "width": 880, "height": 220 },
+      "alignment": "center",
+      "line_height": 1.25,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 170],
+      "max_chars": 210,
+      "hard_max_chars": 250,
+      "font_family": "Lora",
+      "font_weight": 400,
+      "ideal_size_px": 27,
+      "min_size_px": 19,
+      "zone": { "x": 120, "y": 570, "width": 840, "height": 300 },
+      "alignment": "center",
+      "line_height": 1.65,
+      "max_lines": 7,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Lora",
+      "font_weight": 400,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 120, "y": 1085, "width": 840, "height": 125 },
+      "alignment": "center",
+      "line_height": 1.4,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#2E4A3A", "accent": "#4A6A5A", "highlight": "#7A9A8A" },
+    { "primary": "#243C30", "accent": "#3A5A48", "highlight": "#6A8A78" },
+    { "primary": "#3A5A48", "accent": "#5A7A68", "highlight": "#8AAAA0" }
+  ]
+}

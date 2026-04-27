@@ -1,9 +1,9 @@
 {
-  "id": "birthday_warm_01",
-  "category": "birthday",
-  "vibe_tags": ["warm", "elegant", "heartfelt"],
+  "id": "invitation_artdeco_01",
+  "category": "invitation",
+  "vibe_tags": ["art-deco", "geometric", "cream", "refined"],
   "dimensions": { "width": 1080, "height": 1350 },
-  "background_url": "/backgrounds/birthday_warm_01.png",
+  "background_url": "/backgrounds/invitation_artdeco_01.png",
   "slots": [
     {
       "id": "headline",
@@ -14,7 +14,7 @@
       "font_weight": 700,
       "ideal_size_px": 72,
       "min_size_px": 40,
-      "zone": { "x": 80, "y": 280, "width": 920, "height": 220 },
+      "zone": { "x": 100, "y": 290, "width": 880, "height": 230 },
       "alignment": "center",
       "line_height": 1.2,
       "max_lines": 3,
@@ -25,14 +25,14 @@
       "ideal_chars": [80, 160],
       "max_chars": 200,
       "hard_max_chars": 240,
-      "font_family": "Inter",
+      "font_family": "Playfair Display",
       "font_weight": 400,
-      "ideal_size_px": 28,
-      "min_size_px": 20,
-      "zone": { "x": 100, "y": 570, "width": 880, "height": 280 },
+      "ideal_size_px": 27,
+      "min_size_px": 19,
+      "zone": { "x": 130, "y": 580, "width": 820, "height": 290 },
       "alignment": "center",
-      "line_height": 1.55,
-      "max_lines": 6,
+      "line_height": 1.65,
+      "max_lines": 7,
       "color_token": "accent"
     },
     {
@@ -40,21 +40,20 @@
       "ideal_chars": [15, 40],
       "max_chars": 55,
       "hard_max_chars": 70,
-      "font_family": "Inter",
+      "font_family": "Playfair Display",
       "font_weight": 400,
       "ideal_size_px": 22,
       "min_size_px": 16,
-      "zone": { "x": 100, "y": 1080, "width": 880, "height": 130 },
+      "zone": { "x": 130, "y": 1085, "width": 820, "height": 125 },
       "alignment": "center",
-      "line_height": 1.35,
+      "line_height": 1.4,
       "max_lines": 2,
       "color_token": "highlight"
     }
   ],
   "palettes": [
-    { "primary": "#5C3A1E", "accent": "#7A5C3E", "highlight": "#C8905A" },
-    { "primary": "#3B2314", "accent": "#6B4423", "highlight": "#E8B89A" },
-    { "primary": "#8B5E3C", "accent": "#A67C5B", "highlight": "#D4956A" }
-  ],
-  "art_zone": { "x": 0, "y": 820, "width": 1080, "height": 350, "opacity": 0.45 }
+    { "primary": "#5A4A20", "accent": "#7A6A40", "highlight": "#A89060" },
+    { "primary": "#3A3010", "accent": "#5A5030", "highlight": "#8A7850" },
+    { "primary": "#6A5A30", "accent": "#8A7A50", "highlight": "#BAA878" }
+  ]
 }

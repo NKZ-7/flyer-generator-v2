@@ -1,0 +1,59 @@
+{
+  "id": "congrats_ribbon_01",
+  "category": "congrats",
+  "vibe_tags": ["festive", "ribbon", "gold", "celebration"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/congrats_ribbon_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [15, 45],
+      "max_chars": 60,
+      "hard_max_chars": 75,
+      "font_family": "Montserrat",
+      "font_weight": 700,
+      "ideal_size_px": 80,
+      "min_size_px": 44,
+      "zone": { "x": 80, "y": 260, "width": 920, "height": 240 },
+      "alignment": "center",
+      "line_height": 1.15,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 160],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Montserrat",
+      "font_weight": 400,
+      "ideal_size_px": 28,
+      "min_size_px": 20,
+      "zone": { "x": 100, "y": 565, "width": 880, "height": 280 },
+      "alignment": "center",
+      "line_height": 1.6,
+      "max_lines": 6,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Montserrat",
+      "font_weight": 400,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 100, "y": 1085, "width": 880, "height": 125 },
+      "alignment": "center",
+      "line_height": 1.35,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#7A5C00", "accent": "#9A7A20", "highlight": "#C4A040" },
+    { "primary": "#5A4200", "accent": "#7A6020", "highlight": "#A88030" },
+    { "primary": "#9A7820", "accent": "#B49240", "highlight": "#D4B060" }
+  ]
+}

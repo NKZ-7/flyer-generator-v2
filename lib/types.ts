@@ -98,6 +98,7 @@ export interface JobMeta {
   templateId?: string;
   copy?: TemplateCopy;
   paletteIndex?: number; // use !== undefined checks — 0 is a valid index
+  dalleArtUrl?: string; // base64 data URL of DALL-E art element (no-occasion fallback only)
   // ── Composite/legacy path (preserved — do not remove) ─────────
   // REVIEW: Remove legacyCopy/legacyDesignSpec/legacyDallePrompt when composite branch is refactored
   legacyCopy?: FlyerCopy;

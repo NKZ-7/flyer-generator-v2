@@ -16,6 +16,14 @@ export type Slot = {
 
 export type Palette = { primary: string; accent: string; highlight: string };
 
+export type ArtZone = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  opacity: number;
+};
+
 export type Template = {
   id: string;
   category: 'birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation';
@@ -24,4 +32,5 @@ export type Template = {
   background_url: string;
   slots: Slot[];
   palettes: Palette[];
+  art_zone?: ArtZone;
 };

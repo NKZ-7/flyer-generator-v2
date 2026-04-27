@@ -1,0 +1,59 @@
+{
+  "id": "sympathy_candle_01",
+  "category": "sympathy",
+  "vibe_tags": ["warm", "amber", "candlelight", "memorial"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/sympathy_candle_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [20, 55],
+      "max_chars": 70,
+      "hard_max_chars": 85,
+      "font_family": "Playfair Display",
+      "font_weight": 700,
+      "ideal_size_px": 68,
+      "min_size_px": 38,
+      "zone": { "x": 100, "y": 290, "width": 880, "height": 220 },
+      "alignment": "center",
+      "line_height": 1.25,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 170],
+      "max_chars": 210,
+      "hard_max_chars": 250,
+      "font_family": "Playfair Display",
+      "font_weight": 400,
+      "ideal_size_px": 27,
+      "min_size_px": 19,
+      "zone": { "x": 120, "y": 570, "width": 840, "height": 300 },
+      "alignment": "center",
+      "line_height": 1.65,
+      "max_lines": 7,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Playfair Display",
+      "font_weight": 400,
+      "ideal_size_px": 22,
+      "min_size_px": 16,
+      "zone": { "x": 120, "y": 1085, "width": 840, "height": 125 },
+      "alignment": "center",
+      "line_height": 1.4,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#F5E6D0", "accent": "#E8C890", "highlight": "#F0D8B0" },
+    { "primary": "#F0D8A8", "accent": "#D4B070", "highlight": "#F8E8C8" },
+    { "primary": "#EDD0A0", "accent": "#C8A060", "highlight": "#F4DCC0" }
+  ]
+}

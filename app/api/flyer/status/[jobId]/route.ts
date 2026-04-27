@@ -37,7 +37,7 @@ export async function GET(
       return Response.json({ meta, render: render ?? { status: 'pending' } });
     }
     try {
-      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, 1);
+      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, 1, meta.dalleArtUrl);
       await completeRender(jobId);
       render = { status: 'done' };
     } catch (err) {

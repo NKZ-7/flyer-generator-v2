@@ -1,0 +1,59 @@
+{
+  "id": "business_amber_01",
+  "category": "business",
+  "vibe_tags": ["amber", "warm", "clean", "modern"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/business_amber_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [20, 55],
+      "max_chars": 70,
+      "hard_max_chars": 85,
+      "font_family": "Montserrat",
+      "font_weight": 700,
+      "ideal_size_px": 72,
+      "min_size_px": 40,
+      "zone": { "x": 200, "y": 270, "width": 820, "height": 230 },
+      "alignment": "left",
+      "line_height": 1.15,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 160],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Montserrat",
+      "font_weight": 400,
+      "ideal_size_px": 26,
+      "min_size_px": 18,
+      "zone": { "x": 200, "y": 560, "width": 820, "height": 300 },
+      "alignment": "left",
+      "line_height": 1.6,
+      "max_lines": 7,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Montserrat",
+      "font_weight": 400,
+      "ideal_size_px": 20,
+      "min_size_px": 15,
+      "zone": { "x": 200, "y": 1090, "width": 820, "height": 120 },
+      "alignment": "left",
+      "line_height": 1.35,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#2A1A0A", "accent": "#4A3020", "highlight": "#C87820" },
+    { "primary": "#1A0E04", "accent": "#3A2010", "highlight": "#B06010" },
+    { "primary": "#3A2010", "accent": "#5A3820", "highlight": "#D08828" }
+  ]
+}

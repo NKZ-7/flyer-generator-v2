@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       const { loadTemplate } = await import('@/lib/templates/index');
       const template = loadTemplate(meta.templateId);
       const scaleFactor = cfg.width / template.dimensions.width;
-      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor);
+      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
     } else {
       // ── Composite / legacy path ────────────────────────────────────────────
       // REVIEW: Full-quality composite re-render at scale is deferred — using pre-rendered image + Sharp resize
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const { loadTemplate } = await import('@/lib/templates/index');
     const template = loadTemplate(meta.templateId);
     const scaleFactor = baseW / template.dimensions.width;
-    dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor);
+    dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
   } else {
     // ── Composite / legacy path ────────────────────────────────────────────
     // REVIEW: Full-quality composite re-render at scale is deferred — using pre-rendered image + Sharp resize

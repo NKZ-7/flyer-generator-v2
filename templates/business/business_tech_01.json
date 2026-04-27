@@ -1,0 +1,59 @@
+{
+  "id": "business_tech_01",
+  "category": "business",
+  "vibe_tags": ["tech", "dark", "minimal", "professional"],
+  "dimensions": { "width": 1080, "height": 1350 },
+  "background_url": "/backgrounds/business_tech_01.png",
+  "slots": [
+    {
+      "id": "headline",
+      "ideal_chars": [20, 55],
+      "max_chars": 70,
+      "hard_max_chars": 85,
+      "font_family": "Inter",
+      "font_weight": 700,
+      "ideal_size_px": 72,
+      "min_size_px": 40,
+      "zone": { "x": 80, "y": 270, "width": 920, "height": 230 },
+      "alignment": "left",
+      "line_height": 1.15,
+      "max_lines": 3,
+      "color_token": "primary"
+    },
+    {
+      "id": "body",
+      "ideal_chars": [80, 160],
+      "max_chars": 200,
+      "hard_max_chars": 240,
+      "font_family": "Inter",
+      "font_weight": 400,
+      "ideal_size_px": 26,
+      "min_size_px": 18,
+      "zone": { "x": 80, "y": 560, "width": 920, "height": 300 },
+      "alignment": "left",
+      "line_height": 1.6,
+      "max_lines": 7,
+      "color_token": "accent"
+    },
+    {
+      "id": "signoff",
+      "ideal_chars": [15, 40],
+      "max_chars": 55,
+      "hard_max_chars": 70,
+      "font_family": "Inter",
+      "font_weight": 400,
+      "ideal_size_px": 20,
+      "min_size_px": 15,
+      "zone": { "x": 80, "y": 1090, "width": 920, "height": 120 },
+      "alignment": "left",
+      "line_height": 1.35,
+      "max_lines": 2,
+      "color_token": "highlight"
+    }
+  ],
+  "palettes": [
+    { "primary": "#E8F0FF", "accent": "#A8C0E8", "highlight": "#60A0D8" },
+    { "primary": "#F0F8FF", "accent": "#B8D0F0", "highlight": "#4A90CC" },
+    { "primary": "#DCE8FF", "accent": "#9AB8E0", "highlight": "#5098D0" }
+  ]
+}
