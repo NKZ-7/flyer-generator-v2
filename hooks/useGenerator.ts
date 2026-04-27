@@ -127,7 +127,14 @@ export function useGenerator() {
         return;
       }
 
-      const { jobId: newJobId } = await res.json();
+      const body = await res.json();
+      const newJobId = body.jobId;
+      if (!newJobId) {
+        setPhase('error');
+        setIsRefining(false);
+        setErrorMsg(body.error ?? 'Refinement failed — no job ID returned');
+        return;
+      }
       jobIdRef.current = newJobId;
       setJobId(newJobId);
     } catch {

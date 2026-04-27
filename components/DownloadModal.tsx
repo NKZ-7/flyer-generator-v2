@@ -8,6 +8,7 @@ interface DownloadModalProps {
   imageDataUrl: string;
   onClose: () => void;
   onNewFlyer: () => void;
+  onEdit?: () => void;
 }
 
 type Mode = 'digital' | 'print';
@@ -26,11 +27,29 @@ function AspectBox({ w, h }: { w: number; h: number }) {
   );
 }
 
-export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer }: DownloadModalProps) {
+export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit }: DownloadModalProps) {
   const [mode, setMode] = useState<Mode>('digital');
   const [preset, setPreset] = useState('social');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleJpegDownload() {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/jpeg', 0.92);
+      a.download = 'flyer.jpg';
+      a.click();
+    };
+    img.src = imageDataUrl;
+  }
 
   function switchMode(m: Mode) {
     setMode(m);
@@ -106,6 +125,49 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer }: Down
             ✕
           </button>
         </div>
+
+        {/* Quick Save — JPEG direct download */}
+        <div className="px-6 pt-5 pb-4 border-b border-zinc-800">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-3">
+            Quick Save
+          </p>
+          <button
+            onClick={handleJpegDownload}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400/50 hover:bg-amber-400/5 transition-all text-sm text-zinc-200"
+          >
+            <span className="flex items-center gap-2.5">
+              <span className="text-base">🖼️</span>
+              <span>
+                <span className="font-medium">Save as JPEG</span>
+                <span className="block text-[11px] text-zinc-500 mt-0.5">
+                  1080 × 1350 px — saves directly to your device
+                </span>
+              </span>
+            </span>
+            <span className="text-xs text-zinc-500">JPG</span>
+          </button>
+        </div>
+
+        {/* Edit / Refine */}
+        {onEdit && (
+          <div className="px-6 pt-4 pb-4 border-b border-zinc-800">
+            <button
+              onClick={onEdit}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-all text-sm text-zinc-300"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="text-base">✏️</span>
+                <span>
+                  <span className="font-medium">Edit / Refine this flyer</span>
+                  <span className="block text-[11px] text-zinc-500 mt-0.5">
+                    Go back and describe changes in plain English
+                  </span>
+                </span>
+              </span>
+              <span className="text-xs text-zinc-500">AI</span>
+            </button>
+          </div>
+        )}
 
         <div className="p-5 space-y-4">
           {/* Flyer thumbnail */}

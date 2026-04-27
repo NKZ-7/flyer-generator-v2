@@ -128,6 +128,7 @@ export function StudioLayout() {
           imageDataUrl={generator.currentVersion.imageDataUrl}
           onClose={() => setShowDownload(false)}
           onNewFlyer={handleReset}
+          onEdit={() => setShowDownload(false)}
         />
       )}
     </div>
