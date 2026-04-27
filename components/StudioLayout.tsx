@@ -19,6 +19,7 @@ const defaultPrefs: FlyerPreferences = {
   colorScheme: 'dark',
   primaryColor: '#f59e0b',
   fontStyle: 'modern',
+  region: '',
 };
 
 export function StudioLayout() {

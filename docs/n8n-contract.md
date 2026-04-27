@@ -22,6 +22,7 @@ The `/api/flyer/start` and `/api/flyer/refine` routes POST this body to `N8N_WEB
     "venue": "The Grand Ballroom, Accra",
     "contactInfo": "sarah@example.com",
     "additionalContext": "Elegant garden party theme",
+    "region": "Nigeria",
     "colorScheme": "warm",
     "fontStyle": "classic",
     "primaryColor": "#C8905A"
@@ -30,6 +31,11 @@ The `/api/flyer/start` and `/api/flyer/refine` routes POST this body to `N8N_WEB
   "hasUserAssets": false
 }
 ```
+
+**Field notes:**
+- `title` and `additionalContext` are now co-optional: at least one must be non-empty (the API route accepts either)
+- `region` (optional): user's country/region (e.g. `"Nigeria"`, `"Ghana"`, `"UK"`). Drives cultural tone and imagery in generated copy and DALL-E art
+- `occasion` and `vibe` (optional): if omitted, the **Parse Description** node infers them from `title` + `additionalContext`
 
 For refinement requests, `preferences` also contains:
 ```json
@@ -63,11 +69,23 @@ Add new templates by creating the JSON file and updating this table.
 
 ## 3. n8n Workflow Logic
 
+### Parse Description node (Claude Haiku — always runs first)
+After **Extract Inputs**, the **Parse Description** node calls Claude Haiku to analyse `title`, `additionalContext`, and `region`. It outputs three fields passed downstream:
+
+| Field | Description |
+|---|---|
+| `parsedOccasion` | `birthday\|sympathy\|congrats\|business\|invitation\|unknown` — echoes explicit `preferences.occasion` if set, otherwise inferred from description |
+| `parsedVibe` | `elegant\|warm\|playful\|bold\|church\|minimal` — echoes explicit `preferences.vibe` if set, otherwise inferred |
+| `culturalNotes` | 2-3 sentence string describing demographic representation for imagery, aesthetic cues, and copy register; empty string if no region provided |
+
+Parse Description also **rebuilds `anthropicBody`** (the copy-generation prompt) with enriched `parsedOccasion`, `parsedVibe`, `region`, and `culturalNotes` before it reaches Generate Copy. If the Haiku call fails, it falls back to `preferences.occasion || 'unknown'` / `preferences.vibe || 'elegant'`.
+
 ### Template selection
-1. Read `preferences.occasion` to identify the category (e.g. `birthday`)
-2. Read `preferences.vibe` to filter by `vibe_tags` if multiple templates exist for the category
-3. Choose the best matching template (currently only one per category)
-4. Set `recommended_template_id` in the GPT prompt context
+1. **Parse Description** determines `parsedOccasion` (inferred or echoed from `preferences.occasion`)
+2. **IS Occasion Known?** checks `parsedOccasion !== 'unknown'`:
+   - **TRUE** → Generate Copy directly (known occasion, template available)
+   - **FALSE** → Generate DALL-E Art → Encode → Generate Copy (unknown occasion, image-first fallback)
+3. Template is selected from `parsedOccasion` via the `TEMPLATE_MAP` inside Parse Description
 
 ### Copy generation (GPT-4o-mini)
 Use the prompt template below. Embed slot character constraints directly.

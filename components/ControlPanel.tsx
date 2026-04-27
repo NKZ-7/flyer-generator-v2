@@ -126,9 +126,13 @@ export function ControlPanel({
   }
 
   function goNext() {
-    if (currentStep === 1 && !prefs.title.trim()) {
-      setTitleError(true);
-      return;
+    if (currentStep === 1) {
+      const hasTitle = prefs.title.trim();
+      const hasDescription = (prefs.additionalContext ?? '').trim();
+      if (!hasTitle && !hasDescription) {
+        setTitleError(true);
+        return;
+      }
     }
     setTitleError(false);
     navigate((currentStep + 1) as 1 | 2 | 3);
@@ -142,7 +146,7 @@ export function ControlPanel({
     e.preventDefault();
     if (isGenerating) return;                   // guard 1: no double-submit
     if (currentStep !== 3 && !isDone) return;   // guard 2: only from step 3 or re-generate
-    if (!prefs.title.trim()) return;
+    if (!prefs.title.trim() && !(prefs.additionalContext ?? '').trim()) return;
     onGenerate(prefs);
   }
 
@@ -216,13 +220,12 @@ export function ControlPanel({
       return (
         <div className="space-y-4">
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
-            What's your flyer about?
+            Describe what you want
           </p>
 
           {/* ① Title */}
           <FloatingField
             label="Name / Title"
-            required
             value={prefs.title}
             onChange={(v) => {
               onPrefsChange('title', v);
@@ -231,26 +234,38 @@ export function ControlPanel({
             placeholder="e.g. Summer Music Festival"
             disabled={isGenerating}
             hasError={titleError}
-            errorMsg="Give your flyer a name first"
+            errorMsg="Give your flyer a name or describe what you want"
           />
 
-          {/* ② Tell us more textarea */}
+          {/* ② Describe your flyer textarea */}
           <div>
             <label className="block text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1.5">
-              Tell us more
+              Describe your flyer
               <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
                 (optional)
               </span>
             </label>
             <textarea
               value={prefs.additionalContext ?? ''}
-              onChange={(e) => onPrefsChange('additionalContext', e.target.value)}
+              onChange={(e) => {
+                onPrefsChange('additionalContext', e.target.value);
+                if (e.target.value.trim()) setTitleError(false);
+              }}
               disabled={isGenerating}
-              rows={3}
-              placeholder="e.g. The speaker is Pastor Kwame — uploaded photo shows him in a suit. Spiritual, professional vibe."
+              rows={4}
+              placeholder="e.g. Birthday flyer for my friend Amara's 30th — Nigerian vibe, Afrobeats theme, rooftop bar in Lagos. Elegant but fun."
               className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors resize-none disabled:opacity-40"
             />
           </div>
+
+          {/* ③ Region */}
+          <FloatingField
+            label="Your Region / Country"
+            value={prefs.region ?? ''}
+            onChange={(v) => onPrefsChange('region', v)}
+            placeholder="e.g. Nigeria, Ghana, UK, USA"
+            disabled={isGenerating}
+          />
 
           {/* ③ Photos & Assets */}
           <div>
@@ -318,6 +333,7 @@ export function ControlPanel({
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
             Occasion
           </p>
+          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
           <OccasionPicker
             value={prefs.occasion}
             onChange={(v) => onPrefsChange('occasion', v)}
@@ -328,6 +344,7 @@ export function ControlPanel({
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mt-3">
             Vibe
           </p>
+          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
           <VibePicker
             value={prefs.vibe}
             onChange={(v) => onPrefsChange('vibe', v)}
@@ -543,6 +560,7 @@ export function ControlPanel({
               }
             />
           )}
+          {prefs.region && <SummaryRow label="Region" value={prefs.region} />}
         </div>
 
         {/* Style card */}

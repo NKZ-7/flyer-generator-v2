@@ -65,6 +65,7 @@ export interface FlyerPreferences {
   venue?: string;
   contactInfo?: string;
   additionalContext?: string;
+  region?: string;
   // ── Deprecated (kept for StudioLayout defaultPrefs compat) ────
   style?: string;
 }
