@@ -26,9 +26,6 @@ export async function POST(request: NextRequest) {
   if (!preferences?.title) {
     return Response.json({ error: 'preferences.title is required' }, { status: 400 });
   }
-  if (!preferences?.occasion) {
-    return Response.json({ error: 'preferences.occasion is required' }, { status: 400 });
-  }
 
   const jobId = randomUUID();
 

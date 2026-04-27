@@ -91,7 +91,6 @@ export function ControlPanel({
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [transitioning, setTransitioning] = useState(false);
   const [titleError, setTitleError] = useState(false);
-  const [occasionError, setOccasionError] = useState(false);
   const [surpriseSpinning, setSurpriseSpinning] = useState(false);
   const surpriseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -104,7 +103,6 @@ export function ControlPanel({
       setCurrentStep(1);
       setPrevStep(null);
       setTitleError(false);
-      setOccasionError(false);
     }
   }, [phase]);
 
@@ -132,12 +130,7 @@ export function ControlPanel({
       setTitleError(true);
       return;
     }
-    if (currentStep === 1 && !prefs.occasion) {
-      setOccasionError(true);
-      return;
-    }
     setTitleError(false);
-    setOccasionError(false);
     navigate((currentStep + 1) as 1 | 2 | 3);
   }
 
@@ -325,12 +318,9 @@ export function ControlPanel({
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
             Occasion
           </p>
-          {occasionError && (
-            <p className="text-[11px] text-red-400 -mt-1">Please select an occasion</p>
-          )}
           <OccasionPicker
             value={prefs.occasion}
-            onChange={(v) => { onPrefsChange('occasion', v); setOccasionError(false); }}
+            onChange={(v) => onPrefsChange('occasion', v)}
             disabled={isGenerating}
           />
 
