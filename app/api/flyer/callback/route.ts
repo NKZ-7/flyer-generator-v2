@@ -41,14 +41,14 @@ export async function POST(request: NextRequest) {
 
   if (status === 'done') {
     if (imageBase64) {
-      // ── Composite path — n8n sends FlyerCopy in 'copy' field ─────────────
+      // ── Composite path — n8n sends copy in 'copy' field (3-field shape from text-in-image arch) ──
       const legacyCopy = copy as unknown as FlyerCopy;
-      if (!legacyCopy || !design_spec) {
-        await failJob(jobId, 'Composite callback missing copy or design_spec');
+      if (!legacyCopy) {
+        await failJob(jobId, 'Composite callback missing copy');
         return Response.json({ ok: true });
       }
       const dataUrl = `data:image/png;base64,${imageBase64}`;
-      await completeJobComposite(jobId, legacyCopy, design_spec, dalle_prompt ?? '', dataUrl);
+      await completeJobComposite(jobId, legacyCopy, (design_spec ?? {}) as DesignSpec, dalle_prompt ?? '', dataUrl);
 
     } else if (templateId && copy && paletteIndex !== undefined) {
       // ── Template path ──────────────────────────────────────────────────────
