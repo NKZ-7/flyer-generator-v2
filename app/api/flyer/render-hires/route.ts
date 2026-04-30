@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
-import { getJobMeta, getJobRender } from '@/lib/kv';
+import { getJobMeta, getJobRender, getJobCanvas } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
+import { renderTemplateToBase64 } from '@/lib/template-render';
 import { DIGITAL_PRESETS, PRINT_PRESETS, mmToPx } from '@/lib/constants';
 
 export const runtime = 'nodejs';
@@ -29,7 +30,10 @@ export async function POST(request: NextRequest) {
   }
 
   const meta = await getJobMeta(jobId);
-  if (!meta || meta.status !== 'done' || (!meta.templateId && !meta.legacyCopy)) {
+  if (!meta || meta.status !== 'done') {
+    return Response.json({ error: 'Job not ready or not found' }, { status: 404 });
+  }
+  if (!meta.templateId && !meta.legacyCopy && !meta.hasGptCanvas) {
     return Response.json({ error: 'Job not ready or not found' }, { status: 404 });
   }
 
@@ -42,12 +46,20 @@ export async function POST(request: NextRequest) {
 
     let dataUrl: string;
 
-    if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
+    if (meta.hasGptCanvas && meta.designBrief && meta.copyV2) {
+      // ── GPT-canvas path ────────────────────────────────────────────────────
+      const canvasBase64 = await getJobCanvas(jobId);
+      if (!canvasBase64) return Response.json({ error: 'Canvas not available' }, { status: 404 });
+      const scaleFactor = cfg.width / 1024;
+      dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, scaleFactor);
+
+    } else if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
       // ── Template path ──────────────────────────────────────────────────────
       const { loadTemplate } = await import('@/lib/templates/index');
       const template = loadTemplate(meta.templateId);
       const scaleFactor = cfg.width / template.dimensions.width;
-      dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
+      dataUrl = await renderTemplateToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
+
     } else {
       // ── Composite / legacy path ────────────────────────────────────────────
       // REVIEW: Full-quality composite re-render at scale is deferred — using pre-rendered image + Sharp resize
@@ -84,12 +96,20 @@ export async function POST(request: NextRequest) {
 
   let dataUrl: string;
 
-  if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
+  if (meta.hasGptCanvas && meta.designBrief && meta.copyV2) {
+    // ── GPT-canvas path ──────────────────────────────────────────────────────
+    const canvasBase64 = await getJobCanvas(jobId);
+    if (!canvasBase64) return Response.json({ error: 'Canvas not available' }, { status: 404 });
+    const scaleFactor = baseW / 1024;
+    dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, scaleFactor);
+
+  } else if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
     // ── Template path ──────────────────────────────────────────────────────
     const { loadTemplate } = await import('@/lib/templates/index');
     const template = loadTemplate(meta.templateId);
     const scaleFactor = baseW / template.dimensions.width;
-    dataUrl = await renderFlyerToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
+    dataUrl = await renderTemplateToBase64(meta.templateId, meta.copy, meta.paletteIndex, scaleFactor, meta.dalleArtUrl);
+
   } else {
     // ── Composite / legacy path ────────────────────────────────────────────
     // REVIEW: Full-quality composite re-render at scale is deferred — using pre-rendered image + Sharp resize
@@ -103,13 +123,7 @@ export async function POST(request: NextRequest) {
   const pngBuffer = Buffer.from(dataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
 
   const withBleed = await sharp(pngBuffer)
-    .extend({
-      top: bleedPx,
-      bottom: bleedPx,
-      left: bleedPx,
-      right: bleedPx,
-      extendWith: 'copy',
-    })
+    .extend({ top: bleedPx, bottom: bleedPx, left: bleedPx, right: bleedPx, extendWith: 'copy' })
     .resize(baseW + 2 * bleedPx, baseH + 2 * bleedPx)
     .png()
     .toBuffer();

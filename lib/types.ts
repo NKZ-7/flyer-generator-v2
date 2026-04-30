@@ -89,6 +89,45 @@ export interface UserAsset {
 }
 
 // ──────────────────────────────────────────────
+// GPT-canvas path types (new hybrid architecture)
+// ──────────────────────────────────────────────
+
+export type LayoutId =
+  | 'centered_framed'
+  | 'asymmetric_diagonal'
+  | 'top_heavy'
+  | 'magazine_split'
+  | 'vignette_center'
+  | 'banner_horizontal'
+  | 'hero_name_radial';
+
+export type TypographyPairingId =
+  | 'classical_elegant'
+  | 'modern_clean'
+  | 'bold_impact'
+  | 'romantic_serif'
+  | 'warm_handwritten'
+  | 'minimal_swiss';
+
+export type DesignBrief = {
+  palette_mood: string;
+  decorative_direction: string;
+  energy_tags: string[];
+  layoutId: LayoutId;
+  typographyId: TypographyPairingId;
+  text_treatment: string;
+};
+
+// 4-field copy shape for GPT-canvas path.
+// Named FlyerCopyV2 to avoid collision with legacy 5-field FlyerCopy (composite path).
+export type FlyerCopyV2 = {
+  headline: string;
+  recipient_name: string;
+  body: string;
+  signoff: string;
+};
+
+// ──────────────────────────────────────────────
 // Redis job state (two-key pattern)
 // ──────────────────────────────────────────────
 
@@ -100,6 +139,10 @@ export interface JobMeta {
   copy?: TemplateCopy;
   paletteIndex?: number; // use !== undefined checks — 0 is a valid index
   dalleArtUrl?: string; // base64 data URL of DALL-E art element (no-occasion fallback only)
+  // ── GPT-canvas path (hybrid: GPT-image-1 canvas + Satori text overlay) ──
+  designBrief?: DesignBrief;
+  copyV2?: FlyerCopyV2;
+  hasGptCanvas?: boolean; // canvas base64 stored separately in job:{id}:canvas key
   // ── Composite/legacy path (preserved — do not remove) ─────────
   // REVIEW: Remove legacyCopy/legacyDesignSpec/legacyDallePrompt when composite branch is refactored
   legacyCopy?: FlyerCopy;

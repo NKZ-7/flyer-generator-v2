@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis';
-import type { JobMeta, JobRender, FlyerCopy, DesignSpec, TemplateCopy } from './types';
+import type { JobMeta, JobRender, FlyerCopy, DesignSpec, TemplateCopy, DesignBrief, FlyerCopyV2 } from './types';
 
 let _redis: Redis | null = null;
 function getRedis(): Redis {
@@ -16,9 +16,10 @@ const TTL = 3600; // 1 hour
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function metaKey(id: string) { return `job:${id}:meta`; }
-function renderKey(id: string) { return `job:${id}:render`; }
+function metaKey(id: string)       { return `job:${id}:meta`; }
+function renderKey(id: string)     { return `job:${id}:render`; }
 function renderLockKey(id: string) { return `job:${id}:render-lock`; }
+function canvasKey(id: string)     { return `job:${id}:canvas`; }
 
 async function getJson<T>(key: string): Promise<T | null> {
   const raw = await getRedis().get<T | string>(key);
@@ -76,9 +77,33 @@ export async function completeJobComposite(
   ]);
 }
 
-export async function completeRender(jobId: string): Promise<void> {
-  const render: JobRender = { status: 'done' };
+export async function completeRender(jobId: string, dataUrl?: string): Promise<void> {
+  const render: JobRender = {
+    status: 'done',
+    ...(dataUrl ? { prerenderedDataUrl: dataUrl } : {}),
+  };
   await getRedis().set(renderKey(jobId), JSON.stringify(render), { ex: TTL });
+}
+
+/** Store large canvas base64 in a dedicated key to stay under the 1MB per-value Redis limit. */
+export async function storeJobCanvas(jobId: string, base64: string): Promise<void> {
+  await getRedis().set(canvasKey(jobId), base64, { ex: TTL });
+}
+
+export async function getJobCanvas(jobId: string): Promise<string | null> {
+  return getRedis().get<string>(canvasKey(jobId));
+}
+
+/** GPT-canvas path: store design brief + copy, mark canvas available. */
+export async function completeJobGPTCanvas(
+  jobId: string,
+  designBrief: DesignBrief,
+  copyV2: FlyerCopyV2,
+  gptCanvasBase64: string,
+): Promise<void> {
+  await storeJobCanvas(jobId, gptCanvasBase64);
+  const meta: JobMeta = { status: 'done', designBrief, copyV2, hasGptCanvas: true };
+  await getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL });
 }
 
 export async function failRender(jobId: string, error: string): Promise<void> {

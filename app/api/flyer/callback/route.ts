@@ -1,20 +1,33 @@
 import { NextRequest } from 'next/server';
-import { completeJob, completeJobComposite, failJob } from '@/lib/kv';
+import { completeJob, completeJobComposite, completeJobGPTCanvas, failJob } from '@/lib/kv';
 import { loadTemplate, templateExists } from '@/lib/templates/index';
 import { validateCopy } from '@/lib/validate-copy';
-import type { DesignSpec, FlyerCopy, TemplateCopy } from '@/lib/types';
+import type { DesignSpec, FlyerCopy, FlyerCopyV2, DesignBrief, TemplateCopy } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const VALID_LAYOUT_IDS = new Set<string>([
+  'centered_framed', 'asymmetric_diagonal', 'top_heavy',
+  'magazine_split', 'vignette_center', 'banner_horizontal', 'hero_name_radial',
+]);
+
+const VALID_TYPO_IDS = new Set<string>([
+  'classical_elegant', 'modern_clean', 'bold_impact',
+  'romantic_serif', 'warm_handwritten', 'minimal_swiss',
+]);
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const {
     status,
     jobId,
+    // GPT-canvas path fields (new)
+    designBrief,
+    copy: rawCopy,
+    gptCanvasBase64,
     // Template path fields
     templateId,
-    copy,
     paletteIndex,
     dalle_art_url,
     // Composite/legacy path fields
@@ -25,10 +38,15 @@ export async function POST(request: NextRequest) {
   } = body as {
     status: 'done' | 'error';
     jobId: string;
+    // GPT-canvas
+    designBrief?: DesignBrief;
+    copy?: FlyerCopyV2 | TemplateCopy;
+    gptCanvasBase64?: string;
+    // Template
     templateId?: string;
-    copy?: TemplateCopy;
     paletteIndex?: number;
     dalle_art_url?: string;
+    // Composite
     design_spec?: DesignSpec;
     dalle_prompt?: string;
     imageBase64?: string;
@@ -40,9 +58,22 @@ export async function POST(request: NextRequest) {
   }
 
   if (status === 'done') {
-    if (imageBase64) {
-      // ── Composite path — n8n sends copy in 'copy' field (3-field shape from text-in-image arch) ──
-      const legacyCopy = copy as unknown as FlyerCopy;
+    if (gptCanvasBase64) {
+      // ── GPT-canvas path — n8n sends designBrief + copy (FlyerCopyV2 shape) + gptCanvasBase64 ──
+      const copyV2 = rawCopy as FlyerCopyV2;
+      if (
+        !VALID_LAYOUT_IDS.has(designBrief?.layoutId ?? '') ||
+        !VALID_TYPO_IDS.has(designBrief?.typographyId ?? '') ||
+        !copyV2?.headline || !copyV2?.recipient_name || !copyV2?.body || !copyV2?.signoff
+      ) {
+        await failJob(jobId, 'GPT-canvas callback validation failed: missing or invalid fields');
+        return Response.json({ ok: true });
+      }
+      await completeJobGPTCanvas(jobId, designBrief as DesignBrief, copyV2, gptCanvasBase64);
+
+    } else if (imageBase64) {
+      // ── Composite path — n8n sends copy in 'copy' field ──
+      const legacyCopy = rawCopy as unknown as FlyerCopy;
       if (!legacyCopy) {
         await failJob(jobId, 'Composite callback missing copy');
         return Response.json({ ok: true });
@@ -50,8 +81,9 @@ export async function POST(request: NextRequest) {
       const dataUrl = `data:image/png;base64,${imageBase64}`;
       await completeJobComposite(jobId, legacyCopy, (design_spec ?? {}) as DesignSpec, dalle_prompt ?? '', dataUrl);
 
-    } else if (templateId && copy && paletteIndex !== undefined) {
+    } else if (templateId && rawCopy && paletteIndex !== undefined) {
       // ── Template path ──────────────────────────────────────────────────────
+      const copy = rawCopy as TemplateCopy;
       if (!templateExists(templateId)) {
         await failJob(jobId, `Unknown template: ${templateId}`);
         return Response.json({ ok: true });
@@ -59,12 +91,12 @@ export async function POST(request: NextRequest) {
       const validation = validateCopy(copy, loadTemplate(templateId));
       if (!validation.valid) {
         console.warn('[callback] Copy overflows slots:', validation.overflows);
-        // Store anyway — n8n is responsible for retries; renderer truncates at hard_max_chars
+        // Store anyway — renderer truncates at hard_max_chars
       }
       await completeJob(jobId, templateId, copy, paletteIndex, dalle_art_url);
 
     } else {
-      await failJob(jobId, 'Callback missing required fields (templateId+copy+paletteIndex or imageBase64)');
+      await failJob(jobId, 'Callback missing required fields (gptCanvasBase64, templateId+copy+paletteIndex, or imageBase64)');
     }
   } else {
     await failJob(jobId, error ?? 'Unknown error from workflow');

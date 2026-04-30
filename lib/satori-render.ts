@@ -1,122 +1,87 @@
 import satori from 'satori';
 import sharp from 'sharp';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { loadTemplate } from './templates/index';
-import type { TemplateCopy } from './types';
+import type { DesignBrief, FlyerCopyV2 } from './types';
+import { LAYOUTS } from './render/layouts';
+import { TYPOGRAPHY_PAIRINGS, BASE_SIZE, loadTypographyFonts } from './render/typography';
+import { extractZoneColor, extractAccentColor, harmonizeColors } from './render/color-sampling';
 
-// Cache font buffers in module scope — only read once per process
-let _fonts: Awaited<Parameters<typeof satori>[1]>['fonts'] | null = null;
+const CANVAS_W = 1024;
+const CANVAS_H = 1536;
 
-function getFonts() {
-  if (_fonts) return _fonts;
-  const nm = join(process.cwd(), 'node_modules', '@fontsource');
-  _fonts = [
-    {
-      name: 'Inter',
-      data: readFileSync(join(nm, 'inter', 'files', 'inter-latin-400-normal.woff')),
-      weight: 400 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'Inter',
-      data: readFileSync(join(nm, 'inter', 'files', 'inter-latin-700-normal.woff')),
-      weight: 700 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'Oswald',
-      data: readFileSync(join(nm, 'oswald', 'files', 'oswald-latin-700-normal.woff')),
-      weight: 700 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'Playfair Display',
-      data: readFileSync(
-        join(nm, 'playfair-display', 'files', 'playfair-display-latin-400-normal.woff'),
-      ),
-      weight: 400 as const,
-      style: 'normal' as const,
-    },
-    {
-      name: 'Playfair Display',
-      data: readFileSync(
-        join(nm, 'playfair-display', 'files', 'playfair-display-latin-700-normal.woff'),
-      ),
-      weight: 700 as const,
-      style: 'normal' as const,
-    },
-    { name: 'Montserrat', data: readFileSync(join(nm, 'montserrat', 'files', 'montserrat-latin-400-normal.woff2')), weight: 400 as const, style: 'normal' as const },
-    { name: 'Montserrat', data: readFileSync(join(nm, 'montserrat', 'files', 'montserrat-latin-700-normal.woff2')), weight: 700 as const, style: 'normal' as const },
-    { name: 'Poppins',    data: readFileSync(join(nm, 'poppins',    'files', 'poppins-latin-400-normal.woff2')),    weight: 400 as const, style: 'normal' as const },
-    { name: 'Poppins',    data: readFileSync(join(nm, 'poppins',    'files', 'poppins-latin-700-normal.woff2')),    weight: 700 as const, style: 'normal' as const },
-    { name: 'Lora',       data: readFileSync(join(nm, 'lora',       'files', 'lora-latin-400-normal.woff2')),       weight: 400 as const, style: 'normal' as const },
-    { name: 'Lora',       data: readFileSync(join(nm, 'lora',       'files', 'lora-latin-700-normal.woff2')),       weight: 700 as const, style: 'normal' as const },
-    { name: 'Raleway',    data: readFileSync(join(nm, 'raleway',    'files', 'raleway-latin-400-normal.woff2')),    weight: 400 as const, style: 'normal' as const },
-    { name: 'Raleway',    data: readFileSync(join(nm, 'raleway',    'files', 'raleway-latin-700-normal.woff2')),    weight: 700 as const, style: 'normal' as const },
-    { name: 'Dancing Script', data: readFileSync(join(nm, 'dancing-script', 'files', 'dancing-script-latin-400-normal.woff2')), weight: 400 as const, style: 'normal' as const },
-    { name: 'Dancing Script', data: readFileSync(join(nm, 'dancing-script', 'files', 'dancing-script-latin-700-normal.woff2')), weight: 700 as const, style: 'normal' as const },
-  ];
-  return _fonts;
+// Slot keys in order of compositing — bottom to top visually
+const SLOTS = ['headline', 'name', 'body', 'signoff'] as const;
+type Slot = typeof SLOTS[number];
+
+// Max lines heuristic per slot
+const MAX_LINES: Record<Slot, number> = {
+  headline: 2,
+  name:     2,
+  body:     6,
+  signoff:  2,
+};
+
+function copyValue(copy: FlyerCopyV2, slot: Slot): string {
+  if (slot === 'name') return copy.recipient_name;
+  return copy[slot];
 }
 
 export async function renderFlyerToBase64(
-  templateId: string,
-  copy: TemplateCopy,
-  paletteIndex: number,
+  designBrief: DesignBrief,
+  copy: FlyerCopyV2,
+  gptCanvasBase64: string,
   scaleFactor = 1,
-  dalleArtUrl?: string,
 ): Promise<string> {
-  const template = loadTemplate(templateId);
-  const palette = template.palettes[paletteIndex] ?? template.palettes[0];
-  const W = Math.round(template.dimensions.width  * scaleFactor);
-  const H = Math.round(template.dimensions.height * scaleFactor);
+  const W = Math.round(CANVAS_W * scaleFactor);
+  const H = Math.round(CANVAS_H * scaleFactor);
 
-  // Load background PNG from disk — background_url is "/backgrounds/foo.png"
-  // path.join handles the leading slash correctly as a relative segment
-  const bgBuffer = readFileSync(join(process.cwd(), 'public', template.background_url));
+  // Decode canvas
+  const rawBase64 = gptCanvasBase64.replace(/^data:image\/\w+;base64,/, '');
+  const canvasBuffer = Buffer.from(rawBase64, 'base64');
+
+  const layout = LAYOUTS[designBrief.layoutId];
+  const typo   = TYPOGRAPHY_PAIRINGS[designBrief.typographyId];
+  const fonts  = loadTypographyFonts(designBrief.typographyId);
+
+  // Color sampling — use layout's decoration zone for accent, body zone for text bg
+  const zoneColor   = await extractZoneColor(canvasBuffer, layout.text_zones.body);
+  const accentColor = await extractAccentColor(canvasBuffer, layout.decoration_sample_zone);
+  const colors      = harmonizeColors(zoneColor, accentColor);
+
+  const textColors: Record<Slot, string> = {
+    headline: colors.headline,
+    name:     colors.name,
+    body:     colors.body,
+    signoff:  colors.signoff,
+  };
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
 
-  // Composite DALL-E art zone between background and text slots
-  if (dalleArtUrl && template.art_zone) {
-    const zone = template.art_zone;
-    const dalleBase64 = dalleArtUrl.replace(/^data:image\/\w+;base64,/, '');
-    const dalleRaw = Buffer.from(dalleBase64, 'base64');
-    const { data, info } = await sharp(dalleRaw)
-      .resize(Math.round(zone.width * scaleFactor), Math.round(zone.height * scaleFactor), { fit: 'cover' })
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    const opacity = zone.opacity ?? 0.55;
-    for (let i = 3; i < data.length; i += 4) {
-      data[i] = Math.round((data[i] as number) * opacity);
-    }
-    const artBuffer = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
-    composites.push({ input: artBuffer, top: Math.round(zone.y * scaleFactor), left: Math.round(zone.x * scaleFactor) });
-  }
+  for (const slot of SLOTS) {
+    const text = copyValue(copy, slot).trim();
+    if (!text) continue;
 
-  for (const slot of template.slots) {
-    const rawText = copy[slot.id as keyof TemplateCopy] ?? '';
-    // Enforce hard limit before rendering
-    const text = rawText.slice(0, slot.hard_max_chars);
+    const zone   = layout.text_zones[slot];
+    const spec   = typo[slot];
+    const maxLn  = MAX_LINES[slot];
+    const align  = layout.text_alignment[slot];
+    const color  = textColors[slot];
 
-    if (!text) continue; // skip empty slots
-
-    const color = palette[slot.color_token];
-
-    // Auto-fit: reduce font size until text fits within max_lines (char-count heuristic)
-    // REVIEW: uses char-count estimate, not true layout measurement — may under/over-fit for short words or CJK
-    let fontSize = Math.round(slot.ideal_size_px * scaleFactor);
-    const minFontSize = Math.round(slot.min_size_px * scaleFactor);
+    // Auto-fit: char-count heuristic (matches existing code pattern)
+    let fontSize = Math.round(BASE_SIZE * spec.sizeRatio * scaleFactor);
+    const minFontSize = Math.round(fontSize * 0.6);
     for (let i = 0; i < 10; i++) {
-      const charsPerLine = Math.floor((slot.zone.width * scaleFactor) / (fontSize * 0.55));
+      const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
       const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1));
-      if (estimatedLines <= slot.max_lines || fontSize <= minFontSize) break;
+      if (estimatedLines <= maxLn || fontSize <= minFontSize) break;
       fontSize -= 2;
     }
 
-    // Build Satori JSX: full W×H canvas with text absolutely positioned at slot zone
+    const zoneW = Math.round(zone.width  * scaleFactor);
+    const zoneH = Math.round(zone.height * scaleFactor);
+    const zoneX = Math.round(zone.x      * scaleFactor);
+    const zoneY = Math.round(zone.y      * scaleFactor);
+
+    // Build full-canvas Satori element (same pattern as legacy satori-render)
     const root = {
       type: 'div',
       props: {
@@ -131,26 +96,27 @@ export async function renderFlyerToBase64(
           props: {
             style: {
               position: 'absolute' as const,
-              left:   Math.round(slot.zone.x      * scaleFactor),
-              top:    Math.round(slot.zone.y      * scaleFactor),
-              width:  Math.round(slot.zone.width  * scaleFactor),
-              height: Math.round(slot.zone.height * scaleFactor),
+              left: zoneX,
+              top:  zoneY,
+              width: zoneW,
+              height: zoneH,
               display: 'flex' as const,
               flexDirection: 'column' as const,
               justifyContent: 'flex-start' as const,
-              overflow: 'visible' as const,
+              overflow: 'hidden' as const,
             },
             children: {
               type: 'span',
               props: {
                 style: {
-                  fontFamily: slot.font_family,
+                  fontFamily: spec.font,
                   fontSize,
-                  fontWeight: slot.font_weight,
+                  fontWeight: spec.weight,
                   color,
-                  textAlign: slot.alignment as 'left' | 'center' | 'right',
-                  lineHeight: slot.line_height,
+                  textAlign: align,
+                  lineHeight: slot === 'body' ? 1.5 : 1.2,
                   wordBreak: 'break-word' as const,
+                  width: '100%',
                 },
                 children: text,
               },
@@ -161,11 +127,26 @@ export async function renderFlyerToBase64(
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const slotSvg = await satori(root as any, { width: W, height: H, fonts: getFonts() });
-    composites.push({ input: Buffer.from(slotSvg), top: 0, left: 0 });
+    const svg = await satori(root as any, { width: W, height: H, fonts });
+    composites.push({ input: Buffer.from(svg), top: 0, left: 0 });
   }
 
-  const pngBuffer = await sharp(bgBuffer)
+  // Optional grain overlay — gracefully skipped if Sharp noise API unavailable
+  try {
+    const grainRaw = await sharp({
+      create: { width: 200, height: 200, channels: 3 as const, background: { r: 128, g: 128, b: 128 }, noise: { type: 'gaussian' as const, mean: 128, sigma: 25 } },
+    }).png().toBuffer();
+    const grainFull = await sharp(grainRaw).resize(W, H, { fit: 'fill' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const grainData = grainFull.data;
+    // Set alpha to 4% (≈ 10 of 255)
+    for (let i = 3; i < grainData.length; i += 4) grainData[i] = 10;
+    const grainBuffer = await sharp(grainData, {
+      raw: { width: grainFull.info.width, height: grainFull.info.height, channels: 4 },
+    }).png().toBuffer();
+    composites.push({ input: grainBuffer, top: 0, left: 0 });
+  } catch { /* skip grain silently */ }
+
+  const pngBuffer = await sharp(canvasBuffer)
     .resize(W, H, { fit: 'cover', position: 'center' })
     .composite(composites)
     .png()

@@ -224,6 +224,9 @@ export function ControlPanel({
           </p>
 
           {/* ① Title */}
+          {/* REVIEW: label should update based on selected occasion — e.g. "Who's it for?" for
+              birthday, "Your Name / Brand" for business. Deferred — relabel once occasion
+              picker is in step 1 and we can read prefs.occasion here. */}
           <FloatingField
             label="Name / Title"
             value={prefs.title}
