@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import type { DesignBrief, FlyerCopyV2 } from './types';
 import { LAYOUTS } from './render/layouts';
 import { TYPOGRAPHY_PAIRINGS, loadTypographyFonts } from './render/typography';
-import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX } from './render/render-config';
+import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX, AUTO_FIT } from './render/render-config';
 import { extractZoneColor, extractAccentColor, harmonizeColors } from './render/color-sampling';
 
 const { width: CANVAS_W, height: CANVAS_H } = CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT];
@@ -30,6 +30,7 @@ export async function renderFlyerToBase64(
   copy: FlyerCopyV2,
   gptCanvasBase64: string,
   scaleFactor = 1,
+  debugZones = false,
 ): Promise<string> {
   const W = Math.round(CANVAS_W * scaleFactor);
   const H = Math.round(CANVAS_H * scaleFactor);
@@ -72,12 +73,12 @@ export async function renderFlyerToBase64(
 
     // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
     let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
-    const minFontSize = Math.round(fontSize * 0.6);
-    for (let i = 0; i < 10; i++) {
+    const minFontSize = Math.round(fontSize * AUTO_FIT.min_size_ratio);
+    for (let i = 0; i < AUTO_FIT.max_iterations; i++) {
       const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
       const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1));
       if (estimatedLines <= maxLn || fontSize <= minFontSize) break;
-      fontSize -= 2;
+      fontSize -= AUTO_FIT.size_step_px;
     }
 
     const zoneW = Math.round(zone.width  * scaleFactor);
@@ -133,6 +134,43 @@ export async function renderFlyerToBase64(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const svg = await satori(root as any, { width: W, height: H, fonts });
     composites.push({ input: Buffer.from(svg), top: 0, left: 0 });
+  }
+
+  // Debug zone outlines — activated via debugZones param OR DEBUG_ZONES=true env var
+  if (debugZones || process.env.DEBUG_ZONES === 'true') {
+    const debugColors: Record<Slot, string> = {
+      headline: 'rgba(255,0,0,0.35)',
+      name:     'rgba(0,200,0,0.35)',
+      body:     'rgba(0,80,255,0.35)',
+      signoff:  'rgba(255,140,0,0.35)',
+    };
+    for (const slot of SLOTS) {
+      const zone = zones[slot];
+      const zoneW = Math.round(zone.width  * scaleFactor);
+      const zoneH = Math.round(zone.height * scaleFactor);
+      const zoneX = Math.round(zone.x      * scaleFactor);
+      const zoneY = Math.round(zone.y      * scaleFactor);
+      const dbgRoot = {
+        type: 'div',
+        props: {
+          style: { position: 'relative' as const, display: 'flex' as const, width: W, height: H },
+          children: {
+            type: 'div',
+            props: {
+              style: {
+                position: 'absolute' as const,
+                left: zoneX, top: zoneY,
+                width: zoneW, height: zoneH,
+                backgroundColor: debugColors[slot],
+              },
+            },
+          },
+        },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dbgSvg = await satori(dbgRoot as any, { width: W, height: H, fonts });
+      composites.push({ input: Buffer.from(dbgSvg), top: 0, left: 0 });
+    }
   }
 
   // Optional grain overlay — gracefully skipped if Sharp noise API unavailable

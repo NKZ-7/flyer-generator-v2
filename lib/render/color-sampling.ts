@@ -24,6 +24,7 @@ export async function extractZoneColor(imageBuffer: Buffer, zone: Rect): Promise
       .toBuffer({ resolveWithObject: true });
     return `#${data[0].toString(16).padStart(2, '0')}${data[1].toString(16).padStart(2, '0')}${data[2].toString(16).padStart(2, '0')}`;
   } catch {
+    console.warn(`[ColorSampling] Zone extraction failed for zone ${JSON.stringify(zone)}, falling back to default. This breaks contrast enforcement.`);
     return '#F5E6D0'; // warm cream fallback
   }
 }
