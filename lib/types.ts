@@ -109,12 +109,15 @@ export type TypographyPairingId =
   | 'warm_handwritten'
   | 'minimal_swiss';
 
+export type DecorationDensity = 'sparse' | 'moderate' | 'rich';
+
 export type DesignBrief = {
   palette_mood: string;
   decorative_direction: string;
   energy_tags: string[];
   layoutId: LayoutId;
   typographyId: TypographyPairingId;
+  decoration_density: DecorationDensity;
   text_treatment: string;
 };
 
@@ -173,6 +176,8 @@ export interface JobStatusResponse {
 // ──────────────────────────────────────────────
 
 export type GeneratorPhase = 'idle' | 'generating' | 'done' | 'error';
+
+export type { CanvasFormat } from './render/render-config';
 
 export type DownloadFormat = 'png' | 'jpg' | 'pdf';
 

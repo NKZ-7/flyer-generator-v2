@@ -48,7 +48,7 @@ export function CanvasPanel({
       {phase === 'done' && currentVersion && (
         <div className="relative shrink-0 flex items-center justify-between px-5 py-3 border-t border-zinc-800 bg-[#0d0d0f]">
           <span className="text-xs text-zinc-500 font-mono">
-            800 × 1100 px
+            1024 × 1024 px
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -83,7 +83,7 @@ function GeneratingState() {
       {/* Animated frame */}
       <div
         className="relative rounded-sm overflow-hidden border border-zinc-700"
-        style={{ width: 200, height: 275 }}
+        style={{ width: 200, height: 200 }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-800">
           {/* Shimmer stripes */}

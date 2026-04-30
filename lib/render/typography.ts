@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { TypographyPairingId } from '../types';
+import { BASE_FONT_SIZE_PX } from './render-config';
 
 export type FontSpec = { font: string; weight: number; sizeRatio: number };
 
@@ -20,14 +21,14 @@ export type TypographyPairing = {
   signoff: FontSpec;
 };
 
-/** Base font size (px) at 1024×1536. sizeRatio multiplies this. */
-export const BASE_SIZE = 64;
+// Re-export so satori-render can import from one place
+export { BASE_FONT_SIZE_PX };
 
 export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing> = {
   classical_elegant: {
     id: 'classical_elegant',
     description: 'Playfair Display for structure; signoff in Great Vibes script.',
-    headline: { font: 'Playfair Display', weight: 700, sizeRatio: 0.70 },
+    headline: { font: 'Playfair Display', weight: 700, sizeRatio: 0.62 },
     name:     { font: 'Playfair Display', weight: 700, sizeRatio: 1.00 },
     body:     { font: 'Playfair Display', weight: 400, sizeRatio: 0.35 },
     signoff:  { font: 'Great Vibes',      weight: 400, sizeRatio: 0.45 },
@@ -35,7 +36,7 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
   modern_clean: {
     id: 'modern_clean',
     description: 'Inter throughout — clean, contemporary, highly legible.',
-    headline: { font: 'Inter', weight: 700, sizeRatio: 0.75 },
+    headline: { font: 'Inter', weight: 700, sizeRatio: 0.65 },
     name:     { font: 'Inter', weight: 700, sizeRatio: 1.00 },
     body:     { font: 'Inter', weight: 400, sizeRatio: 0.35 },
     signoff:  { font: 'Inter', weight: 500, sizeRatio: 0.42 },
@@ -43,7 +44,7 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
   bold_impact: {
     id: 'bold_impact',
     description: 'Bebas Neue display + Inter body for high energy and legibility.',
-    headline: { font: 'Bebas Neue', weight: 400, sizeRatio: 0.80 },
+    headline: { font: 'Bebas Neue', weight: 400, sizeRatio: 0.68 },
     name:     { font: 'Bebas Neue', weight: 400, sizeRatio: 1.00 },
     body:     { font: 'Inter',      weight: 400, sizeRatio: 0.32 },
     signoff:  { font: 'Inter',      weight: 500, sizeRatio: 0.40 },
@@ -51,23 +52,23 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
   romantic_serif: {
     id: 'romantic_serif',
     description: 'Cormorant Garamond body + Allura script for name and signoff.',
-    headline: { font: 'Cormorant Garamond', weight: 700, sizeRatio: 0.70 },
-    name:     { font: 'Allura',             weight: 400, sizeRatio: 1.00 },
+    headline: { font: 'Cormorant Garamond', weight: 700, sizeRatio: 0.62 },
+    name:     { font: 'Allura',             weight: 400, sizeRatio: 1.10 },
     body:     { font: 'Cormorant Garamond', weight: 400, sizeRatio: 0.35 },
     signoff:  { font: 'Allura',             weight: 400, sizeRatio: 0.45 },
   },
   warm_handwritten: {
     id: 'warm_handwritten',
     description: 'DM Serif Display for structure; Caveat script for name and signoff.',
-    headline: { font: 'DM Serif Display', weight: 400, sizeRatio: 0.72 },
-    name:     { font: 'Caveat',           weight: 700, sizeRatio: 1.00 },
+    headline: { font: 'DM Serif Display', weight: 400, sizeRatio: 0.63 },
+    name:     { font: 'Caveat',           weight: 700, sizeRatio: 1.10 },
     body:     { font: 'DM Serif Display', weight: 400, sizeRatio: 0.34 },
     signoff:  { font: 'Caveat',           weight: 400, sizeRatio: 0.44 },
   },
   minimal_swiss: {
     id: 'minimal_swiss',
     description: 'Inter Tight throughout — tight spacing, clean Swiss grid feel.',
-    headline: { font: 'Inter Tight', weight: 700, sizeRatio: 0.75 },
+    headline: { font: 'Inter Tight', weight: 700, sizeRatio: 0.65 },
     name:     { font: 'Inter Tight', weight: 500, sizeRatio: 1.00 },
     body:     { font: 'Inter',       weight: 400, sizeRatio: 0.33 },
     signoff:  { font: 'Inter',       weight: 500, sizeRatio: 0.42 },

@@ -2,11 +2,11 @@ import satori from 'satori';
 import sharp from 'sharp';
 import type { DesignBrief, FlyerCopyV2 } from './types';
 import { LAYOUTS } from './render/layouts';
-import { TYPOGRAPHY_PAIRINGS, BASE_SIZE, loadTypographyFonts } from './render/typography';
+import { TYPOGRAPHY_PAIRINGS, loadTypographyFonts } from './render/typography';
+import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX } from './render/render-config';
 import { extractZoneColor, extractAccentColor, harmonizeColors } from './render/color-sampling';
 
-const CANVAS_W = 1024;
-const CANVAS_H = 1536;
+const { width: CANVAS_W, height: CANVAS_H } = CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT];
 
 // Slot keys in order of compositing — bottom to top visually
 const SLOTS = ['headline', 'name', 'body', 'signoff'] as const;
@@ -42,9 +42,13 @@ export async function renderFlyerToBase64(
   const typo   = TYPOGRAPHY_PAIRINGS[designBrief.typographyId];
   const fonts  = loadTypographyFonts(designBrief.typographyId);
 
-  // Color sampling — use layout's decoration zone for accent, body zone for text bg
-  const zoneColor   = await extractZoneColor(canvasBuffer, layout.text_zones.body);
-  const accentColor = await extractAccentColor(canvasBuffer, layout.decoration_sample_zone);
+  // Compute zones at the base canvas dimensions for color sampling and coordinate reference.
+  // The scaleFactor is applied per-zone when building composites.
+  const zones      = layout.computeZones(CANVAS_W, CANVAS_H);
+  const sampleZone = layout.computeDecorationSampleZone(CANVAS_W, CANVAS_H);
+
+  const zoneColor   = await extractZoneColor(canvasBuffer, zones.body);
+  const accentColor = await extractAccentColor(canvasBuffer, sampleZone);
   const colors      = harmonizeColors(zoneColor, accentColor);
 
   const textColors: Record<Slot, string> = {
@@ -60,14 +64,14 @@ export async function renderFlyerToBase64(
     const text = copyValue(copy, slot).trim();
     if (!text) continue;
 
-    const zone   = layout.text_zones[slot];
+    const zone   = zones[slot];
     const spec   = typo[slot];
     const maxLn  = MAX_LINES[slot];
     const align  = layout.text_alignment[slot];
     const color  = textColors[slot];
 
-    // Auto-fit: char-count heuristic (matches existing code pattern)
-    let fontSize = Math.round(BASE_SIZE * spec.sizeRatio * scaleFactor);
+    // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
+    let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
     const minFontSize = Math.round(fontSize * 0.6);
     for (let i = 0; i < 10; i++) {
       const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
@@ -151,6 +155,11 @@ export async function renderFlyerToBase64(
     .composite(composites)
     .png()
     .toBuffer();
+
+  const { width: actualW, height: actualH } = await sharp(pngBuffer).metadata();
+  if (actualW !== W || actualH !== H) {
+    console.error(`[CanvasFormat] Expected ${W}x${H}, got ${actualW}x${actualH} — dimension drift detected`);
+  }
 
   return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }

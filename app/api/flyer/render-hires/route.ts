@@ -3,6 +3,7 @@ import { getJobMeta, getJobRender, getJobCanvas } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
 import { renderTemplateToBase64 } from '@/lib/template-render';
 import { DIGITAL_PRESETS, PRINT_PRESETS, mmToPx } from '@/lib/constants';
+import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT } from '@/lib/render/render-config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       // ── GPT-canvas path ────────────────────────────────────────────────────
       const canvasBase64 = await getJobCanvas(jobId);
       if (!canvasBase64) return Response.json({ error: 'Canvas not available' }, { status: 404 });
-      const scaleFactor = cfg.width / 1024;
+      const scaleFactor = cfg.width / CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT].width;
       dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, scaleFactor);
 
     } else if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     // ── GPT-canvas path ──────────────────────────────────────────────────────
     const canvasBase64 = await getJobCanvas(jobId);
     if (!canvasBase64) return Response.json({ error: 'Canvas not available' }, { status: 404 });
-    const scaleFactor = baseW / 1024;
+    const scaleFactor = baseW / CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT].width;
     dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, scaleFactor);
 
   } else if (meta.templateId && meta.copy && meta.paletteIndex !== undefined) {
