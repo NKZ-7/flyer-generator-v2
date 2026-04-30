@@ -179,7 +179,7 @@ export type DownloadFormat = 'png' | 'jpg' | 'pdf';
 export interface VersionEntry {
   jobId: string;
   imageDataUrl: string;
-  copy: TemplateCopy | FlyerCopy; // composite uses FlyerCopy, template uses TemplateCopy
+  copy: TemplateCopy | FlyerCopy | FlyerCopyV2;
   templateId?: string;
   paletteIndex?: number;
   createdAt: number;

@@ -26,7 +26,7 @@ export function useGenerator() {
   const lastPrefsRef = useRef<FlyerPreferences | null>(null);
 
   const handleComplete = useCallback((dataUrl: string, meta: JobMeta) => {
-    if (!meta.copy && !meta.legacyCopy) {
+    if (!meta.copy && !meta.legacyCopy && !meta.copyV2) {
       setPhase('error');
       setErrorMsg('Received incomplete result from workflow');
       setIsRefining(false);
@@ -36,7 +36,7 @@ export function useGenerator() {
     const entry: VersionEntry = {
       jobId: jobIdRef.current!,
       imageDataUrl: dataUrl,
-      copy: meta.copy ?? meta.legacyCopy!,
+      copy: meta.copy ?? meta.copyV2 ?? meta.legacyCopy!,
       templateId: meta.templateId,
       paletteIndex: meta.paletteIndex,
       createdAt: Date.now(),
