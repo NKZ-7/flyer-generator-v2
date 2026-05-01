@@ -191,6 +191,7 @@ export async function renderFlyerToBase64(
   const pngBuffer = await sharp(canvasBuffer)
     .resize(W, H, { fit: 'cover', position: 'center' })
     .composite(composites)
+    .flatten({ background: '#FAEDE3' })
     .png()
     .toBuffer();
 

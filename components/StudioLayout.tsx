@@ -6,7 +6,7 @@ import { CanvasPanel } from './CanvasPanel';
 import { ControlPanel } from './ControlPanel';
 import { VersionStrip } from './VersionStrip';
 import { DownloadModal } from './DownloadModal';
-import { RefinementChat } from './RefinementChat';
+import { ActionsPanel } from './RefinementChat';
 import type { FlyerPreferences, UserAsset } from '@/lib/types';
 
 const defaultPrefs: FlyerPreferences = {
@@ -37,7 +37,15 @@ export function StudioLayout() {
     generator.reset();
   }
 
-  const showChat = generator.phase === 'done' || generator.isRefining;
+  function handleRegenerate() {
+    generator.generate(prefs, userAssets);
+  }
+
+  function handleEditInputs() {
+    generator.reset(); // returns to idle; prefs and userAssets are preserved in StudioLayout state
+  }
+
+  const showActions = generator.phase === 'done';
 
   return (
     <div className="flex flex-col h-screen bg-[#09090b] text-zinc-100 overflow-hidden font-sans">
@@ -97,16 +105,12 @@ export function StudioLayout() {
             />
           </div>
 
-          {/* Refinement chat — appears when a flyer is done (or refining) */}
-          {showChat && (
-            <div
-              className={`h-64 shrink-0 ${
-                !generator.isRefining && generator.phase === 'generating' ? 'hidden md:block' : ''
-              }`}
-            >
-              <RefinementChat
-                onRefine={generator.refine}
-                isRefining={generator.isRefining}
+          {/* Actions panel — appears when a flyer is done */}
+          {showActions && (
+            <div className="h-52 shrink-0">
+              <ActionsPanel
+                onRegenerate={handleRegenerate}
+                onEditInputs={handleEditInputs}
               />
             </div>
           )}

@@ -571,3 +571,65 @@ The bars should be cream (`#FAEDE3`) per the `bgColor` in `render-hires/route.ts
 4. For the story (1080×1920) preset: download → open the JPEG → bars above/below the canvas must be **cream** (#FAEDE3), not black
 5. Open DownloadModal → Quick Save section → label must read `"1024 × 1024 px — saves directly to your device"`
 6. Check Vercel function logs — `[harmonize] zoneLum:` lines should appear; `name:` and `body:` OUT lines should show `#1F1A14` (or `#FAF6F0` if canvas is dark)
+
+---
+
+## MVP Launch Fixes — Round 6
+
+### Fix 1 — Remove Email Banner preset (1200×628)
+
+**Problem:** The 1200×628 export preset letterboxed the square 1024×1024 canvas inside a wide frame, producing prominent cream bars on both sides. Poor output for a named export option.
+
+**Fix:** Removed `'email-banner'` from `DIGITAL_PRESETS` in `lib/constants.ts`. No UI change needed — `DownloadModal.tsx` renders presets dynamically from `Object.entries(DIGITAL_PRESETS)`, so removing the entry from constants removes it from the UI automatically.
+
+**Orphaned references audit:** `refinementMessage` is only in `app/api/flyer/refine/route.ts` (kept with REVIEW comment). No references to `email-banner`, `1200`, or `628` remain in `render-hires/route.ts` or elsewhere. ✓
+
+**4 presets remain:** Social Media Post (1080×1080), WhatsApp Status / IG Story (1080×1920), Facebook Event Cover (1920×1005), plus the Quick Save JPEG at base resolution.
+
+### Fix 2 — Flatten preview PNG to cream
+
+**Problem:** `renderFlyerToBase64` returned a PNG with a transparent background. The in-app preview showed dark text on near-black (the UI's dark chrome showed through) — misleading to the user.
+
+**Fix:** Added `.flatten({ background: '#FAEDE3' })` before `.png()` in the final Sharp composite pipeline in `lib/satori-render.ts` (line 194). Transparent pixels in the rendered PNG now resolve to warm cream, matching what all export presets already produced.
+
+### Fix 3 — Replace RefinementChat with ActionsPanel
+
+**Problem:** The refinement chat sent a `refinementMessage` to n8n which triggered a full pipeline regeneration — a brand-new card unrelated to the previous one. Confusing and destructive for users. Smart selective edit is deferred to post-launch.
+
+**New UX:** `Regenerate` (same inputs, new variant) + `Edit inputs` (return to form with values preserved) + "Smart edit coming soon" note.
+
+### Files Modified
+
+- `lib/constants.ts` — removed `'email-banner'` preset entry
+- `lib/satori-render.ts` — added `.flatten({ background: '#FAEDE3' })` before `.png()` at line ~194
+- `components/RefinementChat.tsx` — replaced entirely; now exports `ActionsPanel` component
+- `components/StudioLayout.tsx` — updated import to `ActionsPanel`; added `handleRegenerate` and `handleEditInputs` functions; `showChat` → `showActions = phase === 'done'`; panel height changed to `h-52`
+- `hooks/useGenerator.ts` — removed `refine` and `isRefining` from returned API; added `// REVIEW:` comment above `refine` implementation
+- `app/api/flyer/refine/route.ts` — added `// REVIEW:` comment at top (route left intact, no longer called by frontend)
+
+### Architecture notes
+
+- **ActionsPanel** lives at `components/RefinementChat.tsx` (file kept, contents replaced). Exported as `ActionsPanel`.
+- **Regenerate** calls `generator.generate(prefs, userAssets)` in StudioLayout — uses the current form prefs. Each regeneration adds a new version entry to the VersionStrip.
+- **Edit inputs** calls `generator.reset()` only — prefs and userAssets in StudioLayout state are preserved. The user returns to Step 1 of the form with all their previous values intact.
+- **refine route** is left in place (`app/api/flyer/refine/route.ts`) with a REVIEW comment — safe to delete after MVP launch confirms stable.
+
+### REVIEW comments left
+
+- `hooks/useGenerator.ts` — above `refine()`: safe to delete `refine`, `isRefining`, and `/api/flyer/refine` after MVP confirms stable
+- `app/api/flyer/refine/route.ts` — top of file: route no longer called by frontend
+
+### Build Status After Round 6
+
+- `npm run build`: **PASS** — zero TypeScript errors, all 8 routes compiled (6.9s)
+
+### Manual Verification Steps
+
+1. Wait for Vercel deploy (push to main)
+2. Submit a fresh test card (birthday + warm + Ada):
+   - Preview pane must show cream background, dark text fully readable — not dark-on-dark
+   - Below the Download button area, the right panel must show "What next?" with Regenerate and Edit inputs buttons and "Smart edit coming soon" note
+3. Download modal shows **4 presets only** — Social Media Post, IG Story, Facebook Event Cover visible; no Email / Web Banner
+4. Click **Regenerate** — spinner starts, new card generates, both versions appear in the version strip at the bottom
+5. Click **Edit inputs** — form returns to Step 1 with previous values (recipient name, occasion, vibe) pre-filled
+6. Confirm no 404 or console errors for `/api/flyer/refine` (it still exists, just not called)

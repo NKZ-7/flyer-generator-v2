@@ -99,6 +99,8 @@ export function useGenerator() {
     }
   }, []);
 
+  // REVIEW: refine is no longer called by the frontend — ActionsPanel replaced RefinementChat.
+  // Safe to delete refine(), isRefining state, and /api/flyer/refine after MVP confirms stable.
   const refine = useCallback(async (message: string) => {
     if (!currentVersion || !lastPrefsRef.current) return;
     setIsRefining(true);
@@ -163,9 +165,7 @@ export function useGenerator() {
     errorMsg,
     versionHistory,
     currentVersion,
-    isRefining,
     generate,
-    refine,
     reset,
     selectVersion,
   };

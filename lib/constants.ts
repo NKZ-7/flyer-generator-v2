@@ -28,13 +28,6 @@ export const DIGITAL_PRESETS = {
     height: 1005,
     format: 'jpg' as const,
   },
-  'email-banner': {
-    label: 'Email / Web Banner',
-    desc: 'Newsletters, websites, link previews',
-    width: 1200,
-    height: 628,
-    format: 'png' as const,
-  },
 } satisfies Record<
   string,
   { label: string; desc: string; width: number; height: number; format: 'jpg' | 'png' }

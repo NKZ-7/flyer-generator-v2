@@ -1,3 +1,5 @@
+// REVIEW: refine route is no longer called by the frontend — safe to delete after MVP confirms stable.
+// ActionsPanel replaced RefinementChat; regeneration goes through /api/flyer/start instead.
 import { NextRequest } from 'next/server';
 import { createJob } from '@/lib/kv';
 import { randomUUID } from 'crypto';
