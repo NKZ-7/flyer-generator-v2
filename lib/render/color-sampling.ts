@@ -101,9 +101,10 @@ export function harmonizeColors(zoneColor: string, accentColor: string): TextCol
   const headline = ensureContrast(accentColor,    zoneColor, CONTRAST_RATIOS.large_headline);
   const signoff  = ensureContrast(signoffInitial, zoneColor, CONTRAST_RATIOS.signoff);
 
-  // Legibility channel: name + body use fixed ink (no iterative darkening needed)
-  const name = legibilityColor;
-  const body = legibilityColor;
+  // Legibility channel: name + body — run through ensureContrast as a safety check;
+  // legibilityColor is already near-extreme so this returns it unchanged at step 0 in practice
+  const name = ensureContrast(legibilityColor, zoneColor, CONTRAST_RATIOS.large_headline);
+  const body = ensureContrast(legibilityColor, zoneColor, CONTRAST_RATIOS.body_text);
 
   console.log('[harmonize] OUT — headline:', headline, 'cr:', contrastRatio(headline, zoneColor).toFixed(2));
   console.log('[harmonize] OUT — name:    ', name,     'cr:', contrastRatio(name,     zoneColor).toFixed(2));
