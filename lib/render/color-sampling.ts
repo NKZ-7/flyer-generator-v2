@@ -1,7 +1,12 @@
 import sharp from 'sharp';
 import Color from 'color';
 import type { Rect } from './layouts';
-import { CONTRAST_RATIOS } from './render-config';
+import {
+  CONTRAST_RATIOS,
+  LEGIBILITY_TEXT_COLOR,
+  LEGIBILITY_TEXT_COLOR_LIGHT,
+  LEGIBILITY_LUMINANCE_THRESHOLD,
+} from './render-config';
 
 export type TextColors = {
   headline: string;
@@ -72,17 +77,40 @@ export async function extractAccentColor(imageBuffer: Buffer, sampleZone: Rect):
 }
 
 /**
- * Given the background zone color and a saturated accent color from the
- * decoration, return a harmonized set of text colors that all pass WCAG AA
- * contrast against the zone background.
+ * Two-channel color strategy:
+ *   Legibility channel (name, body) — fixed near-black/near-white ink chosen by zone luminance,
+ *   guaranteed readable without needing accent extraction.
+ *   Decorative channel (headline, signoff) — accent-harmonized, still contrast-checked.
  */
 export function harmonizeColors(zoneColor: string, accentColor: string): TextColors {
-  return {
-    headline: ensureContrast(accentColor,              zoneColor, CONTRAST_RATIOS.large_headline),
-    name:     ensureContrast(darken(accentColor, 15),  zoneColor, CONTRAST_RATIOS.large_headline),
-    body:     ensureContrast(darken(zoneColor, 60),    zoneColor, CONTRAST_RATIOS.body_text),
-    signoff:  ensureContrast(desaturate(accentColor, 30), zoneColor, CONTRAST_RATIOS.signoff),
-  };
+  console.log('[harmonize] IN  zoneColor:', zoneColor, 'accentColor:', accentColor);
+
+  // Legibility channel: pick ink by zone luminance
+  const zoneLum      = relativeLuminance(zoneColor);
+  const legibilityColor = zoneLum < LEGIBILITY_LUMINANCE_THRESHOLD
+    ? LEGIBILITY_TEXT_COLOR_LIGHT
+    : LEGIBILITY_TEXT_COLOR;
+  console.log('[harmonize] zoneLum:', zoneLum.toFixed(3), '→ legibilityColor:', legibilityColor,
+    'cr:', contrastRatio(legibilityColor, zoneColor).toFixed(2));
+
+  // Decorative channel
+  const signoffInitial = desaturate(accentColor, 30);
+  console.log('[harmonize] initial colors — headline:', accentColor,    'cr:', contrastRatio(accentColor,    zoneColor).toFixed(2));
+  console.log('[harmonize] initial colors — signoff: ', signoffInitial, 'cr:', contrastRatio(signoffInitial, zoneColor).toFixed(2));
+
+  const headline = ensureContrast(accentColor,    zoneColor, CONTRAST_RATIOS.large_headline);
+  const signoff  = ensureContrast(signoffInitial, zoneColor, CONTRAST_RATIOS.signoff);
+
+  // Legibility channel: name + body use fixed ink (no iterative darkening needed)
+  const name = legibilityColor;
+  const body = legibilityColor;
+
+  console.log('[harmonize] OUT — headline:', headline, 'cr:', contrastRatio(headline, zoneColor).toFixed(2));
+  console.log('[harmonize] OUT — name:    ', name,     'cr:', contrastRatio(name,     zoneColor).toFixed(2));
+  console.log('[harmonize] OUT — body:    ', body,     'cr:', contrastRatio(body,     zoneColor).toFixed(2));
+  console.log('[harmonize] OUT — signoff: ', signoff,  'cr:', contrastRatio(signoff,  zoneColor).toFixed(2));
+
+  return { headline, name, body, signoff };
 }
 
 export function darken(hex: string, pct: number): string {

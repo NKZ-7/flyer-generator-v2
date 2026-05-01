@@ -395,7 +395,9 @@ n8n node-11 patched via API, workflow reactivated (active: true ✓).
 
 Added to `lib/satori-render.ts`. Activated via `debugZones=true` parameter or `DEBUG_ZONES=true` env var. Overlays semi-transparent colored fills: headline=red, name=green, body=blue, signoff=orange. Use to visually validate layout zones without modifying any production code path.
 
-**Note:** node-15 (Build Vision QA Prompt) also references zone coordinates for the vision QA check. It was NOT updated in this pass — the QA uses the same logic to verify text-zone cleanliness. If QA becomes too strict or too lenient after this change, update node-15 with the same new empty zone pixel values.
+**Node-15 (Build Vision QA Prompt) patched with updated zone coordinates — vision QA now inspects the same rectangles GPT was instructed to keep clean.**
+
+Prior node-15 coordinates were from the pre-Round-4 layout (e.g. centered_framed was checking x:200-824, y:233-791; now correctly checks x:102-922, y:184-840). All 7 layout instruction strings in node-15 now match node-11 exactly. Workflow reactivated (active: true ✓).
 
 ### Build Status After Round 4
 
@@ -410,3 +412,162 @@ Added to `lib/satori-render.ts`. Activated via `debugZones=true` parameter or `D
 5. Body text must be readable (high contrast against canvas background)
 6. Appropriate white space below signoff — not crammed at bottom, not huge dead zone
 7. For advanced debugging: set `DEBUG_ZONES=true` in Vercel env → colored zone overlays appear on the rendered image; remove after verification
+
+---
+
+## Diagnosis A — Contrast Failure
+
+### Sanity tests (run with actual `color` npm package)
+
+| Test | Result | Expected |
+|------|--------|----------|
+| `contrastRatio('#000000','#FFFFFF')` | **21.00** | 21 ✓ |
+| `contrastRatio('#F5E6D0','#F5E6D0')` | **1.00** | 1 ✓ |
+| `darken('#F5E6D0', 60)` | **#956620** (warm medium brown) | clearly darker ✓ |
+| `darken('#F5E6D0', 65)` | **#83591C** | darker still ✓ |
+| `darken('#8B6914', 15)` | **#765911** | ✓ |
+| `darken('#F5E6D0', 5) × 20 iterations` | **#855C1C** | deep brown ✓ |
+
+**Conclusion: `darken()` and `contrastRatio()` implementations are mathematically correct.**
+
+### ensureContrast simulation — fallback inputs (zoneColor = cream `#F5E6D0`, accentColor = gold `#8B6914`)
+
+| Slot | Starting color | Initial contrast | Converged at | Final color | Final contrast | Target |
+|------|---------------|-----------------|--------------|-------------|----------------|--------|
+| headline | `#8B6914` | 4.14 | step 0 | `#8B6914` | **4.14** | 3.0 ✓ |
+| name | `#765911` | 5.34 | step 0 | `#765911` | **5.34** | 3.0 ✓ |
+| body | `#956620` | 4.07 | step 2 | `#875C1D` | **4.78** | 4.5 ✓ |
+| signoff | `#796126` | 4.82 | step 0 | `#796126` | **4.82** | 4.5 ✓ |
+
+**With fallback values, all 4 slots pass WCAG thresholds. The math works.**
+
+### ensureContrast simulation — light pastel accent (e.g. muted GPT canvas with `#E8C97A`)
+
+| Slot | Starting color | Initial contrast | Converged at | Final color | Final contrast | Target |
+|------|---------------|-----------------|--------------|-------------|----------------|--------|
+| headline | `#E8C97A` | **1.31** | step 12 | `#A37C1C` | 3.14 | 3.0 ✓ |
+
+**With a light pastel accent, ensureContrast still converges — but takes 12 iterations and the result (`#A37C1C`) is a medium-dark brown, which is readable but may look muted on a warm cream canvas.**
+
+### Diagnosis log instrumentation
+
+Temporary `console.log` statements added to `harmonizeColors` in `lib/render/color-sampling.ts`. They log:
+- `[harmonize] IN  zoneColor: <hex> accentColor: <hex>`
+- `[harmonize] initial colors — <slot>: <hex> cr: <ratio>`
+- `[harmonize] OUT — <slot>: <hex> cr: <ratio>`
+
+**To capture these values:** submit a test card and check Vercel function logs under `/api/flyer/status/[jobId]`. The `[harmonize]` lines will show exactly what colors are being sampled and whether any slot is failing to reach its contrast target.
+
+### Most likely failure modes (in priority order)
+
+1. **Light accentColor from muted GPT canvas decoration** — If the decoration sample zone (tiny top-left corner of centered_framed) has only pale/pastel gold, ensureContrast needs 10–12 iterations. The converged headline/name color (`#A37C1C`) passes WCAG 3.0 but may read as "low contrast" to the human eye against warm cream. **Fix: lower the saturation threshold in extractAccentColor from 15% to something that favours darker starting points, or use a stronger darken step.**
+
+2. **Zone color extraction succeeding but returning very pale cream** — If the body zone (now correctly at y:544–704 in centered_framed) returns `#FAF7F2` instead of `#F5E6D0`, the body start color `darken('#FAF7F2', 60)` = still a warm brown (~4.0 contrast). ensureContrast would add 1–2 steps. Should still pass — but real values needed to confirm.
+
+3. **ensureContrast fallback path triggered** — If zone extraction throws (Sharp bounds error), zoneColor = cream fallback AND accentColor = gold fallback, which both test correctly. This path is safe.
+
+4. **Not actually a contrast bug** — The rendered colors may be mathematically correct (WCAG AA) but the warm-brown-on-cream palette looks "low contrast" visually relative to user expectations of bold black text. This is a design choice, not a code bug.
+
+### Action required
+Run a test card and check Vercel function logs for `[harmonize]` output. Report back the actual `zoneColor`, `accentColor`, and final color contrast ratios. Without these values from a real GPT canvas, the specific failure point cannot be determined from code analysis alone.
+
+---
+
+## Diagnosis B — Story Format (1080×1920 with filler bars)
+
+### File and line where 1080×1920 originates
+
+**`lib/constants.ts:17–23`** — the `story` key in `DIGITAL_PRESETS`:
+
+```typescript
+story: {
+  label: 'WhatsApp Status / IG Story',
+  desc: 'Full screen vertical',
+  width: 1080,
+  height: 1920,
+  format: 'jpg' as const,
+},
+```
+
+### How it gets triggered
+
+1. User opens DownloadModal (`components/DownloadModal.tsx:30`)
+2. Default preset is `'social'` (1080×1080) — **story is NOT the default**
+3. User selects "WhatsApp Status / IG Story" row → `setPreset('story')`
+4. Clicks the main Download button → `handleDownload()` sends `{ jobId, preset: 'story', useCase: 'digital' }` to `/api/flyer/render-hires`
+5. `render-hires/route.ts:53` computes `scaleFactor = 1080 / 1024 = 1.055` → renders a 1080×1080 PNG
+6. `render-hires/route.ts:77–80` resizes to 1080×1920 with `fit: 'contain', background: '#FAEDE3'`
+
+```typescript
+const fittedBuffer = await sharp(pngBuffer)
+  .resize(cfg.width, cfg.height, { fit: 'contain', background: bgColor })
+  .png()
+  .toBuffer();
+```
+
+7. `render-hires/route.ts:82–85` converts to JPEG: `sharp(fittedBuffer).jpeg({ quality: 92 })`
+
+### Is this intentional or accidental?
+
+**Intentional** — the `story` preset is a named, labelled export option in `DIGITAL_PRESETS`. The filler bars are the intended behavior: a square canvas letterboxed into a 9:16 Story frame.
+
+### Why the bars appear black (not cream)
+
+The bars should be cream (`#FAEDE3`) per the `bgColor` in `render-hires/route.ts:76`. **But if the rendered PNG from `renderFlyerToBase64` has an alpha channel**, Sharp's `fit: 'contain'` padding areas may remain transparent in the intermediate PNG. When `sharp(fittedBuffer).jpeg()` flattens the image, transparent pixels become **black** (JPEG has no transparency; Sharp defaults unspecified alpha-flatten background to black).
+
+**Fix needed:** Add `.flatten({ background: bgColor })` before `.jpeg({ quality: 92 })` in render-hires to ensure transparent padding renders as cream, not black. This applies to all JPEG digital presets.
+
+### Secondary issue: Quick Save label is wrong
+
+`DownloadModal.tsx:143` shows label `"1080 × 1350 px"` for the Quick Save JPEG. This is stale — the actual download is the `imageDataUrl` at natural resolution (1024×1024). Label should say `"1024 × 1024 px"`.
+
+---
+
+## Quality Fixes — Round 5 (two-channel contrast, JPEG black bars, label correction)
+
+### Fix A — Two-channel color strategy for legibility
+
+**Problem:** All 4 text slots (headline, name, body, signoff) were accent-harmonized. On canvases with muted or pastel decoration, `ensureContrast` had to darken aggressively from low-saturation starting values, producing medium-brown text that passed WCAG numerically but looked washed out to the human eye. Name and body — the highest-priority legibility slots — should not depend on accent color quality.
+
+**Fix:** Introduced a two-channel architecture:
+- **Legibility channel** (name, body): fixed near-black ink `#1F1A14`; flips to near-white `#FAF6F0` if zone luminance < 0.5 (dark canvas protection). No iterative darkening needed — always starts at a guaranteed high-contrast value.
+- **Decorative channel** (headline, signoff): still accent-harmonized via `ensureContrast`, providing visual connection to the canvas palette.
+
+### Files Modified
+
+- `lib/render/render-config.ts` — added three new exports:
+  - `LEGIBILITY_TEXT_COLOR = '#1F1A14'` (warm near-black)
+  - `LEGIBILITY_TEXT_COLOR_LIGHT = '#FAF6F0'` (near-white for dark canvases)
+  - `LEGIBILITY_LUMINANCE_THRESHOLD = 0.5`
+- `lib/render/color-sampling.ts` — refactored `harmonizeColors`:
+  - Imports 3 new constants from render-config
+  - Computes `zoneLum = relativeLuminance(zoneColor)` to pick legibility channel
+  - `name` and `body` slots: assigned `legibilityColor` directly (no `ensureContrast` iteration)
+  - `headline`: `ensureContrast(accentColor, zoneColor, CONTRAST_RATIOS.large_headline)`
+  - `signoff`: `ensureContrast(desaturate(accentColor, 30), zoneColor, CONTRAST_RATIOS.signoff)`
+  - All diagnostic `console.log` lines preserved and updated for new structure
+
+### Fix B — Sharp flatten before JPEG (letterbox bars)
+
+**Problem:** When `renderFlyerToBase64` returns a PNG with an alpha channel, Sharp's `fit: 'contain'` padding fills the letterbox areas with transparent pixels. Converting to JPEG without flattening causes Sharp to default unspecified alpha → black. Story (1080×1920) and any non-square JPEG preset showed black bars instead of cream padding.
+
+**Fix:** Added `.flatten({ background: '#FAEDE3' })` before `.jpeg({ quality: 92 })` in the digital JPEG export path in `app/api/flyer/render-hires/route.ts:83`.
+
+### Fix C — DownloadModal Quick Save label
+
+**Problem:** `components/DownloadModal.tsx:143` showed stale label `"1080 × 1350 px"` inherited from v1 (portrait canvas). Canvas is now 1024×1024 square.
+
+**Fix:** Changed to `"1024 × 1024 px — saves directly to your device"`.
+
+### Build Status After Round 5
+
+- `npm run build`: **PASS** — zero TypeScript errors, all 8 routes compiled (6.5s)
+
+### Manual Verification Steps
+
+1. Wait for Vercel deploy (push to main → green checkmark)
+2. Submit a birthday card — name and body text must appear **dark and crisp** (near-black `#1F1A14`), not medium-brown
+3. For a light canvas: headline and signoff should still show a warm accent color; name and body should be clearly darker (near-black)
+4. For the story (1080×1920) preset: download → open the JPEG → bars above/below the canvas must be **cream** (#FAEDE3), not black
+5. Open DownloadModal → Quick Save section → label must read `"1024 × 1024 px — saves directly to your device"`
+6. Check Vercel function logs — `[harmonize] zoneLum:` lines should appear; `name:` and `body:` OUT lines should show `#1F1A14` (or `#FAF6F0` if canvas is dark)

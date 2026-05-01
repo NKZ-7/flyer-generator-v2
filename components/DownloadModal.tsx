@@ -140,7 +140,7 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
               <span>
                 <span className="font-medium">Save as JPEG</span>
                 <span className="block text-[11px] text-zinc-500 mt-0.5">
-                  1080 × 1350 px — saves directly to your device
+                  1024 × 1024 px — saves directly to your device
                 </span>
               </span>
             </span>

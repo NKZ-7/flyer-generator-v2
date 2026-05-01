@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       .toBuffer();
 
     if (cfg.format === 'jpg') {
-      const jpgBuffer = await sharp(fittedBuffer).jpeg({ quality: 92 }).toBuffer();
+      const jpgBuffer = await sharp(fittedBuffer).flatten({ background: '#FAEDE3' }).jpeg({ quality: 92 }).toBuffer();
       return blobResponse(jpgBuffer, 'image/jpeg', `flyer-${preset}.jpg`);
     }
     return blobResponse(fittedBuffer, 'image/png', `flyer-${preset}.png`);

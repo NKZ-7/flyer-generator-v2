@@ -16,6 +16,13 @@ export const CONTRAST_RATIOS = {
   signoff:        4.5,
 };
 
+/** Fixed dark ink for name + body slots — guaranteed legible on cream backgrounds. */
+export const LEGIBILITY_TEXT_COLOR       = '#1F1A14';
+/** Light fallback for dark-canvas cases where zone luminance < threshold. */
+export const LEGIBILITY_TEXT_COLOR_LIGHT = '#FAF6F0';
+/** Zone relative luminance below this value → canvas is "dark" → use light text. */
+export const LEGIBILITY_LUMINANCE_THRESHOLD = 0.5;
+
 export const AUTO_FIT = {
   max_iterations: 10,
   size_step_px:   2,
