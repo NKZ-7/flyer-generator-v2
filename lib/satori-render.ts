@@ -1,7 +1,7 @@
 import satori from 'satori';
 import sharp from 'sharp';
 import type { DesignBrief, FlyerCopyV2 } from './types';
-import { LAYOUTS } from './render/layouts';
+import { LAYOUTS, validateSlotGaps } from './render/layouts';
 import { TYPOGRAPHY_PAIRINGS, loadTypographyFonts } from './render/typography';
 import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX, AUTO_FIT } from './render/render-config';
 import { extractZoneColor, extractAccentColor, harmonizeColors } from './render/color-sampling';
@@ -46,6 +46,7 @@ export async function renderFlyerToBase64(
   // Compute zones at the base canvas dimensions for color sampling and coordinate reference.
   // The scaleFactor is applied per-zone when building composites.
   const zones      = layout.computeZones(CANVAS_W, CANVAS_H);
+  validateSlotGaps(zones, CANVAS_H, designBrief.layoutId);
   const sampleZone = layout.computeDecorationSampleZone(CANVAS_W, CANVAS_H);
 
   const zoneColor   = await extractZoneColor(canvasBuffer, zones.body);

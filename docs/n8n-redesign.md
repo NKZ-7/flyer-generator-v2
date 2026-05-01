@@ -25,9 +25,12 @@ The workflow receives a POST from `/api/flyer/start`:
     "contactInfo": "string",
     "region": "string"
   },
-  "hasUserAssets": false
+  "hasUserAssets": false,
+  "recentThemes": ["theme_id_1", "theme_id_2"]
 }
 ```
+
+`recentThemes` contains the last 1–3 theme IDs used in this user session (keyed by hashed IP+date, 24h TTL). May be an empty array on first use.
 
 ---
 
@@ -53,6 +56,7 @@ DATE (if any): {preferences.eventDate}
 VENUE (if any): {preferences.venue}
 CONTACT (if any): {preferences.contactInfo}
 REGION: {preferences.region}
+RECENT_THEMES (do not reuse): {recentThemes}
 
 Default aesthetic: clean, modern, internationally appealing.
 Do NOT assume any specific cultural, regional, or religious background.
@@ -75,6 +79,7 @@ Produce JSON in EXACTLY this shape:
     "layoutId": "one of: centered_framed | asymmetric_diagonal | top_heavy | magazine_split | vignette_center | banner_horizontal | hero_name_radial",
     "typographyId": "one of: classical_elegant | modern_clean | bold_impact | romantic_serif | warm_handwritten | minimal_swiss",
     "decoration_density": "one of: sparse | moderate | rich",
+    "decorative_theme": "one of the 12 theme IDs listed below",
     "text_treatment": "description of the empty text zone, e.g. soft cream wash with subtle paper texture"
   }
 }
@@ -122,6 +127,47 @@ Choose decoration_density based on vibe:
 - rich (default for: bold, festive contexts): dense, layered decoration. Use sparingly — most cards should not be rich.
 
 When in doubt, default to sparse. Sparse cards photograph better, feel more premium, and are harder to make ugly.
+
+Decorative theme selection:
+
+You MUST pick a decorative_theme from the 12 available themes below. The theme defines the visual aesthetic of the card's decoration and is injected directly into the GPT image prompt.
+
+RECENT_THEMES contains the themes used in the user's last 1-3 generations. You MUST avoid these — pick something visually distinct each time.
+
+Selection process:
+1. Filter the 12 themes to those compatible with the chosen occasion AND vibe (compatibility table below).
+2. Exclude any themes in RECENT_THEMES.
+3. Pick the most emotionally fitting from what remains.
+4. Edge case: if all compatible themes are in RECENT_THEMES, pick the compatible theme least recently used.
+
+Available themes (id: description):
+- watercolor_florals_sparse: soft florals in two corners, elegant hand-painted washes
+- abundant_garden_borders: lush full-bloom floral borders covering 2-3 edges
+- geometric_confetti: scattered circles, triangles, confetti — playful and modern
+- celestial_dust: gold stars, sparkles, constellations — dreamy and ethereal
+- minimalist_line_botanical: single fine ink line drawing of a branch or stem — very quiet
+- vintage_paper_texture: aged paper, wax seals, deckle edges — timeless and quiet
+- balloon_streamer: festive balloons and streamers — energetic and celebratory
+- soft_brush_strokes: abstract painterly watercolor washes — purely textural
+- botanical_herbarium: pressed-leaf naturalist illustration — refined and precise
+- geometric_art_deco: gold linear frames, fan motifs, sunburst — elegant and structured
+- watercolor_abstract: cloudy drifting washes of colour — atmospheric and dreamy
+- sunset_gradient: warm cream-to-peach-to-gold gradient — modern and vibe-driven
+
+Compatibility (occasion | compatible themes):
+birthday     : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, balloon_streamer, geometric_art_deco, watercolor_abstract, sunset_gradient
+sympathy     : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract
+congrats     : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract, sunset_gradient
+invitation   : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, vintage_paper_texture, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, sunset_gradient
+business     : minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco
+
+Compatibility (vibe | compatible themes):
+elegant  : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract
+warm     : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, vintage_paper_texture, balloon_streamer, soft_brush_strokes, watercolor_abstract, sunset_gradient
+playful  : geometric_confetti, balloon_streamer
+bold     : geometric_confetti, balloon_streamer, geometric_art_deco, sunset_gradient
+church   : abundant_garden_borders, minimalist_line_botanical, vintage_paper_texture, botanical_herbarium
+minimal  : watercolor_florals_sparse, celestial_dust, minimalist_line_botanical, soft_brush_strokes, botanical_herbarium, watercolor_abstract, sunset_gradient
 
 General rules:
 - Forbidden: cliches, hollow phrases, anything generic.
@@ -174,6 +220,13 @@ if (parsed.copy && parsed.copy.recipient_name) {
 const validLayouts = ['centered_framed', 'asymmetric_diagonal', 'top_heavy', 'magazine_split', 'vignette_center', 'banner_horizontal', 'hero_name_radial'];
 const validTypography = ['classical_elegant', 'modern_clean', 'bold_impact', 'romantic_serif', 'warm_handwritten', 'minimal_swiss'];
 const validDensity = ['sparse', 'moderate', 'rich'];
+const validThemes = [
+  'watercolor_florals_sparse', 'abundant_garden_borders',
+  'geometric_confetti', 'celestial_dust', 'minimalist_line_botanical',
+  'vintage_paper_texture', 'balloon_streamer', 'soft_brush_strokes',
+  'botanical_herbarium', 'geometric_art_deco', 'watercolor_abstract',
+  'sunset_gradient'
+];
 
 const errors = [];
 if (!parsed.copy) errors.push('missing copy');
@@ -188,6 +241,7 @@ else {
   if (!validLayouts.includes(parsed.design_brief.layoutId)) errors.push(`invalid layoutId: ${parsed.design_brief.layoutId}`);
   if (!validTypography.includes(parsed.design_brief.typographyId)) errors.push(`invalid typographyId: ${parsed.design_brief.typographyId}`);
   if (!validDensity.includes(parsed.design_brief.decoration_density)) errors.push(`invalid decoration_density: ${parsed.design_brief.decoration_density}`);
+  if (!validThemes.includes(parsed.design_brief.decorative_theme)) errors.push(`invalid decorative_theme: ${parsed.design_brief.decorative_theme}`);
 }
 
 if (errors.length > 0) {
@@ -219,6 +273,21 @@ If the second parse also fails, fail the job.
 Use a Code node to construct the GPT prompt. Include the layout's zone instructions via an inline lookup map:
 
 ```javascript
+const THEMES_DECORATION_PROMPTS = {
+  watercolor_florals_sparse: 'Soft watercolor florals in muted peach, blush, or cream tones. Two small floral clusters in opposite corners with abundant breathing room. Hand-painted feel, gentle washes, no harsh lines.',
+  abundant_garden_borders: 'Rich watercolor garden composition with multiple flower types — roses, peonies, eucalyptus leaves, small wildflowers — covering 2-3 edges of the canvas with fullness. Lush but not overwhelming, with clear text zones still respected. Cream, dusty pink, sage green, and gold tones.',
+  geometric_confetti: 'Playful geometric confetti scattered in the decorated zones — small circles, triangles, dots, irregular splash shapes, and confetti strands. Mix of bright and pastel tones. Modern and energetic but not chaotic. No floral elements.',
+  celestial_dust: 'Subtle celestial decoration — small gold stars, scattered sparkles, soft fairy dust, and tiny constellations. Dreamy and ethereal, mostly negative space with delicate accents. Warm gold and soft cream tones, with optional gentle navy or rose hints. No floral elements.',
+  minimalist_line_botanical: 'Single thin continuous line drawing of a botanical element — a leafy branch, simple flower stem, or olive sprig — placed in the decorated zones. Monochrome fine ink line on cream background. Modern, restrained, and quiet. Negative space is the dominant aesthetic.',
+  vintage_paper_texture: 'Aged vintage paper aesthetic — soft sepia or cream paper grain, faded ink stamps or wax seal motifs, subtle deckle edges, and old-letter elements. Warm tobacco and ivory tones, possibly with a faint border or aged corner accents. Quiet and timeless. No bright colors.',
+  balloon_streamer: 'Festive party decoration — illustrated balloons in primary or pastel colors, curling streamers, confetti bursts, and small celebration accents. Joyful and energetic, occupying the decorated zones with movement. No floral elements.',
+  soft_brush_strokes: 'Abstract painterly brush strokes — soft watercolor washes of color in the decorated zones, with no specific objects or shapes. Purely textural. Calming and atmospheric, like watercolor experiments on paper. Warm muted tones.',
+  botanical_herbarium: 'Detailed pressed-leaf or pressed-flower botanical illustration in herbarium style — finely rendered single specimens like a fern, eucalyptus branch, or wildflower, on cream paper. Refined and quiet, with naturalist precision. Sage and olive tones, with subtle warm browns.',
+  geometric_art_deco: 'Art deco geometric ornament — fine gold linear frames, fan motifs, sunburst patterns, and structured chevron details. Elegant linear precision, no organic shapes. Cream background with gold and deep navy accents.',
+  watercolor_abstract: 'Cloudy abstract watercolor washes in the decorated zones — soft drifting clouds of color, no specific shapes or objects. Atmospheric and dreamy. Tones blend softly: blush, lavender, peach, butter yellow, or soft sage. Gentle and understated.',
+  sunset_gradient: 'Subtle full-canvas gradient evoking sunrise, sunset, or dusk — soft transitions between warm cream, blush, peach, and golden hues. Minimal additional decoration: perhaps one or two delicate accent shapes. Modern and vibe-driven.',
+};
+
 const GPT_ZONE_INSTRUCTIONS = {
   centered_framed: 'The rectangle from pixel coordinates (x: 200-824, y: 233-791) must contain ZERO decorative elements — no flowers, no symbols, no leaves, no patterns, no lines, no shapes. Only the soft cream wash. Decorative elements are welcome OUTSIDE this rectangle, framing the four edges of the canvas. Be creative with the framing decoration: vary placement, density, and motifs to feel intentional and balanced.',
   asymmetric_diagonal: 'Two empty rectangles must contain ZERO decorative elements — no flowers, no symbols, no leaves, no patterns: (x: 0-512, y: 0-512) the upper-left zone, and (x: 512-1024, y: 512-1024) the lower-right zone. Only the soft cream wash in those zones. Place decoration freely in the upper-right zone (x: 512-1024, y: 0-512) and the lower-left zone (x: 0-512, y: 512-1024). Aim for a balanced diagonal flow.',
@@ -244,7 +313,9 @@ const imagePrompt = [
   '',
   `Style: ${vibe} for a ${occasion}.`,
   `Color palette: ${design_brief.palette_mood}.`,
-  `Decorative elements: ${design_brief.decorative_direction}.`,
+  `Decorative theme: ${design_brief.decorative_theme}.`,
+  `Theme aesthetic: ${THEMES_DECORATION_PROMPTS[design_brief.decorative_theme] || ''}`,
+  `Additional decorative direction: ${design_brief.decorative_direction}.`,
   `Energy: ${tags}.`,
   '',
   `Decoration density: ${design_brief.decoration_density}.`,
@@ -360,6 +431,7 @@ POST to `{callbackUrl}`:
     "layoutId": "centered_framed",
     "typographyId": "warm_handwritten",
     "decoration_density": "sparse",
+    "decorative_theme": "watercolor_florals_sparse",
     "text_treatment": "..."
   },
   "copy": {

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { createJob } from '@/lib/kv';
-import { randomUUID } from 'crypto';
+import { createJob, getRecentThemes } from '@/lib/kv';
+import { randomUUID, createHash } from 'crypto';
 import type { FlyerPreferences } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -29,13 +29,26 @@ export async function POST(request: NextRequest) {
 
   const jobId = randomUUID();
 
+  // Session key: hashed (IP + daily date) — good enough for MVP theme memory.
+  // NAT/shared IP is acceptable; false de-duplication is a minor cosmetic trade-off.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous';
+  const dateSalt = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const sessionKey = createHash('sha256').update(ip + dateSalt).digest('hex');
+
   const host = request.headers.get('host')!;
   const proto = host.startsWith('localhost') ? 'http' : 'https';
   const callbackBase = process.env.CALLBACK_BASE_URL ?? `${proto}://${host}`;
   const callbackUrl = `${callbackBase}/api/flyer/callback`;
 
+  let recentThemes: string[] = [];
   try {
-    await createJob(jobId);
+    recentThemes = await getRecentThemes(sessionKey);
+  } catch {
+    // Theme memory is non-fatal — proceed without it
+  }
+
+  try {
+    await createJob(jobId, sessionKey);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return Response.json({ error: `Redis error: ${msg}` }, { status: 500 });
@@ -56,7 +69,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': webhookSecret,
       },
-      body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets }),
+      body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets, recentThemes }),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

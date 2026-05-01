@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { completeJob, completeJobComposite, completeJobGPTCanvas, failJob } from '@/lib/kv';
+import { completeJob, completeJobComposite, completeJobGPTCanvas, failJob, getJobMeta, pushRecentTheme } from '@/lib/kv';
 import { loadTemplate, templateExists } from '@/lib/templates/index';
 import { validateCopy } from '@/lib/validate-copy';
 import type { DesignSpec, FlyerCopy, FlyerCopyV2, DesignBrief, TemplateCopy } from '@/lib/types';
@@ -69,7 +69,21 @@ export async function POST(request: NextRequest) {
         await failJob(jobId, 'GPT-canvas callback validation failed: missing or invalid fields');
         return Response.json({ ok: true });
       }
+
+      // Read sessionKey before completeJobGPTCanvas overwrites the meta
+      let sessionKey: string | undefined;
+      try {
+        const existing = await getJobMeta(jobId);
+        sessionKey = existing?.sessionKey;
+      } catch { /* non-fatal */ }
+
       await completeJobGPTCanvas(jobId, designBrief as DesignBrief, copyV2, gptCanvasBase64);
+
+      // Record theme in session history (non-fatal)
+      const theme = (designBrief as DesignBrief)?.decorative_theme;
+      if (sessionKey && theme) {
+        pushRecentTheme(sessionKey, theme).catch(() => { /* silent */ });
+      }
 
     } else if (imageBase64) {
       // ── Composite path — n8n sends copy in 'copy' field ──

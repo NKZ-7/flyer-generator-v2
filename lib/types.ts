@@ -1,3 +1,6 @@
+import type { ThemeId } from './render/themes';
+export type { ThemeId };
+
 // ──────────────────────────────────────────────
 // Core flyer data types
 // ──────────────────────────────────────────────
@@ -118,6 +121,7 @@ export type DesignBrief = {
   layoutId: LayoutId;
   typographyId: TypographyPairingId;
   decoration_density: DecorationDensity;
+  decorative_theme: ThemeId;
   text_treatment: string;
 };
 
@@ -137,6 +141,7 @@ export type FlyerCopyV2 = {
 export interface JobMeta {
   status: 'pending' | 'done' | 'error';
   error?: string;
+  sessionKey?: string; // hashed IP+date — stored on creation for theme memory, read in callback
   // ── Template path (new standard branch) ──────────────────────
   templateId?: string;
   copy?: TemplateCopy;

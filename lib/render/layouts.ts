@@ -204,35 +204,63 @@ export const LAYOUTS: Record<LayoutId, Layout> = {
 
   // ─────────────────────────────────────────────────────────────────────────
   // hero_name_radial
-  // Name: in the inner radial clear area (x:31%-69%, y:16%-34%)
-  //   → at 1024×1024: (321,164)→(705,348) → name zone starts at y≈179
-  // Lower empty zone: x:8%-92%, y:46%-95%  →  at 1024×1024: (82,471)→(942,973)
-  // Lower stack (headline + body + signoff): 70+20+130+20+55 = 295px
-  // Stack starts at y≈571 (104px top padding in lower zone)
+  // Name: inner radial clear area (x:31%-69%, y:18%-32%)
+  //   → at 1024×1024: (320,184)→(703,327)
+  // Lower empty zone: x:8%-92%, y:36%-95%  →  at 1024×1024: (80,369)→(944,971)
+  // Gap name→headline: ~83px (8.1%) ✓  headline→body: ~53px (5.2%) ✓
+  // body→signoff: ~115px (11.2%) ✓  signoff bottom: y≈833, breathing room 191px ✓
   // ─────────────────────────────────────────────────────────────────────────
   hero_name_radial: {
     id: 'hero_name_radial',
     description: 'Recipient name is the radial centerpiece in the upper area; supporting text stacks below.',
     computeZones: (w, h) => ({
-      headline: cr(0.10,  0.557, 0.80, 0.068, w, h),
-      name:     cr(0.313, 0.175, 0.374, 0.137, w, h),
-      body:     cr(0.15,  0.645, 0.70,  0.127, w, h),
-      signoff:  cr(0.20,  0.792, 0.60,  0.054, w, h),
+      headline: cr(0.10,  0.40,  0.80,  0.068, w, h),
+      name:     cr(0.313, 0.18,  0.374, 0.14,  w, h),
+      body:     cr(0.15,  0.52,  0.70,  0.127, w, h),
+      signoff:  cr(0.20,  0.76,  0.60,  0.054, w, h),
     }),
     computeGptZoneInstructions: (w, h) => {
       const lx1 = Math.round(0.078 * w);
       const lx2 = Math.round(0.922 * w);
-      const ly1 = Math.round(0.456 * h);
+      const ly1 = Math.round(0.36  * h); // tightened from 0.456 — lower zone starts earlier
       const ly2 = Math.round(0.948 * h);
       const cx  = Math.round(0.500 * w);
       const cy  = Math.round(0.247 * h);
       const ix1 = Math.round(0.313 * w);
       const ix2 = Math.round(0.688 * w);
       const iy1 = Math.round(0.156 * h);
-      const iy2 = Math.round(0.339 * h);
+      const iy2 = Math.round(0.340 * h);
       return `The rectangle from (x: ${lx1}-${lx2}, y: ${ly1}-${ly2}) must contain ZERO decorative elements — no flowers, no symbols, no leaves, no patterns. Only the soft cream wash. In the upper area (y: 0-${ly1}), place a soft radial composition centered around (x: ${cx}, y: ${cy}): scattered light decorative accents radiating outward, with an inner clear area (x: ${ix1}-${ix2}, y: ${iy1}-${iy2}) that also remains empty for the recipient name to be overlaid later. Do NOT use heavy central elements, medallions, or wreaths — keep this layout airy and reverent of the central name space.`;
     },
     computeDecorationSampleZone: (w, h) => cr(0, 0, 0.28, 0.35, w, h),
     text_alignment: { headline: 'center', name: 'center', body: 'center', signoff: 'center' },
   },
 };
+
+// ── Slot-gap invariant ────────────────────────────────────────────────────────
+// Warns if consecutive slots (sorted by y) have a vertical gap > 12% of canvas.
+// Called from satori-render.ts after computeZones — catches future layout drift early.
+
+const MAX_SLOT_GAP_FRACTION = 0.12;
+
+export function validateSlotGaps(zones: LayoutZones, canvasH: number, layoutId: string): void {
+  const slots = [
+    { name: 'headline', rect: zones.headline },
+    { name: 'name',     rect: zones.name },
+    { name: 'body',     rect: zones.body },
+    { name: 'signoff',  rect: zones.signoff },
+  ].sort((a, b) => a.rect.y - b.rect.y);
+
+  for (let i = 0; i < slots.length - 1; i++) {
+    const current = slots[i];
+    const next    = slots[i + 1];
+    const gap = next.rect.y - (current.rect.y + current.rect.height);
+    const gapFraction = gap / canvasH;
+    if (gapFraction > MAX_SLOT_GAP_FRACTION) {
+      console.warn(
+        `[Layout ${layoutId}] Large gap detected between ${current.name} ` +
+        `and ${next.name}: ${gap}px (${(gapFraction * 100).toFixed(1)}% of canvas)`
+      );
+    }
+  }
+}

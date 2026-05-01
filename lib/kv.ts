@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import type { JobMeta, JobRender, FlyerCopy, DesignSpec, TemplateCopy, DesignBrief, FlyerCopyV2 } from './types';
+import type { ThemeId } from './render/themes';
 
 let _redis: Redis | null = null;
 function getRedis(): Redis {
@@ -29,9 +30,10 @@ async function getJson<T>(key: string): Promise<T | null> {
 
 // ── job lifecycle ─────────────────────────────────────────────────────────────
 
-export async function createJob(jobId: string): Promise<void> {
+export async function createJob(jobId: string, sessionKey?: string): Promise<void> {
+  const meta: JobMeta = { status: 'pending', ...(sessionKey ? { sessionKey } : {}) };
   await Promise.all([
-    getRedis().set(metaKey(jobId), JSON.stringify({ status: 'pending' } satisfies JobMeta), { ex: TTL }),
+    getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL }),
     getRedis().set(renderKey(jobId), JSON.stringify({ status: 'pending' } satisfies JobRender), { ex: TTL }),
   ]);
 }
@@ -118,4 +120,29 @@ const RENDER_LOCK_TTL = 45; // seconds — long enough for a full render
 export async function acquireRenderLock(jobId: string): Promise<boolean> {
   const result = await getRedis().set(renderLockKey(jobId), '1', { ex: RENDER_LOCK_TTL, nx: true });
   return result !== null;
+}
+
+// ── Theme memory (session-level, 24h TTL keyed by hashed IP+date) ─────────────
+
+/** Return the last ≤3 theme IDs used in this session, oldest-first. */
+export async function getRecentThemes(sessionKey: string): Promise<ThemeId[]> {
+  const raw = await getRedis().get(`theme_history:${sessionKey}`);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw as string);
+    return Array.isArray(parsed) ? (parsed.slice(0, 3) as ThemeId[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Prepend theme to the session history; dedup, cap at 3, TTL 24h. */
+export async function pushRecentTheme(sessionKey: string, theme: ThemeId): Promise<void> {
+  const recent = await getRecentThemes(sessionKey);
+  const updated = [theme, ...recent.filter(t => t !== theme)].slice(0, 3);
+  await getRedis().set(
+    `theme_history:${sessionKey}`,
+    JSON.stringify(updated),
+    { ex: 60 * 60 * 24 },
+  );
 }
