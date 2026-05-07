@@ -633,3 +633,104 @@ The bars should be cream (`#FAEDE3`) per the `bgColor` in `render-hires/route.ts
 4. Click **Regenerate** — spinner starts, new card generates, both versions appear in the version strip at the bottom
 5. Click **Edit inputs** — form returns to Step 1 with previous values (recipient name, occasion, vibe) pre-filled
 6. Confirm no 404 or console errors for `/api/flyer/refine` (it still exists, just not called)
+
+---
+
+## Theme System + Bug Fixes — Round 7
+
+### What Was Built
+
+**Theme system (12 decorative themes):**
+- Added `lib/render/themes.ts` — 12 `DecorativeTheme` entries with `id`, `displayName`, `gpt_decoration_prompt`, `compatible_vibes`, and `compatible_occasions`
+- Added `getCompatibleThemes(occasion, vibe)` — filters themes by both axes, returns array of `ThemeId`
+- Added `ThemeId` union type; re-exported from `lib/types.ts`
+- `DesignBrief` extended with `decorative_theme: ThemeId` field
+
+**Session memory for themes (avoid repeating the same theme twice):**
+- n8n node-03 now reads `recentThemes` from the webhook body — an array of recently used `ThemeId` strings supplied by the client
+- Claude avoids picking themes in `recentThemes` when alternatives are available
+- n8n node-05 echoes `chosen_theme` back to the client; front-end stores last 3 used themes per session
+
+**`hero_name_radial` layout fix:**
+- Layout now disabled for body copy > 90 chars (Claude Haiku writes 100–120 char bodies; the name zone is too small to accommodate the full lower-text stack)
+- node-05 applies this guard during layout validation
+
+**Bugs fixed:**
+- **Bug A (body limit 120 → 130):** Claude Haiku consistently writes 124–125 char bodies against the 120-char limit, causing 100% retry overhead. Body limit raised to 130 in node-03 (prompt), node-05 (validation), and `docs/n8n-redesign.md`.
+- **Bug B (decorative_theme lost on retry):** When the first parse failed, `design_brief.decorative_theme` wasn't propagating to node-11, which fell back to `watercolor_florals_sparse`. Bug B is resolved by Bug A — once parse succeeds on the first attempt, the theme flows cleanly.
+
+### Files Modified
+
+- `lib/render/themes.ts` — **created** (12 themes, type definitions, `getCompatibleThemes`)
+- `lib/types.ts` — added `ThemeId` re-export; added `decorative_theme: ThemeId` to `DesignBrief`
+- `docs/n8n-redesign.md` — body limit 120 → 130; node-11 now injects `gpt_decoration_prompt` from the matched theme
+
+### n8n Update Summary
+
+Nodes updated via REST API on 2026-05-07. Workflow PUT at `2026-05-07T23:42:23.984Z`, `active: true`.
+
+**Nodes successfully updated:**
+- node-03 (Build Claude Prompt) — theme compatibility lookup, recentThemes exclusion, body limit 130, occasion-specific tone guidance, sender awareness
+- node-05 (Parse Claude Response) — `validOccasions` array (14 values), occasion validation, body limit 130, `hero_name_radial` guard for long body
+
+**Nodes not changed:** node-11 was already updated in the prior session with theme injection logic (gpt_decoration_prompt substitution).
+
+### Build Status After Round 7
+
+- `npm run build`: **PASS** — zero TypeScript errors, all 8 routes compiled
+
+### Manual Verification Steps
+
+1. Submit a birthday (warm) card — check Vercel function logs for `[harmonize]` and n8n execution for `chosen_theme` in node-05 output
+2. Submit a second birthday (warm) card — `chosen_theme` should differ from the first (recentThemes exclusion)
+3. Open n8n node-03 — confirm body limit says `max 130` (not 120) and occasion-specific guidance section is present
+4. Open n8n node-05 — confirm `validOccasions` array has 14 entries and `copy.body.length <= 130`
+
+---
+
+## Phase 1 — Occasion Expansion + Sender Awareness
+
+### What Was Built
+
+**6 deliverables completed:**
+
+1. **`lib/types.ts` — `Occasion` named type:** Replaced inline union in `FlyerPreferences.occasion` with a named `Occasion` type exported at the top of the file. Includes 5 UI-visible occasions + 9 extended backend occasions:
+   - UI: `birthday`, `sympathy`, `congrats`, `business`, `invitation`
+   - Extended: `happy_new_month`, `mothers_day`, `fathers_day`, `valentines_day`, `eid`, `christmas`, `new_year`, `easter`, `independence_day`
+
+2. **`lib/render/themes.ts` — Extended theme compatibility:** `DecorativeTheme.compatible_occasions` union type expanded to all 14 occasions. All 12 theme entries updated with extended occasion mappings. Notable additions:
+   - `celestial_dust`: + christmas, new_year, eid, easter, valentines_day
+   - `vintage_paper_texture`: + fathers_day, christmas, easter, eid
+   - `geometric_confetti` / `balloon_streamer`: + happy_new_month, new_year, independence_day
+
+3. **`docs/n8n-redesign.md` — Occasion-specific tone guidance added to Stage A prompt:** 14 occasions each with a 1–2 line tone description. Added after the emotional fit paragraph, before general rules. Body limit updated 120 → 130 throughout.
+
+4. **`docs/n8n-redesign.md` — Validation section updated:** `validOccasions` constant now lists all 14 occasions; `copy.body.length <= 120` updated to `<= 130`; compatibility table extended to show all 14 occasion columns.
+
+5. **`components/ControlPanel.tsx` — Sender hint UI:** Added a `<p>` tip below the "Describe your flyer" textarea (Step 1):
+   ```
+   💡 Tip: Mention your name or relationship for a personal signoff
+   (e.g. "from his sister" or "love, Mama")
+   ```
+   OccasionPicker UI unchanged — still shows exactly 5 visible options.
+
+6. **n8n nodes 3 and 5 — Pushed via REST API:** All prompt and validation changes from items 3 and 4 applied to the live n8n workflow (same PUT at `2026-05-07T23:42:23.984Z`).
+
+### Hard Rules Applied
+
+- OccasionPicker UI not modified — 5 visible options only
+- Extended occasions reserved for backend handling (n8n receives them if the client sends them)
+- All existing functionality preserved — no regressions to template path, composite path, or hi-res export
+
+### Build Status After Phase 1
+
+- `npm run build`: **PASS** — zero TypeScript errors, all 8 routes compiled
+
+### Manual Verification Steps
+
+1. Open `components/ControlPanel.tsx` — confirm tip text appears below the describe-your-flyer textarea
+2. Open `lib/types.ts` — confirm `Occasion` is a named export with 14 values
+3. Open `lib/render/themes.ts` — confirm `compatible_occasions` union has 14 entries; spot-check `celestial_dust` for `christmas` and `eid`
+4. Open n8n node-03 — confirm "Occasion-specific tone guidance" section present with all 14 occasions
+5. Open n8n node-05 — confirm `validOccasions` array has 14 entries
+6. Submit a test card — sender hint tip should appear in the UI form
