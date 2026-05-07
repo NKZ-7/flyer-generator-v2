@@ -53,10 +53,28 @@ export interface DesignSpec {
   nodes: DesignNode[];
 }
 
+export type Occasion =
+  // Visible in UI
+  | 'birthday'
+  | 'sympathy'
+  | 'congrats'
+  | 'business'
+  | 'invitation'
+  // Extended — system handles, UI surfaces later
+  | 'happy_new_month'
+  | 'mothers_day'
+  | 'fathers_day'
+  | 'valentines_day'
+  | 'eid'
+  | 'christmas'
+  | 'new_year'
+  | 'easter'
+  | 'independence_day';
+
 export interface FlyerPreferences {
   title: string;
   // ── New fields ────────────────────────────────────────────────
-  occasion?: 'birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation';
+  occasion?: Occasion;
   vibe?: 'elegant' | 'warm' | 'playful' | 'bold' | 'church' | 'minimal';
   // ── Style hints (still sent to n8n for palette/font guidance) ─
   colorScheme?: string;

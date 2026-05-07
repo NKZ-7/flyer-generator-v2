@@ -17,7 +17,11 @@ export type DecorativeTheme = {
   displayName: string;
   gpt_decoration_prompt: string;
   compatible_vibes: ('elegant' | 'warm' | 'playful' | 'bold' | 'church' | 'minimal')[];
-  compatible_occasions: ('birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation')[];
+  compatible_occasions: (
+    | 'birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation'
+    | 'happy_new_month' | 'mothers_day' | 'fathers_day' | 'valentines_day'
+    | 'eid' | 'christmas' | 'new_year' | 'easter' | 'independence_day'
+  )[];
 };
 
 export const THEMES: Record<ThemeId, DecorativeTheme> = {
@@ -29,7 +33,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'Two small floral clusters in opposite corners with abundant breathing room. ' +
       'Hand-painted feel, gentle washes, no harsh lines.',
     compatible_vibes: ['elegant', 'warm', 'minimal'],
-    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
+      'happy_new_month', 'mothers_day', 'valentines_day', 'easter', 'independence_day'],
   },
 
   abundant_garden_borders: {
@@ -41,7 +46,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'fullness. Lush but not overwhelming, with clear text zones still respected. ' +
       'Cream, dusty pink, sage green, and gold tones.',
     compatible_vibes: ['elegant', 'warm', 'church'],
-    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
+      'happy_new_month', 'mothers_day', 'valentines_day', 'easter'],
   },
 
   geometric_confetti: {
@@ -52,7 +58,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'triangles, dots, irregular splash shapes, and confetti strands. Mix of bright ' +
       'and pastel tones. Modern and energetic but not chaotic. No floral elements.',
     compatible_vibes: ['playful', 'bold', 'warm'],
-    compatible_occasions: ['birthday', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'congrats', 'invitation',
+      'happy_new_month', 'new_year', 'independence_day'],
   },
 
   celestial_dust: {
@@ -64,7 +71,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'delicate accents. Warm gold and soft cream tones, with optional gentle navy or ' +
       'rose hints. No floral elements.',
     compatible_vibes: ['elegant', 'warm', 'minimal'],
-    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
+      'christmas', 'new_year', 'eid', 'easter', 'valentines_day'],
   },
 
   minimalist_line_botanical: {
@@ -76,7 +84,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'fine ink line on cream background. Modern, restrained, and quiet. Negative space ' +
       'is the dominant aesthetic.',
     compatible_vibes: ['minimal', 'elegant', 'church'],
-    compatible_occasions: ['sympathy', 'business', 'invitation', 'birthday'],
+    compatible_occasions: ['sympathy', 'business', 'invitation', 'birthday',
+      'happy_new_month', 'fathers_day', 'independence_day', 'easter'],
   },
 
   vintage_paper_texture: {
@@ -88,7 +97,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'and ivory tones, possibly with a faint border or aged corner accents. Quiet and ' +
       'timeless. No bright colors.',
     compatible_vibes: ['elegant', 'church', 'warm'],
-    compatible_occasions: ['sympathy', 'invitation', 'business'],
+    compatible_occasions: ['sympathy', 'invitation', 'business',
+      'fathers_day', 'christmas', 'easter', 'eid'],
   },
 
   balloon_streamer: {
@@ -99,7 +109,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'curling streamers, confetti bursts, and small celebration accents. Joyful and ' +
       'energetic, occupying the decorated zones with movement. No floral elements.',
     compatible_vibes: ['playful', 'bold', 'warm'],
-    compatible_occasions: ['birthday', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'congrats', 'invitation',
+      'happy_new_month', 'new_year', 'independence_day'],
   },
 
   soft_brush_strokes: {
@@ -110,7 +121,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'decorated zones, with no specific objects or shapes. Purely textural. Calming ' +
       'and atmospheric, like watercolor experiments on paper. Warm muted tones.',
     compatible_vibes: ['elegant', 'minimal', 'warm'],
-    compatible_occasions: ['sympathy', 'business', 'invitation', 'congrats'],
+    compatible_occasions: ['sympathy', 'business', 'invitation', 'congrats',
+      'happy_new_month', 'mothers_day', 'fathers_day', 'valentines_day', 'easter'],
   },
 
   botanical_herbarium: {
@@ -122,7 +134,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'wildflower, on cream paper. Refined and quiet, with naturalist precision. Sage ' +
       'and olive tones, with subtle warm browns.',
     compatible_vibes: ['elegant', 'minimal', 'church'],
-    compatible_occasions: ['sympathy', 'congrats', 'invitation', 'business'],
+    compatible_occasions: ['sympathy', 'congrats', 'invitation', 'business',
+      'mothers_day', 'fathers_day', 'easter'],
   },
 
   geometric_art_deco: {
@@ -133,7 +146,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'patterns, and structured chevron details. Elegant linear precision, no organic ' +
       'shapes. Cream background with gold and deep navy accents.',
     compatible_vibes: ['elegant', 'bold'],
-    compatible_occasions: ['invitation', 'business', 'congrats', 'birthday'],
+    compatible_occasions: ['invitation', 'business', 'congrats', 'birthday',
+      'new_year', 'christmas', 'fathers_day'],
   },
 
   watercolor_abstract: {
@@ -145,7 +159,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'softly: blush, lavender, peach, butter yellow, or soft sage. Gentle and ' +
       'understated.',
     compatible_vibes: ['warm', 'elegant', 'minimal'],
-    compatible_occasions: ['sympathy', 'birthday', 'congrats'],
+    compatible_occasions: ['sympathy', 'birthday', 'congrats',
+      'happy_new_month', 'mothers_day', 'valentines_day', 'easter'],
   },
 
   sunset_gradient: {
@@ -156,7 +171,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'between warm cream, blush, peach, and golden hues. Minimal additional decoration: ' +
       'perhaps one or two delicate accent shapes. Modern and vibe-driven.',
     compatible_vibes: ['warm', 'minimal', 'bold'],
-    compatible_occasions: ['birthday', 'congrats', 'invitation'],
+    compatible_occasions: ['birthday', 'congrats', 'invitation',
+      'happy_new_month', 'new_year', 'independence_day', 'fathers_day'],
   },
 };
 

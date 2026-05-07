@@ -17,7 +17,7 @@ The workflow receives a POST from `/api/flyer/start`:
   "preferences": {
     "title": "string",
     "additionalContext": "string",
-    "occasion": "birthday | sympathy | congrats | business | invitation",
+    "occasion": "birthday | sympathy | congrats | business | invitation | happy_new_month | mothers_day | fathers_day | valentines_day | eid | christmas | new_year | easter | independence_day",
     "vibe": "elegant | warm | playful | bold | church | minimal",
     "tagline": "string",
     "eventDate": "string",
@@ -69,7 +69,7 @@ Produce JSON in EXACTLY this shape:
   "copy": {
     "headline": "string — 14-22 chars ideal, max 28",
     "recipient_name": "MUST be the user's title input copied verbatim with no additions, no salutations, no modifications. If user typed 'Ada', this is exactly 'Ada'. Maximum 30 characters.",
-    "body": "string — 50-90 chars ideal, max 120, 1-2 sentences",
+    "body": "string — 50-90 chars ideal, max 130, 1-2 sentences",
     "signoff": "string — 8-18 chars ideal, max 24"
   },
   "design_brief": {
@@ -109,6 +109,22 @@ Emotional fit guidance:
 - invitation: banner_horizontal or magazine_split (event details need readability)
 
 Critical: if you pick hero_name_radial or banner_horizontal, you MUST keep the body under 70 characters. Adjust the body copy to fit, do not pick a layout that doesn't fit the content.
+
+Occasion-specific tone guidance:
+- birthday: warm, celebratory, focused on the recipient
+- sympathy: solemn, comforting, dignified — never cheerful
+- congrats: celebratory, achievement-focused, energetic
+- business: professional, promotional, direct
+- invitation: event-focused, includes key details if provided
+- happy_new_month: hopeful, fresh-start energy, brief and uplifting
+- mothers_day: deeply warm, gratitude-focused, sentimental
+- fathers_day: warm but understated, appreciation-focused
+- valentines_day: romantic OR platonic warmth, never saccharine
+- eid: respectful, joyful, blessing-focused
+- christmas: warm, festive, family-oriented
+- new_year: hopeful, reflective, forward-looking
+- easter: gentle, hopeful, renewal-focused
+- independence_day: proud, celebratory, community-oriented
 
 Typography guidance:
 - VARY your typographyId choices across runs. Choose what best serves THIS card.
@@ -155,11 +171,20 @@ Available themes (id: description):
 - sunset_gradient: warm cream-to-peach-to-gold gradient — modern and vibe-driven
 
 Compatibility (occasion | compatible themes):
-birthday     : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, balloon_streamer, geometric_art_deco, watercolor_abstract, sunset_gradient
-sympathy     : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract
-congrats     : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract, sunset_gradient
-invitation   : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, vintage_paper_texture, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, sunset_gradient
-business     : minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco
+birthday         : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, balloon_streamer, geometric_art_deco, watercolor_abstract, sunset_gradient
+sympathy         : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract
+congrats         : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract, sunset_gradient
+invitation       : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, vintage_paper_texture, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, sunset_gradient
+business         : minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco
+happy_new_month  : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, minimalist_line_botanical, balloon_streamer, soft_brush_strokes, watercolor_abstract, sunset_gradient
+mothers_day      : watercolor_florals_sparse, abundant_garden_borders, soft_brush_strokes, botanical_herbarium, watercolor_abstract
+fathers_day      : minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco, sunset_gradient
+valentines_day   : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, soft_brush_strokes, watercolor_abstract
+eid              : celestial_dust, vintage_paper_texture
+christmas        : celestial_dust, vintage_paper_texture, geometric_art_deco
+new_year         : geometric_confetti, celestial_dust, balloon_streamer, geometric_art_deco, sunset_gradient
+easter           : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract
+independence_day : watercolor_florals_sparse, geometric_confetti, minimalist_line_botanical, balloon_streamer, sunset_gradient
 
 Compatibility (vibe | compatible themes):
 elegant  : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract
@@ -168,6 +193,22 @@ playful  : geometric_confetti, balloon_streamer
 bold     : geometric_confetti, balloon_streamer, geometric_art_deco, sunset_gradient
 church   : abundant_garden_borders, minimalist_line_botanical, vintage_paper_texture, botanical_herbarium
 minimal  : watercolor_florals_sparse, celestial_dust, minimalist_line_botanical, soft_brush_strokes, botanical_herbarium, watercolor_abstract, sunset_gradient
+
+Sender awareness:
+If the user's notes mention WHO is sending the card (e.g. 'from his sister', 'love from Mama', 'on behalf of the team'), incorporate the sender naturally into the signoff. Examples:
+
+- User notes: 'for my mom, from her daughter Ada'
+  → signoff: 'With love, Ada' or 'Always, your daughter Ada'
+
+- User notes: 'from the team at Kojo's Barbershop'
+  → signoff: 'The Kojo's Barbershop Team'
+
+- User notes: 'love from grandma'
+  → signoff: 'With love, Grandma'
+
+If no sender is mentioned, use a warm impersonal closer like 'With love', 'Warmly', 'Thinking of you', etc. — depending on occasion tone.
+
+The sender mention should feel natural and warm, never formulaic. Don't append the sender as a separate line if it doesn't read smoothly with the closer.
 
 General rules:
 - Forbidden: cliches, hollow phrases, anything generic.
@@ -182,7 +223,7 @@ The n8n parse node (Code node) must check ALL of the following. If ANY check fai
 1. JSON parses cleanly
 2. `copy.headline.length <= 28`
 3. `copy.recipient_name.length <= 30`
-4. `copy.body.length <= 120`
+4. `copy.body.length <= 130`
 5. `copy.signoff.length <= 24`
 6. `design_brief.layoutId` is one of the 7 valid layoutId values
 7. `design_brief.typographyId` is one of the 6 valid typographyId values
@@ -217,6 +258,11 @@ if (parsed.copy && parsed.copy.recipient_name) {
   parsed.copy.recipient_name = sanitizeRecipientName(parsed.copy.recipient_name);
 }
 
+const validOccasions = [
+  'birthday', 'sympathy', 'congrats', 'business', 'invitation',
+  'happy_new_month', 'mothers_day', 'fathers_day', 'valentines_day',
+  'eid', 'christmas', 'new_year', 'easter', 'independence_day'
+];
 const validLayouts = ['centered_framed', 'asymmetric_diagonal', 'top_heavy', 'magazine_split', 'vignette_center', 'banner_horizontal', 'hero_name_radial'];
 const validTypography = ['classical_elegant', 'modern_clean', 'bold_impact', 'romantic_serif', 'warm_handwritten', 'minimal_swiss'];
 const validDensity = ['sparse', 'moderate', 'rich'];
@@ -233,7 +279,7 @@ if (!parsed.copy) errors.push('missing copy');
 else {
   if (!parsed.copy.headline || parsed.copy.headline.length > 28) errors.push(`headline length ${parsed.copy.headline?.length} exceeds 28`);
   if (!parsed.copy.recipient_name || parsed.copy.recipient_name.length === 0 || parsed.copy.recipient_name.length > 30) errors.push(`recipient_name is empty or too long after sanitization`);
-  if (!parsed.copy.body || parsed.copy.body.length > 120) errors.push(`body length ${parsed.copy.body?.length} exceeds 120`);
+  if (!parsed.copy.body || parsed.copy.body.length > 130) errors.push(`body length ${parsed.copy.body?.length} exceeds 130`);
   if (!parsed.copy.signoff || parsed.copy.signoff.length > 24) errors.push(`signoff length exceeds 24`);
 }
 if (!parsed.design_brief) errors.push('missing design_brief');

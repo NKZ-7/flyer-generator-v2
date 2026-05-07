@@ -259,6 +259,10 @@ export function ControlPanel({
               placeholder="e.g. Birthday flyer for my friend Amara's 30th — Nigerian vibe, Afrobeats theme, rooftop bar in Lagos. Elegant but fun."
               className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors resize-none disabled:opacity-40"
             />
+            <p className="mt-2 text-[11px] italic text-zinc-500/70 leading-snug">
+              💡 Tip: Mention your name or relationship for a personal signoff
+              (e.g. &ldquo;from his sister&rdquo; or &ldquo;love, Mama&rdquo;)
+            </p>
           </div>
 
           {/* ③ Region */}
