@@ -835,3 +835,71 @@ Field names in `FlyerPreferences` unchanged (`title`, `additionalContext`) — n
 3. After card renders, open **Vercel function logs → `/api/flyer/status/[jobId]`** and find all `[render]` and `[harmonize]` lines. Paste them back into the conversation to diagnose the contrast bug.
 
 **DO NOT change contrast logic until log data is reviewed.**
+
+---
+
+## Contrast Log Analysis — 2026-05-08 Generations
+
+### Raw Log Lines (filtered to `[harmonize]` lines only)
+
+**Generation 1 — request `p8mjf-1778261144190-a8d8cf0c43ef` (status render trigger, 17:25:44 UTC)**
+**+ request `9zj6c-1778261164556-a6c3eecde8b0` (render-hires, 17:26:04 UTC)**
+Both invocations produced identical output (same job):
+
+```
+[harmonize] IN  zoneColor: #feda91 accentColor: #ffcc66
+[harmonize] zoneLum: 0.733 → legibilityColor: #1F1A14 cr: 12.87
+[harmonize] initial colors — headline: #ffcc66 cr: 1.11
+[harmonize] initial colors — signoff:  #E8C47D cr: 1.24
+[harmonize] OUT — headline: #A56E00 cr: 3.24
+[harmonize] OUT — name:     #1F1A14 cr: 12.87
+[harmonize] OUT — body:     #1F1A14 cr: 12.87
+[harmonize] OUT — signoff:  #7E5B17 cr: 4.61
+```
+
+No other generation logs exist in the 48h window — the failing "original James" and "Kojo's Barbershop" cards ran on the prior deployment; those runtime logs are no longer accessible.
+
+### Generation 1 — James / congrats / bold (job `f2e22805`, 17:25:44 UTC)
+
+Inputs:
+```
+zoneColor:   #feda91  (warm golden-yellow — decoration IS present in body zone)
+accentColor: #ffcc66  (bright gold)
+zoneLum:     0.733    (isLight: true → legibilityColor = #1F1A14)
+```
+
+Output colors and contrast against zoneColor (`#feda91`):
+
+| Slot | Color | Contrast | Threshold | Verdict |
+|------|-------|----------|-----------|---------|
+| headline | `#A56E00` | 3.24 | ≥ 3.0 | **PASS** (12 darkening iterations from initial cr: 1.11) |
+| name | `#1F1A14` | 12.87 | ≥ 3.0 | **PASS** |
+| body | `#1F1A14` | 12.87 | ≥ 4.5 | **PASS** |
+| signoff | `#7E5B17` | 4.61 | ≥ 4.5 | **PASS** (barely) |
+
+**Verdict: PASS** — confirmed readable, matches user report.
+
+### Summary
+
+| Metric | Value |
+|--------|-------|
+| Total generations with log data | 1 |
+| Passed | 1 |
+| Failed | 0 |
+| Failing cards in log window | None — pre-date current deployment |
+
+### Diagnostic Conclusion
+
+**Bug status: Inconclusive — only 1 passing sample available.**
+
+The single sample confirms the two-channel strategy fires correctly when the canvas is light: `zoneLum: 0.733` → near-black ink (`#1F1A14`) for name and body → cr: 12.87. This is the happy path.
+
+**Three actionable findings from this sample:**
+
+1. **`zoneColor` is not cream.** It's `#feda91` — decoration from GPT IS bleeding warmth into the body zone. Zone extraction is sampling a real color (not the cream fallback). The two-channel strategy handled it correctly because luminance was high.
+
+2. **The dark-zone failure mode is unconfirmed but structurally plausible.** If a dark-decoration theme (e.g., `celestial_dust` navy, `geometric_art_deco` deep navy) bleeds into the body zone, `zoneLum` could fall below 0.5 → `#FAF6F0` (near-white) selected for name and body → near-invisible on the cream canvas. This is the most likely mechanism for the earlier failing cards — no log evidence yet.
+
+3. **Headline darken churn is a quality issue.** `#ffcc66` (bright gold) started at cr: 1.11 — nearly invisible. It took 12 darkening steps to reach `#A56E00` (cr: 3.24). The result is technically compliant but aesthetically muted (warm gold becomes dull brown). Users may perceive this as "low contrast" even when thresholds pass. Potential fix: clamp the initial `accentColor` to a minimum saturation or luminance floor before passing to `ensureContrast`.
+
+**Recommended next step:** Run 2–3 test cards using dark-decoration themes — `celestial_dust` (navy) with `elegant` vibe, or `geometric_art_deco` with `bold`. Check `[harmonize] zoneLum:` in Vercel logs. If it drops below 0.5 on any of these, the dark-zone → near-white-text bug is confirmed and can be fixed in one targeted change.
