@@ -734,3 +734,104 @@ Nodes updated via REST API on 2026-05-07. Workflow PUT at `2026-05-07T23:42:23.9
 4. Open n8n node-03 — confirm "Occasion-specific tone guidance" section present with all 14 occasions
 5. Open n8n node-05 — confirm `validOccasions` array has 14 entries
 6. Submit a test card — sender hint tip should appear in the UI form
+
+---
+
+## Contrast Diagnosis + Form Simplification — Round 8
+
+### Scope
+
+Two parallel tasks: (1) add structured logging to the render pipeline to capture live color values for diagnosing cream-on-cream text; (2) simplify and neutralise the Step 1 form copy.
+
+---
+
+### Part 1 — Contrast Logging (diagnosis only, no logic changed)
+
+**Existing logs in `lib/render/color-sampling.ts` confirmed present:**
+- `[harmonize] IN  zoneColor: <hex> accentColor: <hex>`
+- `[harmonize] zoneLum: <float> → legibilityColor: <hex> cr: <ratio>`
+- `[harmonize] initial colors — headline: <hex> cr: <ratio>`
+- `[harmonize] initial colors — signoff: <hex> cr: <ratio>`
+- `[harmonize] OUT — headline/name/body/signoff: <hex> cr: <ratio>`
+
+**New logs added to `lib/satori-render.ts`:**
+- Before `harmonizeColors` call: `[render] Layout: <id> Theme: <id> Typography: <id>`
+- Before `harmonizeColors` call: `[render] Will call harmonizeColors with: { zoneColor, accentColor }`
+- After `harmonizeColors` call: `[render] harmonizeColors returned: <object>`
+- After `harmonizeColors` call: `[render] Will render slots with these colors:` (one line per slot showing hex + canvas zoneColor)
+- Inside render loop per slot: `[render] About to render <slot> slot. Text: "<first 40 chars>" Color: <hex>`
+
+These `[render]` lines appear in **Vercel function logs** under `/api/flyer/status/[jobId]`. All lines also appear locally via `console.log`.
+
+---
+
+### Part 1 — Code Path Audit (suspect locations for cream-on-cream bug)
+
+All hardcoded hex values in the render pipeline — enumerated and assessed:
+
+| File | Line | Value | Role | Bug risk |
+|------|------|-------|------|----------|
+| `lib/satori-render.ts` | 208 | `#FAEDE3` | `flatten()` background — fills transparent pixels on final composite | Low — GPT canvas is opaque; only fills if canvas has alpha |
+| `lib/render/color-sampling.ts` | 33 | `#F5E6D0` | `extractZoneColor` catch fallback — used when Sharp extract fails | Low — fallback is cream, which yields high `zoneLum` → `#1F1A14` (near-black) selected. Not the bug. |
+| `lib/render/color-sampling.ts` | 56,73,75 | `#8B6914` | `extractAccentColor` fallback — used when saturation < 15% or extract fails | Medium — affects only `headline` and `signoff` (decorative channel). Gold on cream can look faded but passes WCAG 3.0. |
+| `lib/render/color-sampling.ts` | 160 | `#1a1a1a` / `#f5f5f5` | `ensureContrast` last-resort after 20 darkening iterations | Low — only reached when 20 × 5% darkening fails; should always converge for cream backgrounds. |
+| `lib/render/render-config.ts` | 20 | `#1F1A14` | `LEGIBILITY_TEXT_COLOR` — fixed ink for `name` and `body` on light canvases | Low when used correctly — high contrast against cream. **Bug if wrong luminance branch selected.** |
+| `lib/render/render-config.ts` | 22 | `#FAF6F0` | `LEGIBILITY_TEXT_COLOR_LIGHT` — near-white for dark canvases | **PRIME SUSPECT** — if `extractZoneColor` returns a dark color (zoneLum < 0.5) when the actual body zone is cream, `name` and `body` get near-white ink. Near-white on cream is nearly invisible. |
+
+**No color fields exist in `lib/render/typography.ts`** — pairings have no color overrides, only `font`, `weight`, `sizeRatio`. Safe.
+
+**`harmonizeColors` is called exactly once per render** (`lib/satori-render.ts:58`) and its result is the only source of text colors. No other code path sets text colors for the GPT-canvas render path.
+
+**Prime suspect mechanism:**  
+`extractZoneColor(canvasBuffer, zones.body)` samples the raw GPT canvas buffer WITHOUT first resizing to 1024×1024. If the GPT-image-1 response returns an image at unexpected dimensions, or if decoration from an adjacent zone bleeds into the sampled `body` zone rectangle, `zoneColor` could be dark → `zoneLum < 0.5` → `legibilityColor = '#FAF6F0'` (near-white) → `name` and `body` render near-white. On a cream canvas background, near-white text is nearly invisible. This is the most likely explanation for "cream-on-cream" failures on `name` and `body`. The `[harmonize] zoneLum:` log line will confirm or deny this.
+
+---
+
+### Part 2 — Form Simplification
+
+### Files Modified
+
+- `components/ControlPanel.tsx` — Step 1 form: section header, field labels, placeholder text, textarea height
+- `components/StylePreview.tsx` — replaced stale event-name/tagline/date-venue preview with simple "Your card preview will appear here" placeholder + pulsing amber dot
+- `lib/types.ts` — added `// REVIEW:` comment above `additionalContext` documenting the UI/backend naming split
+
+### Form changes
+
+| Before | After |
+|--------|-------|
+| Section header: "Describe what you want" | "TELL US ABOUT THIS CARD" |
+| Field 1 label: "Name / Title" | "Name or title" |
+| Field 1 placeholder: "e.g. Summer Music Festival" | "e.g. Ada, Maa Akosua, Kojo's Barbershop" |
+| Field 2 label: "Describe your flyer" | "What's the story?" |
+| Field 2 placeholder: birthday-specific Amara example | Neutral: "Anything that'll help make this personal…" |
+| Textarea rows: 4 | 5 |
+
+Field names in `FlyerPreferences` unchanged (`title`, `additionalContext`) — n8n receives the same keys. `// REVIEW:` comment documents the UI/backend split.
+
+### Style preview replacement
+
+`components/StylePreview.tsx` content replaced. The color-scheme/font/event-name preview is retired:
+- Was: a 200×275 miniature card showing title, tagline, date·venue in selected color scheme and font
+- Now: centered "Your card preview will appear here" text + pulsing amber dot. REVIEW comment notes Mood Reel as the intended replacement.
+- `CanvasPanel.tsx` unchanged — still passes `prefs` to `StylePreview`; the new component accepts but ignores it.
+
+### Build Status After Round 8
+
+- `npm run build`: **PASS** — zero TypeScript errors, all 8 routes compiled (6.2s)
+
+### Manual Verification Steps
+
+1. **Form check:** Visit the form → Step 1 → confirm:
+   - Section header: "TELL US ABOUT THIS CARD"
+   - Field 1: "Name or title" with placeholder "e.g. Ada, Maa Akosua, Kojo's Barbershop"
+   - Field 2: "What's the story?" textarea (5 rows) with neutral occasion-agnostic placeholder
+   - Italic sender hint below the textarea (unchanged)
+   - Left panel shows pulsing amber dot + "Your card preview will appear here" (not the old event-name card)
+
+2. **Contrast diagnosis test:** Submit:
+   - occasion = congrats, vibe = bold, name = "James"
+   - "What's the story?" = "graduated medical school today, from his proud sister"
+
+3. After card renders, open **Vercel function logs → `/api/flyer/status/[jobId]`** and find all `[render]` and `[harmonize]` lines. Paste them back into the conversation to diagnose the contrast bug.
+
+**DO NOT change contrast logic until log data is reviewed.**

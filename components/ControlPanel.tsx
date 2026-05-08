@@ -220,7 +220,7 @@ export function ControlPanel({
       return (
         <div className="space-y-4">
           <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
-            Describe what you want
+            Tell us about this card
           </p>
 
           {/* ① Title */}
@@ -228,13 +228,13 @@ export function ControlPanel({
               birthday, "Your Name / Brand" for business. Deferred — relabel once occasion
               picker is in step 1 and we can read prefs.occasion here. */}
           <FloatingField
-            label="Name / Title"
+            label="Name or title"
             value={prefs.title}
             onChange={(v) => {
               onPrefsChange('title', v);
               if (v.trim()) setTitleError(false);
             }}
-            placeholder="e.g. Summer Music Festival"
+            placeholder="e.g. Ada, Maa Akosua, Kojo's Barbershop"
             disabled={isGenerating}
             hasError={titleError}
             errorMsg="Give your flyer a name or describe what you want"
@@ -243,7 +243,7 @@ export function ControlPanel({
           {/* ② Describe your flyer textarea */}
           <div>
             <label className="block text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1.5">
-              Describe your flyer
+              What&rsquo;s the story?
               <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
                 (optional)
               </span>
@@ -255,8 +255,8 @@ export function ControlPanel({
                 if (e.target.value.trim()) setTitleError(false);
               }}
               disabled={isGenerating}
-              rows={4}
-              placeholder="e.g. Birthday flyer for my friend Amara's 30th — Nigerian vibe, Afrobeats theme, rooftop bar in Lagos. Elegant but fun."
+              rows={5}
+              placeholder={"Anything that'll help make this personal — who it's for, your relationship, what's special about them, who's signing it. The more you share, the better the card."}
               className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors resize-none disabled:opacity-40"
             />
             <p className="mt-2 text-[11px] italic text-zinc-500/70 leading-snug">

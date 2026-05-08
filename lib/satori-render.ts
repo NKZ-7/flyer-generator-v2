@@ -51,7 +51,18 @@ export async function renderFlyerToBase64(
 
   const zoneColor   = await extractZoneColor(canvasBuffer, zones.body);
   const accentColor = await extractAccentColor(canvasBuffer, sampleZone);
+
+  console.log('[render] Layout:', designBrief.layoutId, 'Theme:', designBrief.decorative_theme, 'Typography:', designBrief.typographyId);
+  console.log('[render] Will call harmonizeColors with:', { zoneColor, accentColor });
+
   const colors      = harmonizeColors(zoneColor, accentColor);
+
+  console.log('[render] harmonizeColors returned:', colors);
+  console.log('[render] Will render slots with these colors:');
+  console.log('  headline:', colors.headline, 'on', zoneColor);
+  console.log('  name:    ', colors.name,     'on', zoneColor);
+  console.log('  body:    ', colors.body,     'on', zoneColor);
+  console.log('  signoff: ', colors.signoff,  'on', zoneColor);
 
   const textColors: Record<Slot, string> = {
     headline: colors.headline,
@@ -71,6 +82,8 @@ export async function renderFlyerToBase64(
     const maxLn  = MAX_LINES[slot];
     const align  = layout.text_alignment[slot];
     const color  = textColors[slot];
+
+    console.log(`[render] About to render ${slot} slot. Text: "${text.slice(0, 40)}${text.length > 40 ? '...' : ''}" Color: ${color}`);
 
     // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
     let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
