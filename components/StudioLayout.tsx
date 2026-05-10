@@ -11,6 +11,7 @@ import type { FlyerPreferences, UserAsset } from '@/lib/types';
 
 const defaultPrefs: FlyerPreferences = {
   title: '',
+  additionalContext: '',
   tagline: '',
   eventDate: '',
   venue: '',

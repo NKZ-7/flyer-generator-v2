@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       if (
         !VALID_LAYOUT_IDS.has(designBrief?.layoutId ?? '') ||
         !VALID_TYPO_IDS.has(designBrief?.typographyId ?? '') ||
-        !copyV2?.headline || !copyV2?.recipient_name || !copyV2?.body || !copyV2?.signoff
+        !copyV2?.headline || typeof copyV2?.recipient_name !== 'string' || !copyV2?.body || !copyV2?.signoff
       ) {
         await failJob(jobId, 'GPT-canvas callback validation failed: missing or invalid fields');
         return Response.json({ ok: true });

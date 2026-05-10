@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
   };
   const { preferences, userAssets = [], hasUserAssets = false } = body;
 
-  if (!preferences?.title && !preferences?.additionalContext) {
-    return Response.json({ error: 'A title or description is required' }, { status: 400 });
+  if (!preferences?.additionalContext) {
+    return Response.json({ error: 'A description is required' }, { status: 400 });
   }
 
   const jobId = randomUUID();

@@ -15,8 +15,7 @@ The workflow receives a POST from `/api/flyer/start`:
   "jobId": "string",
   "callbackUrl": "string",
   "preferences": {
-    "title": "string",
-    "additionalContext": "string",
+    "additionalContext": "string (the user's full free-text description)",
     "occasion": "birthday | sympathy | congrats | business | invitation | happy_new_month | mothers_day | fathers_day | valentines_day | eid | christmas | new_year | easter | independence_day",
     "vibe": "elegant | warm | playful | bold | church | minimal",
     "tagline": "string",
@@ -50,8 +49,7 @@ Output ONLY valid JSON, no other text, no markdown fences.
 
 OCCASION: {preferences.occasion}
 VIBE: {preferences.vibe}
-RECIPIENT NAME / TITLE: {preferences.title}
-USER NOTES: {preferences.additionalContext}
+USER DESCRIPTION: {preferences.additionalContext}
 DATE (if any): {preferences.eventDate}
 VENUE (if any): {preferences.venue}
 CONTACT (if any): {preferences.contactInfo}
@@ -68,7 +66,7 @@ Produce JSON in EXACTLY this shape:
 {
   "copy": {
     "headline": "string — 14-22 chars ideal, max 28",
-    "recipient_name": "MUST be the user's title input copied verbatim with no additions, no salutations, no modifications. If user typed 'Ada', this is exactly 'Ada'. Maximum 30 characters.",
+    "recipient_name": "Extract from the user description. If a person, business, or honoree is named (e.g. 'birthday card for Ada', 'Kojo's Barbershop promo', 'Akua turning 30'), use just that name or brand. If no name is identifiable, set to empty string ''. Maximum 30 characters.",
     "body": "string — 50-90 chars ideal, max 130, 1-2 sentences",
     "signoff": "string — 8-18 chars ideal, max 24"
   },
@@ -87,10 +85,19 @@ Produce JSON in EXACTLY this shape:
 Rules:
 
 CRITICAL — slot semantics:
-- recipient_name MUST be a VERBATIM echo of the user's title input. If the user typed 'Ada', recipient_name is 'Ada'. If they typed 'Maa Akosua', it is 'Maa Akosua'. NEVER add words, salutations, or modifications. NEVER write 'Happy Birthday Ada' here. The recipient_name slot is the visual hero — it is rendered in the largest, most prominent typography, and must stand alone.
+- recipient_name: Extract the honoree's name from the user description. If named (e.g. 'for Ada', 'Kojo's Barbershop', 'Akua turning 30'), use just the name or brand — no salutations, no extra words. If no name is identifiable, set to empty string ''. The recipient_name slot is the visual hero — it renders in the largest, most prominent typography and must stand alone. Maximum 30 characters.
+  Extraction examples:
+  - 'birthday card for Ada' → 'Ada'
+  - 'Kojo's Barbershop promo' → 'Kojo's Barbershop'
+  - 'Akua turning 30' → 'Akua'
+  - 'a warm card for my landlord' → '' (no name given)
+  - 'thank-you card from the whole team' → '' (no name given)
 - headline is the short creative phrase that frames the recipient_name. It is small, sits above or below the name. Examples: 'HAPPY BIRTHDAY' (above the name), 'CONGRATULATIONS' (above the name), 'IN LOVING MEMORY OF' (above the name).
 - body is the longer warm message.
 - signoff is the short closer.
+
+Easter egg behavior:
+If the user description is fewer than ~5 characters, contains no recognizable words, or is clearly nonsense (e.g. 'asdf', 'kkkk', '...', '?'), treat this as an easter egg request. Generate a card that is playful, chaotic-but-charming, and surprising — something that leans hard into the selected occasion and vibe but with a self-aware, fun twist. The card should feel like a delightful surprise, not a generic fallback. Examples of the spirit: a 'mystery person' birthday card that's warm and absurd, a sympathy card with quietly witty phrasing, a business card for a 'definitely real business.' Stay within the picked occasion and vibe — chaos-birthday-playful, not chaos-into-anything. Set recipient_name to something playful like 'Mystery Guest', 'You', or leave it empty depending on what reads best. All character budget rules still apply.
 
 Layout selection guidance:
 
@@ -254,7 +261,7 @@ function sanitizeRecipientName(raw) {
   }
   return name;
 }
-if (parsed.copy && parsed.copy.recipient_name) {
+if (parsed.copy && typeof parsed.copy.recipient_name === 'string' && parsed.copy.recipient_name) {
   parsed.copy.recipient_name = sanitizeRecipientName(parsed.copy.recipient_name);
 }
 
@@ -278,7 +285,7 @@ const errors = [];
 if (!parsed.copy) errors.push('missing copy');
 else {
   if (!parsed.copy.headline || parsed.copy.headline.length > 28) errors.push(`headline length ${parsed.copy.headline?.length} exceeds 28`);
-  if (!parsed.copy.recipient_name || parsed.copy.recipient_name.length === 0 || parsed.copy.recipient_name.length > 30) errors.push(`recipient_name is empty or too long after sanitization`);
+  if (typeof parsed.copy.recipient_name !== 'string' || parsed.copy.recipient_name.length > 30) errors.push(`recipient_name must be a string, max 30 chars`);
   if (!parsed.copy.body || parsed.copy.body.length > 130) errors.push(`body length ${parsed.copy.body?.length} exceeds 130`);
   if (!parsed.copy.signoff || parsed.copy.signoff.length > 24) errors.push(`signoff length exceeds 24`);
 }

@@ -127,9 +127,7 @@ export function ControlPanel({
 
   function goNext() {
     if (currentStep === 1) {
-      const hasTitle = prefs.title.trim();
-      const hasDescription = (prefs.additionalContext ?? '').trim();
-      if (!hasTitle && !hasDescription) {
+      if (!(prefs.additionalContext ?? '').trim()) {
         setTitleError(true);
         return;
       }
@@ -146,7 +144,7 @@ export function ControlPanel({
     e.preventDefault();
     if (isGenerating) return;                   // guard 1: no double-submit
     if (currentStep !== 3 && !isDone) return;   // guard 2: only from step 3 or re-generate
-    if (!prefs.title.trim() && !(prefs.additionalContext ?? '').trim()) return;
+    if (!(prefs.additionalContext ?? '').trim()) return;
     onGenerate(prefs);
   }
 
@@ -223,31 +221,8 @@ export function ControlPanel({
             Tell us about this card
           </p>
 
-          {/* ① Title */}
-          {/* REVIEW: label should update based on selected occasion — e.g. "Who's it for?" for
-              birthday, "Your Name / Brand" for business. Deferred — relabel once occasion
-              picker is in step 1 and we can read prefs.occasion here. */}
-          <FloatingField
-            label="Name or title"
-            value={prefs.title}
-            onChange={(v) => {
-              onPrefsChange('title', v);
-              if (v.trim()) setTitleError(false);
-            }}
-            placeholder="e.g. Ada, Maa Akosua, Kojo's Barbershop"
-            disabled={isGenerating}
-            hasError={titleError}
-            errorMsg="Give your flyer a name or describe what you want"
-          />
-
-          {/* ② Describe your flyer textarea */}
+          {/* Unified description */}
           <div>
-            <label className="block text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1.5">
-              What&rsquo;s the story?
-              <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
-                (optional)
-              </span>
-            </label>
             <textarea
               value={prefs.additionalContext ?? ''}
               onChange={(e) => {
@@ -255,13 +230,20 @@ export function ControlPanel({
                 if (e.target.value.trim()) setTitleError(false);
               }}
               disabled={isGenerating}
-              rows={5}
-              placeholder={"Anything that'll help make this personal — who it's for, your relationship, what's special about them, who's signing it. The more you share, the better the card."}
-              className="w-full bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors resize-none disabled:opacity-40"
+              rows={6}
+              placeholder="Describe your card here..."
+              className={`w-full bg-zinc-900 border text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:ring-1 transition-colors resize-none disabled:opacity-40 ${
+                titleError
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                  : 'border-zinc-700 focus:border-amber-400/50 focus:ring-amber-400/20'
+              }`}
             />
+            {titleError && (
+              <p className="mt-1 text-[11px] text-red-400">Describe the card so we know what to make</p>
+            )}
             <p className="mt-2 text-[11px] italic text-zinc-500/70 leading-snug">
-              💡 Tip: Mention your name or relationship for a personal signoff
-              (e.g. &ldquo;from his sister&rdquo; or &ldquo;love, Mama&rdquo;)
+              💡 Tip: Mention a name, relationship, or who&rsquo;s signing
+              (e.g. &ldquo;birthday card for Ada&rdquo;, &ldquo;from his sister&rdquo;)
             </p>
           </div>
 
@@ -545,7 +527,6 @@ export function ControlPanel({
           </div>
           <SummaryRow label="Occasion" value={occasionLabel} />
           <SummaryRow label="Vibe"     value={vibeLabel} />
-          <SummaryRow label="Title"   value={prefs.title || <span className="text-zinc-600 italic">—</span>} />
           {prefs.tagline     && <SummaryRow label="Tagline"  value={prefs.tagline} />}
           {prefs.eventDate   && <SummaryRow label="Date"     value={prefs.eventDate} />}
           {prefs.venue       && <SummaryRow label="Venue"    value={prefs.venue} />}
@@ -558,7 +539,7 @@ export function ControlPanel({
           )}
           {prefs.additionalContext && (
             <SummaryRow
-              label="Context"
+              label="Description"
               value={
                 <span className="italic text-zinc-400 truncate max-w-[140px] block">
                   &ldquo;{prefs.additionalContext.slice(0, 40)}

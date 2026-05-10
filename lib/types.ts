@@ -85,8 +85,8 @@ export interface FlyerPreferences {
   eventDate?: string;
   venue?: string;
   contactInfo?: string;
-  // REVIEW: UI labels this field "What's the story?" — kept as additionalContext for n8n compatibility.
-  // title = recipient_name source; additionalContext = context/story (used differently in Claude prompt).
+  // The user's full free-text description. Claude extracts recipient_name from this in Stage A.
+  // title is kept for backward compat but is no longer populated by the form.
   additionalContext?: string;
   region?: string;
   // ── Deprecated (kept for StudioLayout defaultPrefs compat) ────
