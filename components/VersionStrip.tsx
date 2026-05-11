@@ -12,9 +12,9 @@ export function VersionStrip({ versions, currentVersion, onSelect }: VersionStri
   if (versions.length === 0) return null;
 
   return (
-    <div className="shrink-0 border-t border-zinc-800 bg-[#0d0d0f]">
+    <div className="shrink-0 border-t border-warm-600 bg-warm-800">
       <div className="flex items-center px-4 py-2 gap-3 overflow-x-auto">
-        <span className="text-[10px] uppercase tracking-[0.15em] text-zinc-600 font-semibold shrink-0">
+        <span className="text-[10px] uppercase tracking-[0.15em] text-[#6B5B4E] font-semibold shrink-0">
           Versions
         </span>
 
@@ -28,7 +28,7 @@ export function VersionStrip({ versions, currentVersion, onSelect }: VersionStri
               className={`relative shrink-0 rounded overflow-hidden border transition-all ${
                 isActive
                   ? 'border-amber-400 ring-1 ring-amber-400/30'
-                  : 'border-zinc-700 opacity-60 hover:opacity-90 hover:border-zinc-500'
+                  : 'border-warm-600 opacity-60 hover:opacity-90 hover:border-[#5A4C40]'
               }`}
               style={{ width: 44, height: 60 }}
             >

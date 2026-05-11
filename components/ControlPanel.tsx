@@ -192,7 +192,7 @@ export function ControlPanel({
 
   function ProgressIndicator({ current }: { current: 1 | 2 | 3 }) {
     return (
-      <div className="flex items-center justify-center gap-2 px-5 py-3 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-center gap-2 px-5 py-3 border-b border-warm-600 shrink-0">
         {([1, 2, 3] as const).map((n, i) => (
           <Fragment key={n}>
             <div
@@ -201,19 +201,19 @@ export function ControlPanel({
                   ? 'bg-amber-400 border-amber-400 text-zinc-950'
                   : n === current
                   ? 'bg-amber-400/20 border-amber-400 text-amber-300'
-                  : 'bg-zinc-900 border-zinc-700 text-zinc-600'
+                  : 'bg-warm-900 border-warm-600 text-[#6B5B4E]'
               }`}
             >
               {n < current ? '✓' : n}
             </div>
             {i < 2 && (
               <div
-                className={`h-px w-8 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-zinc-700'}`}
+                className={`h-px w-8 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-warm-600'}`}
               />
             )}
           </Fragment>
         ))}
-        <span className="ml-2 text-[10px] text-zinc-500 uppercase tracking-widest">
+        <span className="ml-2 text-[10px] text-[#7B6B5B] uppercase tracking-widest">
           {STEP_LABELS[current - 1]}
         </span>
       </div>
@@ -236,7 +236,7 @@ export function ControlPanel({
     if (step === 1) {
       return (
         <div className="space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
             Tell us about this card
           </p>
 
@@ -251,28 +251,28 @@ export function ControlPanel({
               disabled={isGenerating}
               rows={6}
               placeholder="Describe your card here..."
-              className={`w-full bg-zinc-900 border text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-zinc-600 focus:outline-none focus:ring-1 transition-colors resize-none disabled:opacity-40 ${
+              className={`w-full bg-warm-900 border text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-[#5A4C40] focus:outline-none focus:ring-1 transition-colors resize-none disabled:opacity-40 ${
                 titleError
                   ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                  : 'border-zinc-700 focus:border-amber-400/50 focus:ring-amber-400/20'
+                  : 'border-warm-600 focus:border-amber-400/50 focus:ring-amber-400/20'
               }`}
             />
             {titleError && (
               <p className="mt-1 text-[11px] text-red-400">Describe the card so we know what to make</p>
             )}
-            <p className="mt-2 text-[11px] italic text-zinc-500/70 leading-snug">
+            <p className="mt-2 text-[11px] italic text-[#7B6B5B]/70 leading-snug">
               💡 Tip: Mention a name, relationship, or who&rsquo;s signing
               (e.g. &ldquo;birthday card for Ada&rdquo;, &ldquo;from his sister&rdquo;)
             </p>
           </div>
 
-          <div className="border-t border-zinc-800" />
+          <div className="border-t border-warm-600" />
 
           {/* Occasion */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
             Occasion
           </p>
-          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
+          <p className="text-[10px] text-[#6B5B4E] -mt-3">optional — AI infers if blank</p>
           <OccasionPicker
             value={prefs.occasion}
             onChange={(v) => onPrefsChange('occasion', v)}
@@ -280,10 +280,10 @@ export function ControlPanel({
           />
 
           {/* Vibe */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mt-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mt-3">
             Vibe
           </p>
-          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
+          <p className="text-[10px] text-[#6B5B4E] -mt-3">optional — AI infers if blank</p>
           <VibePicker
             value={prefs.vibe}
             onChange={(v) => onPrefsChange('vibe', v)}
@@ -297,10 +297,10 @@ export function ControlPanel({
             }`}
           >
             <div className="space-y-4 pt-3">
-              <div className="border-t border-zinc-700/50" />
-              <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500/80 font-semibold">
+              <div className="border-t border-warm-600/50" />
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B]/80 font-semibold">
                 Event Details
-                <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
+                <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
                   — optional
                 </span>
               </p>
@@ -340,7 +340,7 @@ export function ControlPanel({
             </div>
           </div>
 
-          <div className="border-t border-zinc-800" />
+          <div className="border-t border-warm-600" />
 
           {/* Region */}
           <FloatingField
@@ -353,13 +353,13 @@ export function ControlPanel({
 
           {/* Photos & Assets */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-1">
               Your Photos & Assets
-              <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
+              <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
                 — optional
               </span>
             </p>
-            <p className="text-[10px] text-zinc-500 mb-2 leading-relaxed">
+            <p className="text-[10px] text-[#7B6B5B]mb-2 leading-relaxed">
               Upload photos of people, products, or logos you want in your card.
               We&rsquo;ll blend them into the design seamlessly.
             </p>
@@ -386,7 +386,7 @@ export function ControlPanel({
             type="button"
             onClick={surpriseMe}
             disabled={isGenerating || surpriseSpinning}
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-xs border border-zinc-700 text-zinc-400 rounded hover:border-zinc-500 hover:text-zinc-200 transition-all min-h-[44px]"
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-xs border border-warm-600 text-[#9A8A7A] rounded hover:border-[#5A4C40] hover:text-zinc-200 transition-all min-h-[44px]"
           >
             <span className={surpriseSpinning ? 'animate-spin inline-block' : ''}>🎲</span>
             Surprise Me — random style
@@ -394,7 +394,7 @@ export function ControlPanel({
 
           {/* Color scheme */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
               Color Scheme
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -410,7 +410,7 @@ export function ControlPanel({
                     className={`rounded-lg border overflow-hidden transition-all ${
                       isActive
                         ? 'border-amber-400 scale-[1.03] shadow-lg shadow-amber-400/20'
-                        : 'border-zinc-700 hover:border-zinc-500'
+                        : 'border-warm-600 hover:border-[#5A4C40]'
                     }`}
                   >
                     {/* Gradient strip */}
@@ -421,8 +421,8 @@ export function ControlPanel({
                     </div>
                     {/* Label */}
                     <div
-                      className={`px-2 py-1.5 text-xs text-center bg-zinc-900 ${
-                        isActive ? 'text-amber-300' : 'text-zinc-400'
+                      className={`px-2 py-1.5 text-xs text-center bg-warm-900 ${
+                        isActive ? 'text-amber-300' : 'text-[#9A8A7A]'
                       }`}
                     >
                       {opt.label}
@@ -435,7 +435,7 @@ export function ControlPanel({
 
           {/* Font style */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
               Font Style
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -450,7 +450,7 @@ export function ControlPanel({
                     className={`px-3 py-2.5 text-left rounded border transition-all ${
                       isActive
                         ? 'bg-amber-400/10 border-amber-400/50'
-                        : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
+                        : 'bg-warm-900 border-warm-600 hover:border-[#5A4C40]'
                     }`}
                   >
                     <div
@@ -475,7 +475,7 @@ export function ControlPanel({
 
           {/* Accent color */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-2">
+            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
               Accent Color
             </p>
             <div className="grid grid-cols-6 gap-1.5">
@@ -506,9 +506,9 @@ export function ControlPanel({
               })}
             </div>
 
-            <p className="text-[10px] text-zinc-500 mt-3 mb-1">Or enter your brand color</p>
+            <p className="text-[10px] text-[#7B6B5B]mt-3 mb-1">Or enter your brand color</p>
             <div className="flex items-center gap-2">
-              <div className="relative w-9 h-9 rounded border border-zinc-700 overflow-hidden shrink-0">
+              <div className="relative w-9 h-9 rounded border border-warm-600 overflow-hidden shrink-0">
                 <input
                   type="color"
                   value={prefs.primaryColor ?? '#f59e0b'}
@@ -526,7 +526,7 @@ export function ControlPanel({
                 value={prefs.primaryColor ?? '#f59e0b'}
                 onChange={(e) => onPrefsChange('primaryColor', e.target.value)}
                 disabled={isGenerating}
-                className="flex-1 bg-zinc-900 border border-zinc-700 text-zinc-200 font-mono text-[11px] rounded px-3 py-2 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors disabled:opacity-40"
+                className="flex-1 bg-warm-900 border border-warm-600 text-zinc-200 font-mono text-[11px] rounded px-3 py-2 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors disabled:opacity-40"
               />
             </div>
           </div>
@@ -542,14 +542,14 @@ export function ControlPanel({
 
     return (
       <div className="space-y-4">
-        <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+        <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
           Review & Generate
         </p>
 
         {/* Content card */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 space-y-1">
+        <div className="bg-warm-900/80 border border-warm-600 rounded-lg px-4 py-3 space-y-1">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">
+            <span className="text-[10px] uppercase tracking-widest text-[#7B6B5B] font-semibold">
               Content
             </span>
             <button
@@ -587,9 +587,9 @@ export function ControlPanel({
         </div>
 
         {/* Style card */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg px-4 py-3 space-y-1">
+        <div className="bg-warm-900/80 border border-warm-600 rounded-lg px-4 py-3 space-y-1">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold">
+            <span className="text-[10px] uppercase tracking-widest text-[#7B6B5B] font-semibold">
               Style
             </span>
             <button
@@ -643,7 +643,7 @@ export function ControlPanel({
   const exitClass  = direction === 'forward' ? 'step-exit-forward'  : 'step-exit-backward';
 
   return (
-    <form onSubmit={handleSubmit} className="h-full bg-[#111113] flex flex-col">
+    <form onSubmit={handleSubmit} className="h-full bg-warm-800 flex flex-col">
       {/* Progress indicator — hidden when done */}
       {!isDone && <ProgressIndicator current={currentStep} />}
 
@@ -664,19 +664,19 @@ export function ControlPanel({
       </div>
 
       {/* Sticky footer */}
-      <div className="shrink-0 px-5 pb-5 pt-3 border-t border-zinc-800 bg-[#111113]">
+      <div className="shrink-0 px-5 pb-5 pt-3 border-t border-warm-600 bg-warm-800">
         {isDone ? (
           <div className="flex gap-2">
             <button
               type="button"
               onClick={onReset}
-              className="flex-1 py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors"
+              className="flex-1 py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors"
             >
               New card
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-zinc-800 text-zinc-200 border border-zinc-700 rounded hover:bg-zinc-700 transition-colors"
+              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-warm-700 text-[#D4C4B0] border border-warm-600 rounded hover:bg-warm-600 transition-colors"
             >
               Regenerate
             </button>
@@ -688,7 +688,7 @@ export function ControlPanel({
                 type="button"
                 onClick={goBack}
                 disabled={isGenerating}
-                className="flex-1 py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ← Back
               </button>
@@ -708,7 +708,7 @@ export function ControlPanel({
             type="button"
             onClick={goBack}
             disabled={isGenerating}
-            className="w-full py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ← Back to Style
           </button>

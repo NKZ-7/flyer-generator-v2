@@ -6,6 +6,14 @@
   --font-mono: var(--font-mono);
   --font-oswald: var(--font-oswald);
   --font-playfair: var(--font-playfair);
+
+  --color-warm-900: #1F1810;
+  --color-warm-800: #2A211A;
+  --color-warm-700: #342A22;
+  --color-warm-600: #3D3228;
+  --color-cream: #FAF6F0;
+  --color-cream-dim: #EFE5D8;
+  --color-cream-border: #D8C9B5;
 }
 
 /* ── Base reset ───────────────────────────────────────────── */
@@ -19,7 +27,7 @@ html, body {
 }
 
 body {
-  background: #09090b;
+  background: #1F1810;
   color: #f4f4f5;
   font-family: var(--font-sans, 'DM Sans', sans-serif);
   -webkit-font-smoothing: antialiased;
@@ -128,9 +136,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #4A3C30;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: #5A4C40;
 }

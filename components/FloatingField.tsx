@@ -33,14 +33,14 @@ export function FloatingField({
   return (
     <div className="space-y-0.5">
       <div
-        className={`relative h-14 rounded border transition-colors bg-zinc-900 ${
+        className={`relative h-14 rounded border transition-colors bg-warm-900 ${
           hasError
             ? 'border-red-500'
             : focused
             ? 'border-amber-400/60 ring-1 ring-amber-400/20'
             : filled
-            ? 'border-zinc-600'
-            : 'border-zinc-700'
+            ? 'border-[#5A4C40]'
+            : 'border-warm-600'
         }`}
       >
         {/* Label floats up when focused or filled */}
@@ -50,7 +50,7 @@ export function FloatingField({
             floated
               ? 'top-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] ' +
                 (hasError ? 'text-red-400' : 'text-amber-400/80')
-              : 'top-1/2 -translate-y-1/2 text-sm text-zinc-500'
+              : 'top-1/2 -translate-y-1/2 text-sm text-[#7B6B5B]'
           }`}
         >
           {label}
@@ -79,7 +79,7 @@ export function FloatingField({
 
       {/* Contextual hint — only shows when focused */}
       {focused && placeholder && !hasError && (
-        <p className="text-[10px] text-zinc-500 px-1">{placeholder}</p>
+        <p className="text-[10px] text-[#7B6B5B] px-1">{placeholder}</p>
       )}
       {hasError && errorMsg && (
         <p className="text-[10px] text-red-400 px-1">{errorMsg}</p>

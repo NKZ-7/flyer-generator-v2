@@ -21,13 +21,13 @@ export function CanvasPanel({
   prefs,
 }: CanvasPanelProps) {
   return (
-    <div className="relative h-full flex flex-col bg-[#0d0d0f]">
+    <div className="relative h-full flex flex-col bg-cream">
       {/* Dot-grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            'radial-gradient(circle, #27272a 1px, transparent 1px)',
+            'radial-gradient(circle, rgba(160,130,100,0.18) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
         }}
       />
@@ -47,14 +47,14 @@ export function CanvasPanel({
 
       {/* Bottom toolbar — only when a flyer is ready */}
       {phase === 'done' && currentVersion && (
-        <div className="relative shrink-0 flex items-center justify-between px-5 py-3 border-t border-zinc-800 bg-[#0d0d0f]">
-          <span className="text-xs text-zinc-500 font-mono">
+        <div className="relative shrink-0 flex items-center justify-between px-5 py-3 border-t border-cream-border bg-cream-dim">
+          <span className="text-xs text-[#8B7355] font-mono">
             1024 × 1024 px
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={onReset}
-              className="px-3 py-1.5 text-xs text-zinc-400 border border-zinc-700 rounded hover:border-zinc-500 hover:text-zinc-200 transition-colors"
+              className="px-3 py-1.5 text-xs text-[#8B7355] border border-cream-border rounded hover:border-[#8B7355] hover:text-warm-800 transition-colors"
             >
               New card
             </button>
@@ -100,14 +100,14 @@ function ErrorState({
         ✕
       </div>
       <div>
-        <p className="text-zinc-300 text-sm font-medium">Generation failed</p>
-        <p className="text-zinc-500 text-xs mt-1">
+        <p className="text-[#2A211A] text-sm font-medium">Generation failed</p>
+        <p className="text-[#8B7355] text-xs mt-1">
           {message ?? 'Something went wrong. Please try again.'}
         </p>
       </div>
       <button
         onClick={onRetry}
-        className="px-4 py-2 text-xs font-semibold bg-zinc-800 text-zinc-200 border border-zinc-700 rounded hover:bg-zinc-700 transition-colors"
+        className="px-4 py-2 text-xs font-semibold bg-cream-dim text-warm-800 border border-cream-border rounded hover:bg-cream-border transition-colors"
       >
         Try again
       </button>

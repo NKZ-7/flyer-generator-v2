@@ -49,16 +49,16 @@ export function StudioLayout() {
   const showActions = generator.phase === 'done';
 
   return (
-    <div className="flex flex-col h-screen bg-[#09090b] text-zinc-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-warm-900 text-zinc-100 overflow-hidden font-sans">
       {/* ── Header ────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-5 h-12 border-b border-zinc-800 shrink-0 bg-[#0d0d0f]">
+      <header className="flex items-center justify-between px-5 h-12 border-b border-warm-600 shrink-0 bg-warm-800">
         <div className="flex items-center gap-2.5">
           <span className="text-amber-400 text-lg leading-none">◈</span>
           <div className="flex flex-col leading-none">
             <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200">
               Sendly
             </span>
-            <span className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5">
+            <span className="text-[9px] text-[#6B5B4E] tracking-widest uppercase mt-0.5">
               AI-POWERED CARDS &amp; FLYERS
             </span>
           </div>
@@ -69,12 +69,12 @@ export function StudioLayout() {
 
         <div className="flex items-center gap-1">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-zinc-500 font-mono">AI ready</span>
+          <span className="text-xs text-[#7B6B5B] font-mono">AI ready</span>
         </div>
       </header>
 
       {/* ── Main panels ───────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 divide-y md:divide-y-0 md:divide-x divide-zinc-800">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 divide-y md:divide-y-0 md:divide-x divide-warm-600">
         {/* Canvas — h-80 on mobile for idle/generating, flex-1 when done */}
         <div
           className={`md:flex-[3] min-w-0 ${
@@ -92,7 +92,7 @@ export function StudioLayout() {
         </div>
 
         {/* Right: controls + optional chat panel */}
-        <div className="flex-1 md:flex-[2] min-w-0 min-h-0 flex flex-col overflow-hidden divide-y divide-zinc-800">
+        <div className="flex-1 md:flex-[2] min-w-0 min-h-0 flex flex-col overflow-hidden divide-y divide-warm-600">
           {/* IMPORTANT: overflow-hidden — ControlPanel scrolls internally per step */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <ControlPanel
