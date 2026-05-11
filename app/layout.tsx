@@ -34,8 +34,8 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'FlyerCraft — AI Flyer Generator',
-  description: 'Generate professional marketing flyers in seconds with AI.',
+  title: 'Sendly — AI Card & Flyer Maker',
+  description: 'Create beautiful cards and flyers in seconds with AI.',
 };
 
 export default function RootLayout({

@@ -611,10 +611,10 @@ export function ControlPanel({
           {isGenerating ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
-              Creating your flyer...
+              Creating your card...
             </span>
           ) : (
-            'Create My Flyer →'
+            'Create My Card →'
           )}
         </button>
       </div>
@@ -654,7 +654,7 @@ export function ControlPanel({
               onClick={onReset}
               className="flex-1 py-2.5 min-h-[44px] text-sm border border-zinc-700 text-zinc-300 rounded hover:bg-zinc-800 transition-colors"
             >
-              New flyer
+              New card
             </button>
             <button
               type="submit"

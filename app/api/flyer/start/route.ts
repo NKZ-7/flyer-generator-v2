@@ -5,6 +5,7 @@ import type { FlyerPreferences } from '@/lib/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 interface WireAsset {
   id: string;

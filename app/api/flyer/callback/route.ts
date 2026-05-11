@@ -6,6 +6,7 @@ import type { DesignSpec, FlyerCopy, FlyerCopyV2, DesignBrief, TemplateCopy } fr
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 const VALID_LAYOUT_IDS = new Set<string>([
   'centered_framed', 'asymmetric_diagonal', 'top_heavy',
@@ -18,7 +19,12 @@ const VALID_TYPO_IDS = new Set<string>([
 ]);
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body: Awaited<ReturnType<typeof request.json>>;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
   const {
     status,
     jobId,

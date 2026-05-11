@@ -81,7 +81,7 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
     const remaining = MAX_ASSETS - assets.length;
 
     if (remaining === 0) {
-      setValidationMsg('Maximum 5 images per flyer. Remove one to add another.');
+      setValidationMsg('Maximum 5 images. Remove one to add another.');
       return;
     }
 
@@ -110,7 +110,7 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
       }
 
       if (fileArr.length > remaining) {
-        setValidationMsg('Maximum 5 images per flyer. Remove one to add another.');
+        setValidationMsg('Maximum 5 images. Remove one to add another.');
       }
       onAssetsChange([...assets, ...newAssets]);
     } finally {

@@ -56,7 +56,7 @@ export function CanvasPanel({
               onClick={onReset}
               className="px-3 py-1.5 text-xs text-zinc-400 border border-zinc-700 rounded hover:border-zinc-500 hover:text-zinc-200 transition-colors"
             >
-              New flyer
+              New card
             </button>
             <button
               onClick={onDownload}
@@ -79,7 +79,7 @@ function FlyerPreview({ imageDataUrl }: { imageDataUrl: string }) {
       <div className="absolute -inset-4 bg-amber-400/5 rounded-lg blur-2xl pointer-events-none" />
       <img
         src={imageDataUrl}
-        alt="Generated flyer"
+        alt="Generated card"
         className="relative max-h-[calc(100vh-220px)] max-w-full object-contain rounded-sm shadow-2xl shadow-black/60 ring-1 ring-white/10"
         style={{ imageRendering: 'crisp-edges' }}
       />

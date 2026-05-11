@@ -56,10 +56,10 @@ export function StudioLayout() {
           <span className="text-amber-400 text-lg leading-none">◈</span>
           <div className="flex flex-col leading-none">
             <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200">
-              FlyerCraft
+              Sendly
             </span>
             <span className="text-[9px] text-zinc-600 tracking-widest uppercase mt-0.5">
-              AI-powered flyer design
+              AI-POWERED CARDS &amp; FLYERS
             </span>
           </div>
           <span className="ml-2 text-[10px] font-mono bg-amber-400/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-400/20 uppercase tracking-widest">

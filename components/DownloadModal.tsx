@@ -115,8 +115,8 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Export Flyer</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Choose how you want to use your flyer</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Export</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Choose how you want to share your card</p>
           </div>
           <button
             onClick={onClose}
@@ -158,7 +158,7 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
               <span className="flex items-center gap-2.5">
                 <span className="text-base">✏️</span>
                 <span>
-                  <span className="font-medium">Edit / Refine this flyer</span>
+                  <span className="font-medium">Edit / Refine</span>
                   <span className="block text-[11px] text-zinc-500 mt-0.5">
                     Go back and describe changes in plain English
                   </span>
@@ -282,7 +282,7 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
             onClick={() => { onClose(); onNewFlyer(); }}
             className="px-4 py-2.5 text-xs text-zinc-400 border border-zinc-700 rounded hover:border-zinc-600 hover:text-zinc-200 transition-colors"
           >
-            New flyer
+            New card
           </button>
           <button
             onClick={handleDownload}
