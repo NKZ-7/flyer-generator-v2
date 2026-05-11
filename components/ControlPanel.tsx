@@ -50,6 +50,12 @@ const FONT_OPTIONS = [
   { value: 'highContrast', label: 'High Contrast',    hint: 'Oswald headline + body' },
   { value: 'vintage',      label: 'Vintage Press',    hint: 'Playfair · nostalgic, old-style' },
   { value: 'minimalType',  label: 'Minimal Type',     hint: 'DM Sans light · understated' },
+  { value: 'script_romance',  label: 'Script Romance',   hint: 'Great Vibes script · romantic, elegant' },
+  { value: 'editorial_serif', label: 'Editorial Serif',  hint: 'Cormorant · magazine, luxury, refined' },
+  { value: 'playful_display', label: 'Playful Display',  hint: 'Dancing Script · fun, modern-vintage' },
+  { value: 'bold_geometric',  label: 'Bold Geometric',   hint: 'Raleway · brand-forward, strong, clean' },
+  { value: 'warm_personal',   label: 'Warm Personal',    hint: 'Caveat script · handwritten, personal' },
+  { value: 'urban_modern',    label: 'Urban Modern',     hint: 'Bebas Neue · poster, sharp, contemporary' },
 ];
 
 const FONT_FAMILY_MAP: Record<string, string> = {
@@ -59,6 +65,12 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   highContrast: 'var(--font-oswald, Oswald, sans-serif)',
   vintage:      'var(--font-playfair, "Playfair Display", serif)',
   minimalType:  'var(--font-sans, "DM Sans", sans-serif)',
+  script_romance:  'var(--font-great-vibes, "Great Vibes", cursive)',
+  editorial_serif: 'var(--font-cormorant, "Cormorant Garamond", serif)',
+  playful_display: 'var(--font-dancing, "Dancing Script", cursive)',
+  bold_geometric:  'var(--font-raleway, Raleway, sans-serif)',
+  warm_personal:   'var(--font-caveat, Caveat, cursive)',
+  urban_modern:    'var(--font-bebas, "Bebas Neue", sans-serif)',
 };
 
 const FONT_LABEL_CLS: Record<string, string> = {
@@ -68,6 +80,12 @@ const FONT_LABEL_CLS: Record<string, string> = {
   highContrast: 'font-bold',
   vintage:      'tracking-wide',
   minimalType:  'font-light',
+  script_romance:  'italic',
+  editorial_serif: 'italic',
+  playful_display: '',
+  bold_geometric:  'font-bold uppercase tracking-wide',
+  warm_personal:   '',
+  urban_modern:    'font-bold uppercase tracking-widest',
 };
 
 // Accent presets — warm top row, cool bottom row

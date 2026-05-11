@@ -73,6 +73,54 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
     body:     { font: 'Inter',       weight: 400, sizeRatio: 0.33 },
     signoff:  { font: 'Inter',       weight: 500, sizeRatio: 0.42 },
   },
+  script_romance: {
+    id: 'script_romance',
+    description: 'Lora serif framing; Great Vibes script for name and signoff.',
+    headline: { font: 'Lora',        weight: 700, sizeRatio: 0.60 },
+    name:     { font: 'Great Vibes', weight: 400, sizeRatio: 1.10 },
+    body:     { font: 'Lora',        weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Great Vibes', weight: 400, sizeRatio: 0.44 },
+  },
+  editorial_serif: {
+    id: 'editorial_serif',
+    description: 'Cormorant Garamond headline and body; Inter for a clean modern contrast.',
+    headline: { font: 'Cormorant Garamond', weight: 700, sizeRatio: 0.65 },
+    name:     { font: 'Cormorant Garamond', weight: 400, sizeRatio: 1.05 },
+    body:     { font: 'Inter',              weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Inter',              weight: 400, sizeRatio: 0.40 },
+  },
+  playful_display: {
+    id: 'playful_display',
+    description: 'Dancing Script for display; Poppins for legible body.',
+    headline: { font: 'Dancing Script', weight: 700, sizeRatio: 0.65 },
+    name:     { font: 'Dancing Script', weight: 700, sizeRatio: 1.05 },
+    body:     { font: 'Poppins',        weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Poppins',        weight: 400, sizeRatio: 0.40 },
+  },
+  bold_geometric: {
+    id: 'bold_geometric',
+    description: 'Raleway bold display; Montserrat for geometric, brand-forward feel.',
+    headline: { font: 'Raleway',    weight: 700, sizeRatio: 0.65 },
+    name:     { font: 'Raleway',    weight: 700, sizeRatio: 1.05 },
+    body:     { font: 'Montserrat', weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Montserrat', weight: 400, sizeRatio: 0.40 },
+  },
+  warm_personal: {
+    id: 'warm_personal',
+    description: 'Caveat handwritten for name; Poppins for warm, readable body.',
+    headline: { font: 'Poppins', weight: 700, sizeRatio: 0.62 },
+    name:     { font: 'Caveat',  weight: 700, sizeRatio: 1.10 },
+    body:     { font: 'Poppins', weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Caveat',  weight: 400, sizeRatio: 0.44 },
+  },
+  urban_modern: {
+    id: 'urban_modern',
+    description: 'Bebas Neue display + Inter Tight for sharp, contemporary poster feel.',
+    headline: { font: 'Bebas Neue',  weight: 400, sizeRatio: 0.68 },
+    name:     { font: 'Bebas Neue',  weight: 400, sizeRatio: 1.08 },
+    body:     { font: 'Inter Tight', weight: 400, sizeRatio: 0.36 },
+    signoff:  { font: 'Inter Tight', weight: 400, sizeRatio: 0.42 },
+  },
 };
 
 // ── Font loading ──────────────────────────────────────────────────────────────
@@ -139,6 +187,57 @@ export function loadTypographyFonts(pairingId: TypographyPairingId): SatoriFont[
     case 'minimal_swiss':
       sets.push([
         { name: 'Inter Tight', data: woff('inter-tight', 500), weight: 500, style: 'normal' },
+        { name: 'Inter Tight', data: woff('inter-tight', 700), weight: 700, style: 'normal' },
+      ]);
+      break;
+
+    case 'script_romance':
+      sets.push([
+        { name: 'Lora',        data: woff('lora',        400), weight: 400, style: 'normal' },
+        { name: 'Lora',        data: woff('lora',        700), weight: 700, style: 'normal' },
+        { name: 'Great Vibes', data: woff('great-vibes', 400), weight: 400, style: 'normal' },
+      ]);
+      break;
+
+    case 'editorial_serif':
+      sets.push([
+        { name: 'Cormorant Garamond', data: woff('cormorant-garamond', 400), weight: 400, style: 'normal' },
+        { name: 'Cormorant Garamond', data: woff('cormorant-garamond', 700), weight: 700, style: 'normal' },
+        // Inter already loaded above
+      ]);
+      break;
+
+    case 'playful_display':
+      sets.push([
+        { name: 'Dancing Script', data: woff('dancing-script', 400), weight: 400, style: 'normal' },
+        { name: 'Dancing Script', data: woff('dancing-script', 700), weight: 700, style: 'normal' },
+        { name: 'Poppins',        data: woff('poppins',        400), weight: 400, style: 'normal' },
+        { name: 'Poppins',        data: woff('poppins',        700), weight: 700, style: 'normal' },
+      ]);
+      break;
+
+    case 'bold_geometric':
+      sets.push([
+        { name: 'Raleway',    data: woff('raleway',    400), weight: 400, style: 'normal' },
+        { name: 'Raleway',    data: woff('raleway',    700), weight: 700, style: 'normal' },
+        { name: 'Montserrat', data: woff('montserrat', 400), weight: 400, style: 'normal' },
+        { name: 'Montserrat', data: woff('montserrat', 700), weight: 700, style: 'normal' },
+      ]);
+      break;
+
+    case 'warm_personal':
+      sets.push([
+        { name: 'Poppins', data: woff('poppins', 400), weight: 400, style: 'normal' },
+        { name: 'Poppins', data: woff('poppins', 700), weight: 700, style: 'normal' },
+        { name: 'Caveat',  data: woff('caveat',  400), weight: 400, style: 'normal' },
+        { name: 'Caveat',  data: woff('caveat',  700), weight: 700, style: 'normal' },
+      ]);
+      break;
+
+    case 'urban_modern':
+      sets.push([
+        { name: 'Bebas Neue',  data: woff('bebas-neue',  400), weight: 400, style: 'normal' },
+        { name: 'Inter Tight', data: woff('inter-tight', 400), weight: 400, style: 'normal' },
         { name: 'Inter Tight', data: woff('inter-tight', 700), weight: 700, style: 'normal' },
       ]);
       break;

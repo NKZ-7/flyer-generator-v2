@@ -16,6 +16,8 @@ const VALID_LAYOUT_IDS = new Set<string>([
 const VALID_TYPO_IDS = new Set<string>([
   'classical_elegant', 'modern_clean', 'bold_impact',
   'romantic_serif', 'warm_handwritten', 'minimal_swiss',
+  'script_romance', 'editorial_serif', 'playful_display',
+  'bold_geometric', 'warm_personal', 'urban_modern',
 ]);
 
 export async function POST(request: NextRequest) {

@@ -79,7 +79,7 @@ Produce JSON in EXACTLY this shape:
     "decorative_direction": "string describing visual motifs and where they sit",
     "energy_tags": ["array", "of", "mood", "tags"],
     "layoutId": "one of: centered_framed | asymmetric_diagonal | top_heavy | magazine_split | vignette_center | banner_horizontal | hero_name_radial",
-    "typographyId": "one of: classical_elegant | modern_clean | bold_impact | romantic_serif | warm_handwritten | minimal_swiss",
+    "typographyId": "one of: classical_elegant | modern_clean | bold_impact | romantic_serif | warm_handwritten | minimal_swiss | script_romance | editorial_serif | playful_display | bold_geometric | warm_personal | urban_modern",
     "decoration_density": "one of: sparse | moderate | rich",
     "decorative_theme": "one of the 12 theme IDs listed below",
     "text_treatment": "description of the empty text zone, e.g. soft cream wash with subtle paper texture"
@@ -157,6 +157,14 @@ Typography guidance:
     bold -> bold_impact or modern_clean
     church -> classical_elegant or romantic_serif
     minimal -> minimal_swiss or modern_clean
+
+New typography options (use when appropriate):
+- script_romance → weddings, anniversaries, valentines_day, romantic sympathy
+- editorial_serif → formal invitations, premium business, refined sympathy
+- playful_display → birthday (playful), congrats, happy_new_month
+- bold_geometric → business promo, invitation (corporate), congrats (bold)
+- warm_personal → birthday (warm), mothers_day, fathers_day, casual personal cards
+- urban_modern → business promo, invitation (club/event), bold birthday
 
 Decoration density:
 Choose decoration_density based on vibe:
@@ -248,7 +256,7 @@ The n8n parse node (Code node) must check ALL of the following. If ANY check fai
 4. `copy.body.length <= 130`
 5. `copy.signoff.length <= 24`
 6. `design_brief.layoutId` is one of the 7 valid layoutId values
-7. `design_brief.typographyId` is one of the 6 valid typographyId values
+7. `design_brief.typographyId` is one of the 12 valid typographyId values
 8. `design_brief.decoration_density` is one of: `'sparse'`, `'moderate'`, `'rich'`
 
 ```javascript
@@ -286,7 +294,7 @@ const validOccasions = [
   'eid', 'christmas', 'new_year', 'easter', 'independence_day'
 ];
 const validLayouts = ['centered_framed', 'asymmetric_diagonal', 'top_heavy', 'magazine_split', 'vignette_center', 'banner_horizontal', 'hero_name_radial'];
-const validTypography = ['classical_elegant', 'modern_clean', 'bold_impact', 'romantic_serif', 'warm_handwritten', 'minimal_swiss'];
+const validTypography = ['classical_elegant', 'modern_clean', 'bold_impact', 'romantic_serif', 'warm_handwritten', 'minimal_swiss', 'script_romance', 'editorial_serif', 'playful_display', 'bold_geometric', 'warm_personal', 'urban_modern'];
 const validDensity = ['sparse', 'moderate', 'rich'];
 const validThemes = [
   'watercolor_florals_sparse', 'abundant_garden_borders',

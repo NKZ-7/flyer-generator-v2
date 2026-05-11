@@ -130,7 +130,13 @@ export type TypographyPairingId =
   | 'bold_impact'
   | 'romantic_serif'
   | 'warm_handwritten'
-  | 'minimal_swiss';
+  | 'minimal_swiss'
+  | 'script_romance'
+  | 'editorial_serif'
+  | 'playful_display'
+  | 'bold_geometric'
+  | 'warm_personal'
+  | 'urban_modern';
 
 export type DecorationDensity = 'sparse' | 'moderate' | 'rich';
 
