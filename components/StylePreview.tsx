@@ -607,11 +607,11 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
         {LINE_DRAWINGS.map((drawing, i) => {
           const isActive = drawIdx === i;
           const accentColor = mood.shapes[i % mood.shapes.length];
+          const drawDur = 11 * durationScale;
           return (
             <svg
               key={drawing.name}
               viewBox={drawing.viewBox}
-              className={prefersReduced ? 'line-draw' : 'absolute line-draw'}
               style={{
                 width: '55%',
                 maxWidth: 200,
@@ -619,16 +619,25 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
                 fill: 'none',
                 stroke: accentColor,
                 strokeWidth: 1.5,
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round',
-                opacity: isActive ? 0.35 : 0,
+                strokeLinecap: 'round' as const,
+                strokeLinejoin: 'round' as const,
+                opacity: isActive ? (prefersReduced ? 0.35 : undefined) : 0,
                 transition: prefersReduced ? 'opacity 1s ease' : undefined,
-                animation: isActive && !prefersReduced ? `draw-path ${11 * durationScale}s ease forwards` : undefined,
+                animation: isActive && !prefersReduced ? `fade-drawing ${drawDur}s ease forwards` : undefined,
               }}
             >
               {drawing.paths.map((d, pi) => (
-                <path key={pi} d={d} pathLength="1000"
-                  style={{ strokeDasharray: 1000, strokeDashoffset: isActive && !prefersReduced ? undefined : 0 }}
+                <path
+                  key={pi}
+                  d={d}
+                  pathLength="1000"
+                  style={{
+                    strokeDasharray: 1000,
+                    strokeDashoffset: isActive && !prefersReduced ? undefined : 0,
+                    animation: isActive && !prefersReduced
+                      ? `draw-offset ${drawDur}s ease forwards`
+                      : undefined,
+                  }}
                 />
               ))}
             </svg>

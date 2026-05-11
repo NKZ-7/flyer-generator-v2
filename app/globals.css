@@ -147,13 +147,18 @@ body {
   100% { transform: translate(calc(100vw + 130px), -60px) rotate(-20deg); opacity: 0; }
 }
 
-/* ── Line drawing animation ──────────────────────────────── */
-@keyframes draw-path {
-  0%   { stroke-dashoffset: 1000; opacity: 0; }
-  5%   { opacity: 1; }
-  75%  { stroke-dashoffset: 0; opacity: 1; }
-  85%  { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
+/* ── Line drawing animations ─────────────────────────────── */
+@keyframes draw-offset {
+  0%   { stroke-dashoffset: 1000; }
+  80%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-drawing {
+  0%   { opacity: 0; }
+  6%   { opacity: 0.35; }
+  78%  { opacity: 0.35; }
+  100% { opacity: 0; }
 }
 
 @keyframes fadeIn {
