@@ -211,7 +211,8 @@ export function ControlPanel({
     );
   }
 
-  const hints = OCCASION_PLACEHOLDERS[prefs.occasion ?? 'birthday'] ?? OCCASION_PLACEHOLDERS.birthday;
+  const hints = OCCASION_PLACEHOLDERS[prefs.occasion ?? 'business'] ?? OCCASION_PLACEHOLDERS.business;
+  const showFlierFields = prefs.occasion === 'business' || prefs.occasion === 'invitation';
 
   function renderStepContent(step: 1 | 2 | 3): React.ReactNode {
     if (step === 1) {
@@ -247,7 +248,83 @@ export function ControlPanel({
             </p>
           </div>
 
-          {/* ③ Region */}
+          <div className="border-t border-zinc-800" />
+
+          {/* Occasion */}
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
+            Occasion
+          </p>
+          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
+          <OccasionPicker
+            value={prefs.occasion}
+            onChange={(v) => onPrefsChange('occasion', v)}
+            disabled={isGenerating}
+          />
+
+          {/* Vibe */}
+          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mt-3">
+            Vibe
+          </p>
+          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
+          <VibePicker
+            value={prefs.vibe}
+            onChange={(v) => onPrefsChange('vibe', v)}
+            disabled={isGenerating}
+          />
+
+          {/* Event details — only visible for Business Promo or Invitation */}
+          <div
+            className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+              showFlierFields ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="space-y-4 pt-3">
+              <div className="border-t border-zinc-700/50" />
+              <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500/80 font-semibold">
+                Event Details
+                <span className="text-zinc-600 font-normal normal-case tracking-normal ml-1">
+                  — optional
+                </span>
+              </p>
+
+              <FloatingField
+                label="Tagline"
+                value={prefs.tagline ?? ''}
+                onChange={(v) => onPrefsChange('tagline', v)}
+                placeholder={hints.tagline}
+                disabled={isGenerating}
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FloatingField
+                  label="Date"
+                  value={prefs.eventDate ?? ''}
+                  onChange={(v) => onPrefsChange('eventDate', v)}
+                  placeholder="e.g. July 19, 2025"
+                  disabled={isGenerating}
+                />
+                <FloatingField
+                  label="Venue"
+                  value={prefs.venue ?? ''}
+                  onChange={(v) => onPrefsChange('venue', v)}
+                  placeholder={hints.venue}
+                  disabled={isGenerating}
+                />
+              </div>
+
+              <FloatingField
+                label="Contact / URL"
+                value={prefs.contactInfo ?? ''}
+                onChange={(v) => onPrefsChange('contactInfo', v)}
+                placeholder="e.g. tickets@festival.com"
+                disabled={isGenerating}
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-zinc-800" />
+
+          {/* Region */}
           <FloatingField
             label="Your Region / Country"
             value={prefs.region ?? ''}
@@ -256,7 +333,7 @@ export function ControlPanel({
             disabled={isGenerating}
           />
 
-          {/* ③ Photos & Assets */}
+          {/* Photos & Assets */}
           <div>
             <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-1">
               Your Photos & Assets
@@ -265,8 +342,8 @@ export function ControlPanel({
               </span>
             </p>
             <p className="text-[10px] text-zinc-500 mb-2 leading-relaxed">
-              Upload photos of people, products, or logos you want in your flyer.
-              We'll blend them into the design seamlessly.
+              Upload photos of people, products, or logos you want in your card.
+              We&rsquo;ll blend them into the design seamlessly.
             </p>
             {userAssets.length > 0 && !prefs.additionalContext && (
               <p className="text-[10px] text-amber-400/70 mb-2 leading-relaxed">
@@ -279,66 +356,6 @@ export function ControlPanel({
               disabled={isGenerating}
             />
           </div>
-
-          {/* ④ Tagline */}
-          <FloatingField
-            label="Tagline"
-            value={prefs.tagline ?? ''}
-            onChange={(v) => onPrefsChange('tagline', v)}
-            placeholder={hints.tagline}
-            disabled={isGenerating}
-          />
-
-          {/* ⑤ Date + Venue */}
-          <div className="grid grid-cols-2 gap-3">
-            <FloatingField
-              label="Date"
-              value={prefs.eventDate ?? ''}
-              onChange={(v) => onPrefsChange('eventDate', v)}
-              placeholder="e.g. July 19, 2025"
-              disabled={isGenerating}
-            />
-            <FloatingField
-              label="Venue"
-              value={prefs.venue ?? ''}
-              onChange={(v) => onPrefsChange('venue', v)}
-              placeholder={hints.venue}
-              disabled={isGenerating}
-            />
-          </div>
-
-          {/* ⑥ Contact */}
-          <FloatingField
-            label="Contact / URL"
-            value={prefs.contactInfo ?? ''}
-            onChange={(v) => onPrefsChange('contactInfo', v)}
-            placeholder="e.g. tickets@festival.com"
-            disabled={isGenerating}
-          />
-
-          <div className="border-t border-zinc-800" />
-
-          {/* ⑦ Occasion */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold">
-            Occasion
-          </p>
-          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
-          <OccasionPicker
-            value={prefs.occasion}
-            onChange={(v) => onPrefsChange('occasion', v)}
-            disabled={isGenerating}
-          />
-
-          {/* ⑧ Vibe */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mt-3">
-            Vibe
-          </p>
-          <p className="text-[10px] text-zinc-600 -mt-3">optional — AI infers if blank</p>
-          <VibePicker
-            value={prefs.vibe}
-            onChange={(v) => onPrefsChange('vibe', v)}
-            disabled={isGenerating}
-          />
         </div>
       );
     }

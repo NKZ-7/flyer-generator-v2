@@ -152,6 +152,11 @@ export type FlyerCopyV2 = {
   recipient_name: string;
   body: string;
   signoff: string;
+  // Optional event details — Claude extracts from free text or uses form fields
+  date?: string;
+  venue?: string;
+  contact_url?: string;
+  tagline?: string;
 };
 
 // ──────────────────────────────────────────────

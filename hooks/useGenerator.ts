@@ -157,6 +157,7 @@ export function useGenerator() {
 
   const selectVersion = useCallback((entry: VersionEntry) => {
     setCurrentVersion(entry);
+    setPhase('done');
   }, []);
 
   return {

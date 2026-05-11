@@ -68,7 +68,11 @@ Produce JSON in EXACTLY this shape:
     "headline": "string — 14-22 chars ideal, max 28",
     "recipient_name": "Extract from the user description. If a person, business, or honoree is named (e.g. 'birthday card for Ada', 'Kojo's Barbershop promo', 'Akua turning 30'), use just that name or brand. If no name is identifiable, set to empty string ''. Maximum 30 characters.",
     "body": "string — 50-90 chars ideal, max 130, 1-2 sentences",
-    "signoff": "string — 8-18 chars ideal, max 24"
+    "signoff": "string — 8-18 chars ideal, max 24",
+    "date": "OPTIONAL — if a date or time is found in the form fields or user description, include it. Otherwise OMIT this field entirely.",
+    "venue": "OPTIONAL — if a location or address is found in the form fields or user description, include it. Otherwise OMIT this field entirely.",
+    "contact_url": "OPTIONAL — if a phone number, email, URL, or social handle is found in the form fields or user description, include it. Otherwise OMIT this field entirely.",
+    "tagline": "OPTIONAL — if a short punchy tagline phrase is found in the form fields or user description (for invitations / promos), include it. Otherwise OMIT this field entirely."
   },
   "design_brief": {
     "palette_mood": "string describing color direction",
@@ -98,6 +102,17 @@ CRITICAL — slot semantics:
 
 Easter egg behavior:
 If the user description is fewer than ~5 characters, contains no recognizable words, or is clearly nonsense (e.g. 'asdf', 'kkkk', '...', '?'), treat this as an easter egg request. Generate a card that is playful, chaotic-but-charming, and surprising — something that leans hard into the selected occasion and vibe but with a self-aware, fun twist. The card should feel like a delightful surprise, not a generic fallback. Examples of the spirit: a 'mystery person' birthday card that's warm and absurd, a sympathy card with quietly witty phrasing, a business card for a 'definitely real business.' Stay within the picked occasion and vibe — chaos-birthday-playful, not chaos-into-anything. Set recipient_name to something playful like 'Mystery Guest', 'You', or leave it empty depending on what reads best. All character budget rules still apply.
+
+Free-text extraction (always active):
+Even when the Date, Venue, Tagline, and Contact form fields are empty (they are hidden for non-invitation/business occasions), the user may still include this information in their free-text description.
+Always scan USER DESCRIPTION for:
+- Date or time references: "this Saturday", "July 19", "7pm", "next Friday"
+- Locations or addresses: "23 Oxford Street", "The Grand Ballroom", "our place"
+- Phone numbers, emails, URLs, social handles: "+233 24 123 4567", "tickets@example.com", "@handle"
+- Tagline-style phrases: "the night you won't forget", "where flavor meets passion"
+Priority: form field values (DATE / VENUE / CONTACT above) always take priority. Use free-text extraction only as a fallback when those fields are empty.
+If a value is found from either source, include it in the copy JSON under the appropriate optional field.
+If no value is found from any source, OMIT the field entirely — do not invent placeholder text.
 
 Layout selection guidance:
 
