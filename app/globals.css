@@ -99,7 +99,7 @@ body {
   100% { top: 100%; opacity: 0; }
 }
 
-/* ── Ambient preview float animations ────────────────────── */
+/* ── Ambient preview float animations (legacy, kept for safety) ── */
 @keyframes float-a {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   40%  { transform: translateY(-14px) rotate(3deg); }
@@ -118,13 +118,52 @@ body {
   70%  { transform: translate(-6px, 6px) rotate(-3deg); }
 }
 
+/* ── Motif directional drift animations ──────────────────── */
+@keyframes drift-ltr {
+  0%   { transform: translateX(-150px) rotate(-8deg);  opacity: 0; }
+  10%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(calc(100vw + 150px)) rotate(12deg); opacity: 0; }
+}
+
+@keyframes drift-rtl {
+  0%   { transform: translateX(calc(100vw + 150px)) rotate(8deg);  opacity: 0; }
+  10%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(-150px) rotate(-12deg); opacity: 0; }
+}
+
+@keyframes drift-diag-dn {
+  0%   { transform: translate(-130px, -60px) rotate(0deg);  opacity: 0; }
+  10%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate(calc(100vw + 130px), 60px) rotate(25deg); opacity: 0; }
+}
+
+@keyframes drift-diag-up {
+  0%   { transform: translate(-130px, 60px) rotate(0deg);  opacity: 0; }
+  10%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate(calc(100vw + 130px), -60px) rotate(-20deg); opacity: 0; }
+}
+
+/* ── Line drawing animation ──────────────────────────────── */
+@keyframes draw-path {
+  0%   { stroke-dashoffset: 1000; opacity: 0; }
+  5%   { opacity: 1; }
+  75%  { stroke-dashoffset: 0; opacity: 1; }
+  85%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ambient-float { animation: none !important; }
+  .ambient-float, .motif-drift { animation: none !important; }
+  .line-draw { animation: none !important; stroke-dashoffset: 0; }
 }
 
 /* ── Scrollbar styling ────────────────────────────────────── */
