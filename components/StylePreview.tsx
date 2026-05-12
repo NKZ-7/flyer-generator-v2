@@ -45,133 +45,6 @@ function getMood(prefs: FlyerPreferences): MoodPalette {
   );
 }
 
-// ── SVG Motif components ──────────────────────────────────────────────────────
-
-function MotifRose({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill={color} style={{ opacity }}>
-      <circle cx="20" cy="20" r="4" />
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-        <ellipse key={deg} cx="20" cy="10" rx="3.5" ry="7"
-          transform={`rotate(${deg} 20 20)`} />
-      ))}
-    </svg>
-  );
-}
-
-function MotifLeaf3({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size * 1.4} viewBox="0 0 36 52" fill={color} style={{ opacity }}>
-      <ellipse cx="18" cy="14" rx="6" ry="12" transform="rotate(-22 18 28)" />
-      <ellipse cx="18" cy="14" rx="6" ry="12" transform="rotate(22 18 28)" />
-      <ellipse cx="18" cy="10" rx="4.5" ry="14" />
-      <rect x="17" y="34" width="2" height="14" rx="1" />
-    </svg>
-  );
-}
-
-function MotifEucalyptus({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size * 0.6} height={size} viewBox="0 0 20 60" fill={color} style={{ opacity }}>
-      <ellipse cx="10" cy="30" rx="8" ry="25" />
-      <line x1="10" y1="5" x2="10" y2="55" stroke={color} strokeWidth="1.5" opacity="0.5" />
-    </svg>
-  );
-}
-
-function MotifSpray({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill={color} style={{ opacity }}>
-      <circle cx="20" cy="20" r="4" />
-      <circle cx="20" cy="8"  r="3" />
-      <circle cx="30" cy="14" r="2.5" />
-      <circle cx="30" cy="26" r="2.5" />
-      <circle cx="10" cy="14" r="2.5" />
-    </svg>
-  );
-}
-
-function MotifVine({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size * 0.8} viewBox="0 0 44 36" fill="none" style={{ opacity }}>
-      <path d="M4,32 C10,24 18,20 22,14 C26,8 32,6 40,4" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      <ellipse cx="12" cy="22" rx="5" ry="3" fill={color} transform="rotate(-30 12 22)" />
-      <ellipse cx="22" cy="14" rx="5" ry="3" fill={color} transform="rotate(-15 22 14)" />
-      <ellipse cx="32" cy="8"  rx="4" ry="2.5" fill={color} transform="rotate(-10 32 8)" />
-      <ellipse cx="9"  cy="27" rx="4" ry="2.5" fill={color} transform="rotate(20 9 27)" />
-    </svg>
-  );
-}
-
-function MotifOrigami({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" style={{ opacity }}>
-      <polygon points="20,3 37,20 20,37 3,20" fill={color} opacity="0.9" />
-      <line x1="20" y1="3"  x2="3"  y2="20" stroke={color} strokeWidth="1" opacity="0.4" />
-      <line x1="20" y1="37" x2="37" y2="20" stroke={color} strokeWidth="1" opacity="0.4" />
-    </svg>
-  );
-}
-
-function MotifWreath({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill={color} style={{ opacity }}>
-      {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-        <ellipse key={deg} cx="20" cy="8" rx="3" ry="5.5"
-          transform={`rotate(${deg} 20 20) translate(0, -2)`} />
-      ))}
-      <circle cx="20" cy="20" r="6" fill="none" stroke={color} strokeWidth="1.5" opacity="0.3" />
-    </svg>
-  );
-}
-
-function MotifPetals({ size, color, opacity }: { size: number; color: string; opacity: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill={color} style={{ opacity }}>
-      {[0, 72, 144, 216, 288].map((deg) => (
-        <ellipse key={deg} cx="20" cy="12" rx="4" ry="9"
-          transform={`rotate(${deg} 20 20)`} />
-      ))}
-      <circle cx="20" cy="20" r="3" opacity="0.6" />
-    </svg>
-  );
-}
-
-const MOTIF_COMPONENTS = {
-  rose:       MotifRose,
-  leaf3:      MotifLeaf3,
-  eucalyptus: MotifEucalyptus,
-  spray:      MotifSpray,
-  vine:       MotifVine,
-  origami:    MotifOrigami,
-  wreath:     MotifWreath,
-  petals:     MotifPetals,
-} as const;
-
-type MotifName = keyof typeof MOTIF_COMPONENTS;
-
-type MotifConfig = {
-  shape: MotifName;
-  size: number;
-  top: string;
-  anim: 'drift-ltr' | 'drift-rtl' | 'drift-diag-dn' | 'drift-diag-up';
-  dur: number;
-  delay: number;
-  opacity: number;
-  cIdx: number;
-};
-
-const MOTIF_CONFIGS: MotifConfig[] = [
-  { shape: 'rose',       size: 36, top: '12%', anim: 'drift-ltr',     dur: 22, delay: -5,   opacity: 0.22, cIdx: 0 },
-  { shape: 'leaf3',      size: 32, top: '55%', anim: 'drift-rtl',     dur: 28, delay: -12,  opacity: 0.20, cIdx: 1 },
-  { shape: 'eucalyptus', size: 26, top: '30%', anim: 'drift-diag-dn', dur: 19, delay: -3,   opacity: 0.18, cIdx: 2 },
-  { shape: 'spray',      size: 28, top: '72%', anim: 'drift-ltr',     dur: 25, delay: -18,  opacity: 0.25, cIdx: 3 },
-  { shape: 'vine',       size: 44, top: '20%', anim: 'drift-diag-up', dur: 30, delay: -8,   opacity: 0.18, cIdx: 0 },
-  { shape: 'petals',     size: 30, top: '82%', anim: 'drift-rtl',     dur: 20, delay: -22,  opacity: 0.22, cIdx: 4 },
-  { shape: 'wreath',     size: 28, top: '45%', anim: 'drift-ltr',     dur: 26, delay: -14,  opacity: 0.18, cIdx: 2 },
-  { shape: 'origami',    size: 22, top: '65%', anim: 'drift-diag-up', dur: 24, delay: -9,   opacity: 0.20, cIdx: 4 },
-];
-
 // ── SVG Line Drawing paths ────────────────────────────────────────────────────
 
 type LineDrawing = { viewBox: string; paths: string[]; name: string };
@@ -333,7 +206,7 @@ function rasterizePhrase(phrase: string, w: number, h: number, count: number): {
     ctx.fillText(phrase, w / 2, h / 2);
     const data = ctx.getImageData(0, 0, w, h).data;
     const pts: { x: number; y: number }[] = [];
-    const step = 5;
+    const step = 3;
     for (let y = 0; y < h; y += step)
       for (let x = 0; x < w; x += step)
         if (data[(y * w + x) * 4 + 3] > 100) pts.push({ x, y });
@@ -390,18 +263,18 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
     return () => clearInterval(t);
   }, [generating]);
 
-  // ── Element rotation: 0=motifs 1=particles 2=lines ───────────────────────
+  // ── Element rotation: 0=particles 1=lines ────────────────────────────────
   const [elemIdx, setElemIdx] = useState(0);
   const [elemVisible, setElemVisible] = useState(true);
   useEffect(() => {
     const cycle = () => {
       setElemVisible(false);
       setTimeout(() => {
-        setElemIdx((i) => (i + 1) % 3);
+        setElemIdx((i) => (i + 1) % 2);
         setElemVisible(true);
       }, 1000);
     };
-    const t = setInterval(cycle, 13000);
+    const t = setInterval(cycle, 16000);
     return () => clearInterval(t);
   }, []);
 
@@ -419,23 +292,21 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
   }, [prefs.additionalContext]);
 
   const durationScale = motionTier === 'calm' ? 1.6 : motionTier === 'lively' ? 0.7 : 1.0;
-  const activeMotifs = motionTier === 'calm' ? MOTIF_CONFIGS.slice(0, 4) : MOTIF_CONFIGS;
 
   const sentimentFilter =
     sentiment === 'somber' ? 'saturate(0.65) brightness(0.9)' :
     sentiment === 'joyful' ? 'saturate(1.3) brightness(1.05)' :
     sentiment === 'casual' ? 'saturate(1.1)' : '';
 
-  // ── Line drawing rotation ─────────────────────────────────────────────────
-  const [drawIdx, setDrawIdx] = useState(0);
+  // ── Line drawing rotation: one new drawing per visit ─────────────────────
+  const [drawIdx, setDrawIdx] = useState(LINE_DRAWINGS.length - 1);
   useEffect(() => {
-    if (elemIdx !== 2) return;
-    const t = setInterval(() => setDrawIdx((i) => (i + 1) % LINE_DRAWINGS.length), 12500);
-    return () => clearInterval(t);
+    if (elemIdx !== 1) return;
+    setDrawIdx((i) => (i + 1) % LINE_DRAWINGS.length);
   }, [elemIdx]);
 
   // ── Particle text state machine ───────────────────────────────────────────
-  const PARTICLE_COUNT = motionTier === 'calm' ? 20 : motionTier === 'lively' ? 44 : 32;
+  const PARTICLE_COUNT = motionTier === 'calm' ? 44 : motionTier === 'lively' ? 90 : 72;
   const [particles, setParticles] = useState<Particle[]>([]);
   const [textPhase, setTextPhase] = useState<TextPhase>('drift');
   const [phraseIdx, setPhraseIdx] = useState(() => Math.floor(Math.random() * PHRASES.length));
@@ -499,7 +370,7 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
   }, [phraseIdx, PARTICLE_COUNT]);
 
   useEffect(() => {
-    if (elemIdx !== 1) {
+    if (elemIdx !== 0) {
       abortRef.current = true;
       return;
     }
@@ -519,48 +390,13 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden select-none">
 
-      {/* ── Element 0: Floral motifs ──────────────────────────── */}
-      <div
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-        style={{
-          opacity: elemIdx === 0 && elemVisible ? 1 : (prefersReduced ? 0.6 : 0),
-          transition: 'opacity 1s ease',
-          filter: sentimentFilter,
-        }}
-      >
-        {(prefersReduced ? MOTIF_CONFIGS.slice(0, 4) : activeMotifs).map((m, i) => {
-          const MotifSvg = MOTIF_COMPONENTS[m.shape];
-          return (
-            <div
-              key={i}
-              className={prefersReduced ? 'absolute' : 'absolute motif-drift'}
-              style={prefersReduced ? {
-                top: m.top,
-                left: `${10 + i * 18}%`,
-              } : {
-                top: m.top,
-                width: m.size,
-                height: m.size,
-                animation: `${m.anim} ${m.dur * durationScale}s linear infinite`,
-                animationDelay: `${m.delay}s`,
-              }}
-            >
-              <MotifSvg
-                size={m.size}
-                color={mood.shapes[m.cIdx % mood.shapes.length]}
-                opacity={m.opacity}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── Element 1: Particle text ──────────────────────────── */}
+      {/* ── Element 0: Particle text ──────────────────────────── */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          opacity: elemIdx === 1 && elemVisible ? 1 : 0,
+          opacity: elemIdx === 0 && elemVisible ? 1 : 0,
           transition: 'opacity 1s ease',
+          filter: sentimentFilter,
         }}
       >
         {prefersReduced ? (
@@ -583,12 +419,12 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
               key={p.id}
               className="absolute rounded-full"
               style={{
-                width: 4,
-                height: 4,
+                width: 3,
+                height: 3,
                 left: particleForming ? p.tx : p.x,
                 top:  particleForming ? p.ty : p.y,
                 backgroundColor: mood.shapes[p.id % mood.shapes.length],
-                opacity: 0.65,
+                opacity: 0.55,
                 transition: 'left 1000ms ease, top 1000ms ease',
               }}
             />
@@ -596,11 +432,11 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
         )}
       </div>
 
-      {/* ── Element 2: Line drawings ──────────────────────────── */}
+      {/* ── Element 1: Line drawings ──────────────────────────── */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         style={{
-          opacity: elemIdx === 2 && elemVisible ? 1 : 0,
+          opacity: elemIdx === 1 && elemVisible ? 1 : 0,
           transition: 'opacity 1s ease',
         }}
       >
@@ -610,7 +446,7 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
           const drawDur = 11 * durationScale;
           return (
             <svg
-              key={drawing.name}
+              key={isActive ? `${drawing.name}-${drawIdx}` : drawing.name}
               viewBox={drawing.viewBox}
               style={{
                 width: '55%',
