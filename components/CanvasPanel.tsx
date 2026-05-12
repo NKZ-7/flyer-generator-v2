@@ -21,13 +21,16 @@ export function CanvasPanel({
   prefs,
 }: CanvasPanelProps) {
   return (
-    <div className="relative h-full flex flex-col bg-cream">
+    <div
+      className="relative h-full flex flex-col"
+      style={{ background: 'linear-gradient(to bottom, #F2EBDE 0%, #D9CBB3 100%)' }}
+    >
       {/* Dot-grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            'radial-gradient(circle, rgba(160,130,100,0.18) 1px, transparent 1px)',
+            'radial-gradient(circle, rgba(140,110,80,0.14) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
         }}
       />
@@ -47,7 +50,7 @@ export function CanvasPanel({
 
       {/* Bottom toolbar — only when a flyer is ready */}
       {phase === 'done' && currentVersion && (
-        <div className="relative shrink-0 flex items-center justify-between px-5 py-3 border-t border-cream-border bg-cream-dim">
+        <div className="relative shrink-0 flex items-center justify-between px-5 py-3 border-t border-cream-border bg-[#CCBCA6]">
           <span className="text-xs text-[#8B7355] font-mono">
             1024 × 1024 px
           </span>
@@ -80,7 +83,7 @@ function FlyerPreview({ imageDataUrl }: { imageDataUrl: string }) {
       <img
         src={imageDataUrl}
         alt="Generated card"
-        className="relative max-h-[calc(100vh-220px)] max-w-full object-contain rounded-sm shadow-2xl shadow-black/60 ring-1 ring-white/10"
+        className="relative max-h-[calc(100vh-220px)] max-w-full object-contain rounded-sm shadow-2xl shadow-black/60 ring-1 ring-[#C0AE98]/50"
         style={{ imageRendering: 'crisp-edges' }}
       />
     </div>
