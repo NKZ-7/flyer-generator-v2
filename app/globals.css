@@ -166,6 +166,19 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Handwritten phrase reveal ────────────────────────────── */
+@keyframes phrase-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+@keyframes phrase-hold-fade {
+  0%      { opacity: 1; }
+  81.25%  { opacity: 1; }
+  93.75%  { opacity: 0; }
+  100%    { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ambient-float, .motif-drift { animation: none !important; }
   .line-draw { animation: none !important; stroke-dashoffset: 0; }

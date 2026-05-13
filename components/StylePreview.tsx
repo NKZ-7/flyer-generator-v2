@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { FlyerPreferences } from '@/lib/types';
 
 interface StylePreviewProps {
@@ -174,7 +174,7 @@ const LINE_DRAWINGS: LineDrawing[] = [
   },
 ];
 
-// ── Particle text ─────────────────────────────────────────────────────────────
+// ── Phrases ───────────────────────────────────────────────────────────────────
 
 const PHRASES = [
   'for someone special',
@@ -187,38 +187,6 @@ const PHRASES = [
   'share the moment',
   'make it personal',
 ];
-
-type TextPhase = 'drift' | 'forming' | 'formed' | 'dispersing';
-type Particle = { id: number; x: number; y: number; tx: number; ty: number };
-
-function rasterizePhrase(phrase: string, w: number, h: number, count: number): { x: number; y: number }[] {
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return [];
-    const fontSize = Math.max(14, Math.floor(h * 0.18));
-    ctx.font = `bold ${fontSize}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'white';
-    ctx.fillText(phrase, w / 2, h / 2);
-    const data = ctx.getImageData(0, 0, w, h).data;
-    const pts: { x: number; y: number }[] = [];
-    const step = 3;
-    for (let y = 0; y < h; y += step)
-      for (let x = 0; x < w; x += step)
-        if (data[(y * w + x) * 4 + 3] > 100) pts.push({ x, y });
-    return pts.sort(() => Math.random() - 0.5).slice(0, count);
-  } catch {
-    return [];
-  }
-}
-
-function asyncDelay(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
 
 // ── Sentiment / input reactivity ─────────────────────────────────────────────
 
@@ -252,7 +220,6 @@ const PROGRESS_STAGES = [
 
 export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
   const mood = getMood(prefs);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Generating state ──────────────────────────────────────────────────────
   const [stageIndex, setStageIndex] = useState(0);
@@ -263,7 +230,7 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
     return () => clearInterval(t);
   }, [generating]);
 
-  // ── Element rotation: 0=particles 1=lines ────────────────────────────────
+  // ── Element rotation: 0=words 1=lines ────────────────────────────────────
   const [elemIdx, setElemIdx] = useState(0);
   const [elemVisible, setElemVisible] = useState(true);
   useEffect(() => {
@@ -274,7 +241,7 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
         setElemVisible(true);
       }, 1000);
     };
-    const t = setInterval(cycle, 16000);
+    const t = setInterval(cycle, 13000);
     return () => clearInterval(t);
   }, []);
 
@@ -292,6 +259,7 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
   }, [prefs.additionalContext]);
 
   const durationScale = motionTier === 'calm' ? 1.6 : motionTier === 'lively' ? 0.7 : 1.0;
+  const wipeDuration = motionTier === 'calm' ? 4.5 : motionTier === 'lively' ? 2.5 : 3.5;
 
   const sentimentFilter =
     sentiment === 'somber' ? 'saturate(0.65) brightness(0.9)' :
@@ -299,87 +267,24 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
     sentiment === 'casual' ? 'saturate(1.1)' : '';
 
   // ── Line drawing rotation: one new drawing per visit ─────────────────────
-  const [drawIdx, setDrawIdx] = useState(LINE_DRAWINGS.length - 1);
+  const [drawIdx, setDrawIdx] = useState(() => Math.floor(Math.random() * LINE_DRAWINGS.length));
   useEffect(() => {
     if (elemIdx !== 1) return;
     setDrawIdx((i) => (i + 1) % LINE_DRAWINGS.length);
   }, [elemIdx]);
 
-  // ── Particle text state machine ───────────────────────────────────────────
-  const PARTICLE_COUNT = motionTier === 'calm' ? 44 : motionTier === 'lively' ? 90 : 72;
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const [textPhase, setTextPhase] = useState<TextPhase>('drift');
+  // ── Word reveal phrase advancement ───────────────────────────────────────
   const [phraseIdx, setPhraseIdx] = useState(() => Math.floor(Math.random() * PHRASES.length));
-  const letterCacheRef = useRef<Map<string, { x: number; y: number }[]>>(new Map());
   const abortRef = useRef(false);
 
-  const runParticleSequence = useCallback(async () => {
-    const container = containerRef.current;
-    if (!container) return;
-    const w = container.clientWidth || 400;
-    const h = container.clientHeight || 300;
-
-    const initParticles: Particle[] = Array.from({ length: PARTICLE_COUNT }, (_, id) => ({
-      id,
-      x: Math.random() * w,
-      y: Math.random() * h,
-      tx: Math.random() * w,
-      ty: Math.random() * h,
-    }));
-    setParticles(initParticles);
-    setTextPhase('drift');
-
-    await asyncDelay(3500);
-    if (abortRef.current) return;
-
-    const phrase = PHRASES[phraseIdx];
-    let targets = letterCacheRef.current.get(phrase);
-    if (!targets) {
-      targets = rasterizePhrase(phrase, w, h, PARTICLE_COUNT);
-      letterCacheRef.current.set(phrase, targets);
-    }
-
-    setParticles((prev) =>
-      prev.map((p, i) => ({
-        ...p,
-        tx: targets![i % targets!.length].x,
-        ty: targets![i % targets!.length].y,
-      }))
-    );
-    setTextPhase('forming');
-
-    await asyncDelay(1000);
-    if (abortRef.current) return;
-    setTextPhase('formed');
-
-    await asyncDelay(2500);
-    if (abortRef.current) return;
-    setTextPhase('dispersing');
-    setParticles((prev) =>
-      prev.map((p) => ({
-        ...p,
-        tx: Math.random() * w,
-        ty: Math.random() * h,
-      }))
-    );
-
-    await asyncDelay(1000);
-    if (abortRef.current) return;
-    setPhraseIdx((i) => (i + 1) % PHRASES.length);
-    setTextPhase('drift');
-  }, [phraseIdx, PARTICLE_COUNT]);
-
   useEffect(() => {
-    if (elemIdx !== 0) {
-      abortRef.current = true;
-      return;
-    }
+    if (elemIdx !== 0) { abortRef.current = true; return; }
     abortRef.current = false;
-    runParticleSequence();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => {
+      if (!abortRef.current) setPhraseIdx((i) => (i + 1) % PHRASES.length);
+    }, 8000);
+    return () => clearTimeout(t);
   }, [elemIdx, phraseIdx]);
-
-  const particleForming = textPhase === 'forming' || textPhase === 'formed';
 
   // ── Reduced motion detection ──────────────────────────────────────────────
   const prefersReduced =
@@ -388,48 +293,45 @@ export function StylePreview({ prefs, generating = false }: StylePreviewProps) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden select-none">
+    <div className="relative w-full h-full overflow-hidden select-none">
 
-      {/* ── Element 0: Particle text ──────────────────────────── */}
+      {/* ── Element 0: Handwritten word reveal ──────────────────── */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
         style={{
           opacity: elemIdx === 0 && elemVisible ? 1 : 0,
           transition: 'opacity 1s ease',
           filter: sentimentFilter,
         }}
       >
-        {prefersReduced ? (
-          <div className="absolute inset-0 flex items-center justify-center">
+        {/* key remounts on phrase/tier change → restarts both CSS animations cleanly */}
+        <div
+          key={`${phraseIdx}-${motionTier}`}
+          style={prefersReduced ? { opacity: 0.75 } : {
+            animation: 'phrase-hold-fade 8s ease forwards',
+          }}
+        >
+          <div style={prefersReduced ? undefined : {
+            // `both` fill-mode: applies first keyframe (clip-path fully clipped) immediately
+            // on mount — prevents a one-frame flash of visible text before the wipe starts
+            animation: `phrase-wipe ${wipeDuration}s ease-in both`,
+          }}>
             <p
-              className="text-sm font-medium text-center px-4 italic"
               style={{
+                fontFamily: 'var(--font-caveat)',
+                fontSize: 'clamp(22px, 5vw, 38px)',
+                fontWeight: 500,
                 color: mood.shapes[0],
-                opacity: 0.5,
-                fontFamily: 'Georgia, serif',
-                transition: 'color 800ms ease',
+                opacity: 0.8,
+                whiteSpace: 'nowrap',
+                lineHeight: 1.2,
+                userSelect: 'none',
               }}
             >
               {PHRASES[phraseIdx]}
             </p>
           </div>
-        ) : (
-          particles.map((p) => (
-            <div
-              key={p.id}
-              className="absolute rounded-full"
-              style={{
-                width: 3,
-                height: 3,
-                left: particleForming ? p.tx : p.x,
-                top:  particleForming ? p.ty : p.y,
-                backgroundColor: mood.shapes[p.id % mood.shapes.length],
-                opacity: 0.55,
-                transition: 'left 1000ms ease, top 1000ms ease',
-              }}
-            />
-          ))
-        )}
+        </div>
       </div>
 
       {/* ── Element 1: Line drawings ──────────────────────────── */}
