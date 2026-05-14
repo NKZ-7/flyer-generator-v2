@@ -100,6 +100,18 @@ CRITICAL — slot semantics:
 - body is the longer warm message.
 - signoff is the short closer.
 
+Headline clarity rule:
+The headline must make the occasion unambiguous on its own — the card may be seen without context. For each occasion, the headline must include at least one word that signals the occasion:
+- Birthday: include 'BIRTHDAY', 'BDAY', 'HAPPY [age]TH BIRTHDAY', 'HAPPY BIRTHDAY [name]', or similar. 'HAPPY 25TH' alone is NOT acceptable — it must pair with 'BIRTHDAY' or a name to make occasion obvious.
+- Sympathy/Memorial: include 'IN MEMORY', 'WITH SYMPATHY', 'REST IN PEACE', 'IN LOVING MEMORY', 'FOREVER REMEMBERED', or similar.
+- Congratulations: include 'CONGRATULATIONS', 'CONGRATS', 'WELL DONE', 'YOU DID IT', or similar.
+- Business Promo: the business name plus the offering or value prop (e.g. 'FRESH CUTS', 'NEW MENU', 'GRAND OPENING').
+- Invitation: include 'YOU'RE INVITED', 'JOIN US', 'SAVE THE DATE', or the event name (e.g. 'HOUSEWARMING', 'BABY SHOWER').
+Stay within the 28-character headline budget. If the literal occasion word doesn't fit, abbreviate creatively while preserving clarity (e.g. 'BDAY' instead of 'BIRTHDAY', 'CONGRATS' instead of 'CONGRATULATIONS').
+
+Recipient name prominence:
+Treat the recipient_name as the single most important visual element on the card. The headline supports it; the name is the hero. Choose copy that lets the name breathe — don't bury it in a long compound headline. If the headline is short and punchy ('HAPPY BIRTHDAY' or 'CONGRATULATIONS!'), the name has room to dominate. If you find yourself writing a 25-character headline AND a long name AND a 130-character body, prioritize: trim the headline so the name's typography can be larger downstream.
+
 Easter egg behavior:
 If the user description is fewer than ~5 characters, contains no recognizable words, or is clearly nonsense (e.g. 'asdf', 'kkkk', '...', '?'), treat this as an easter egg request. Generate a card that is playful, chaotic-but-charming, and surprising — something that leans hard into the selected occasion and vibe but with a self-aware, fun twist. The card should feel like a delightful surprise, not a generic fallback. Examples of the spirit: a 'mystery person' birthday card that's warm and absurd, a sympathy card with quietly witty phrasing, a business card for a 'definitely real business.' Stay within the picked occasion and vibe — chaos-birthday-playful, not chaos-into-anything. Set recipient_name to something playful like 'Mystery Guest', 'You', or leave it empty depending on what reads best. All character budget rules still apply.
 
@@ -126,9 +138,20 @@ Content-length rules (mandatory):
 Emotional fit guidance:
 - sympathy: vignette_center or centered_framed (somber, framed)
 - business: magazine_split or banner_horizontal (clean, promotional)
-- birthday: any layout works; choose based on content length and vibe
+- birthday: prefer centered_framed, vignette_center, or hero_name_radial — the name should dominate; only use asymmetric_diagonal or top_heavy when the copy weight genuinely calls for it
 - congrats: hero_name_radial if name is short, otherwise centered_framed
 - invitation: banner_horizontal or magazine_split (event details need readability)
+
+Layout character guide:
+- centered_framed — short headlines, prominent name, formal occasions, sympathy, birthday
+- vignette_center — when decoration creates a natural frame around centered text
+- hero_name_radial — when the recipient name is the entire focal point (best for short single names)
+- asymmetric_diagonal — energetic, modern, congratulations, casual celebrations
+- top_heavy — when there's substantial body text below a punchy headline
+- magazine_split — business promos, invitations with date/venue info
+- banner_horizontal — invitations, event announcements
+
+Centering bias: for cards where someone's name is the main subject (birthdays, anniversaries, personal milestones, sympathy), default to centered_framed, vignette_center, or hero_name_radial unless a specific content-length rule prevents it.
 
 Critical: if you pick hero_name_radial or banner_horizontal, you MUST keep the body under 70 characters. Adjust the body copy to fit, do not pick a layout that doesn't fit the content.
 
