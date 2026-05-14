@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
 
   const webhookSecret = process.env.N8N_WEBHOOK_SECRET ?? '11111';
 
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 20_000);
   let webhookRes: Response;
   try {
     webhookRes = await fetch(webhookUrl, {
@@ -78,10 +80,17 @@ export async function POST(request: NextRequest) {
         'x-api-key': webhookSecret,
       },
       body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets, recentThemes, recentPairings }),
+      signal: controller.signal,
     });
   } catch (err) {
+    const isTimeout = err instanceof Error && err.name === 'AbortError';
     const msg = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: `Webhook fetch error: ${msg}` }, { status: 502 });
+    return Response.json(
+      { error: isTimeout ? 'Workflow trigger timed out — n8n may be unreachable' : `Webhook fetch error: ${msg}` },
+      { status: 502 },
+    );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (!webhookRes.ok) {
