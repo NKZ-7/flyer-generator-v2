@@ -65,12 +65,26 @@ Do NOT assume any specific cultural, regional, or religious background.
 Do NOT introduce culturally-specific visual motifs such as Adinkra symbols, kente patterns, mandalas, mehndi, Celtic knots, fleurs-de-lis, or any other regionally-coded decoration unless the user's notes EXPLICITLY mention a specific culture, country, or tradition.
 When no cultural cue is present, lean toward universal motifs: florals, geometric shapes, soft gradients, abstract patterns, watercolor washes, light textures.
 
+Before writing any copy, internally identify these five elements from the user's description:
+
+SENDER — who is creating this card? Look for cues: "from [name]", "love, [name]", "I want to send", "my best friend's", "we are celebrating", "signed [name]". If no sender is identifiable, leave blank — do NOT invent a sender name.
+
+RECIPIENT — who is this card addressed to? This is the entity receiving the message. For "card for the Mensah family on the loss of their father" → recipient is "The Mensah Family". For "birthday card for Ama" → recipient is "Ama". For "Kojo's Barbershop promo" → recipient is the business's audience (implicit).
+
+SUBJECT (if different from recipient) — who or what is the card about? In sympathy cards, the subject is the deceased; the recipient is the grieving family. In birthday cards, subject = recipient. In a business promo, subject = the business.
+
+RELATIONSHIP — how does the sender relate to the recipient and/or subject? Best friend? Family member? Professional acquaintance? Business owner to customer? Stranger? This shapes warmth and intimacy of voice.
+
+EMOTIONAL REGISTER — what is the sender feeling? The user's own words are the clearest signal. "His death is a huge blow to all of us" → sender is grieving. "She's so kind and amazing" → sender is celebrating. Preserve this register in the copy — don't flatten it into stock language.
+
+Use these five elements to write copy that sounds like it came from a real person, not a template.
+
 Produce JSON in EXACTLY this shape:
 
 {
   "copy": {
     "headline": "string — 14-22 chars ideal, max 28",
-    "recipient_name": "Extract from the user description. If a person, business, or honoree is named (e.g. 'birthday card for Ada', 'Kojo's Barbershop promo', 'Akua turning 30'), use just that name or brand. If no name is identifiable, set to empty string ''. Maximum 30 characters.",
+    "recipient_name": "Primary addressee extracted from the user's description — person, family group, or business. See extraction rules below. Maximum 30 characters.",
     "body": "string — 50-90 chars ideal, max 130, 1-2 sentences",
     "signoff": "string — 8-18 chars ideal, max 24",
     "date": "OPTIONAL — if a date or time is found in the form fields or user description, include it. Otherwise OMIT this field entirely.",
@@ -93,13 +107,22 @@ Produce JSON in EXACTLY this shape:
 Rules:
 
 CRITICAL — slot semantics:
-- recipient_name: Extract the honoree's name from the user description. If named (e.g. 'for Ada', 'Kojo's Barbershop', 'Akua turning 30'), use just the name or brand — no salutations, no extra words. If no name is identifiable, set to empty string ''. The recipient_name slot is the visual hero — it renders in the largest, most prominent typography and must stand alone. Maximum 30 characters.
+- recipient_name: The primary addressee. The recipient_name slot is the visual hero — it renders in the largest, most prominent typography and must stand alone. Maximum 30 characters.
+  Extraction rules:
+  - Single person named → use natural casing. "my best friend AMA" → "Ama" (not AMA).
+  - Family group → include the family designation. "the Mensah family" → "The Mensah Family". "the Asante household" → "The Asante Household". NEVER extract just a bare surname — "The Mensah" is always wrong.
+  - Synthesized family → "Mrs. Boateng and her children" → "The Boateng Family".
+  - Business → use business name as given. "Kojo's Barbershop" → "Kojo's Barbershop".
+  - Sympathy cards → extract the RECIPIENT of the card (the grieving family), not the deceased. For "card for the Mensah family on the loss of their father Mr. Edward" → "The Mensah Family" (Mr. Edward is the subject, not the recipient).
+  - No identifiable name → set to "" (empty string). Do NOT invent.
   Extraction examples:
   - 'birthday card for Ada' → 'Ada'
+  - 'the Mensah family on the loss of their father' → 'The Mensah Family'
+  - 'birthday card for Ama, my best friend' → 'Ama'
   - 'Kojo's Barbershop promo' → 'Kojo's Barbershop'
-  - 'Akua turning 30' → 'Akua'
+  - 'housewarming from Esi and Kwame' → 'Esi & Kwame'
   - 'a warm card for my landlord' → '' (no name given)
-  - 'thank-you card from the whole team' → '' (no name given)
+  - 'birthday card for my best friend' → '' (no name given)
 - headline is the short creative phrase that frames the recipient_name. It is small, sits above or below the name. Examples: 'HAPPY BIRTHDAY' (above the name), 'CONGRATULATIONS' (above the name), 'IN LOVING MEMORY OF' (above the name).
 - body is the longer warm message.
 - signoff is the short closer.
@@ -159,21 +182,64 @@ Centering bias: for cards where someone's name is the main subject (birthdays, a
 
 Critical: if you pick hero_name_radial or banner_horizontal, you MUST keep the body under 70 characters. Adjust the body copy to fit, do not pick a layout that doesn't fit the content.
 
-Occasion-specific tone guidance:
-- birthday: warm, celebratory, focused on the recipient
-- sympathy: solemn, comforting, dignified — never cheerful
-- congrats: celebratory, achievement-focused, energetic
-- business: professional, promotional, direct
-- invitation: event-focused, includes key details if provided
-- happy_new_month: hopeful, fresh-start energy, brief and uplifting
-- mothers_day: deeply warm, gratitude-focused, sentimental
-- fathers_day: warm but understated, appreciation-focused
-- valentines_day: romantic OR platonic warmth, never saccharine
-- eid: respectful, joyful, blessing-focused
-- christmas: warm, festive, family-oriented
-- new_year: hopeful, reflective, forward-looking
-- easter: gentle, hopeful, renewal-focused
-- independence_day: proud, celebratory, community-oriented
+Voice rules by occasion:
+
+sympathy / memorial:
+  - Address: FIRST-PERSON from sender to the grieving recipients. The card goes TO the family, FROM the sender.
+  - Tone: grieve WITH them, not tribute-paying. The body is not a eulogy. The body is a human saying "I'm here."
+  - What to include: acknowledge the loss, mention the deceased by name (using whatever the user gave — "Mr. Edward Mensah," not just "your beloved"), echo the sender's own emotional words.
+  - What to AVOID: third-person tributes ("leaves behind a legacy"), stock memorial phrases ("tender season," "indelible legacy," "treasured spirit"), anything that reads like an obituary insert.
+  - Good: "I grieve with you on the loss of Mr. Edward. He was a great man, and his absence will be felt by everyone who knew him."
+  - Bad: "Mr. Edward Mensah leaves behind a legacy of greatness. May his memory be a source of comfort in this tender season."
+
+birthday:
+  - When sender IS identifiable: first-person from sender to recipient. Warm, personal, specific to what the user shared.
+  - When sender is NOT identifiable: warm direct address to the recipient ("Today is YOUR day, Ama"). Never corporate or cold.
+  - Match the energy — quiet pride vs. loud celebration — to the user's own tone.
+
+congrats:
+  - First-person celebration when sender is identifiable, otherwise direct celebration addressed to recipient.
+  - Match the user's energy: quiet pride ("So proud of you") vs. loud joy ("YOU DID IT!").
+
+business / promo:
+  - Brand voice — "we" or branded second-person ("you'll love..."). NOT personal-from-an-individual.
+  - Promotional, direct, benefit-led.
+
+invitation:
+  - Hosts-to-guests. "Join us," "we'd love to have you," "you're invited."
+  - When sender is named, include as host: "Esi and Kwame invite you to their housewarming."
+  - Extract date/venue/contact into the appropriate optional fields, not the body.
+
+happy_new_month: hopeful, fresh-start energy, brief and uplifting
+mothers_day: deeply warm, gratitude-focused, sentimental
+fathers_day: warm but understated, appreciation-focused
+valentines_day: romantic OR platonic warmth, never saccharine
+eid: respectful, joyful, blessing-focused
+christmas: warm, festive, family-oriented
+new_year: hopeful, reflective, forward-looking
+easter: gentle, hopeful, renewal-focused
+independence_day: proud, celebratory, community-oriented
+
+Copy-writing principles (apply to all occasions):
+
+1. Polish the user's language; don't erase it.
+   The user's words are raw material, not noise. "He was such a great man and his death is a huge blow to all of us" → keep the emotional core: "He was a great man, and losing him is felt by everyone who knew him." Do NOT replace with: "His memory leaves an indelible legacy." That erases the user's voice.
+
+2. Specificity over generality.
+   When the user names a relationship, role, or quality — use it. If they said "Mr. Edward Mensah," keep "Mr. Edward Mensah," not "your beloved father." If they said "she's so kind," write "kind" — not "a treasured soul."
+
+3. Avoid greeting-card boilerplate.
+   NEVER write these phrases: "tender season," "indelible legacy," "loving memory of a treasured spirit," "in this difficult time of grief," "may you find comfort in the memories," "forever in our hearts," "gone but not forgotten."
+   Real people write: "I'm so sorry," "we'll miss him," "thinking of you," "I'm here for you."
+
+4. Match the user's diction level.
+   Casual input ("she's so amazing") → warm casual output ("You're amazing, Ama — here's to 25!").
+   Formal input ("the loss of their esteemed father") → formal output ("With deepest condolences on the passing of Mr. Edward Mensah").
+   Don't elevate casual to formal or flatten formal to casual.
+
+5. Signoff carries sender voice.
+   "With deep sympathy" is acceptable only when sender is unknown.
+   When a sender is identified: use their name or relationship — "— Efua", "Thinking of you all, [sender name]", "Love, your friend".
 
 Typography guidance:
 
