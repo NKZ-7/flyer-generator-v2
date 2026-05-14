@@ -8,6 +8,20 @@ import {
   LEGIBILITY_LUMINANCE_THRESHOLD,
 } from './render-config';
 
+const MAX_DARKEN_BEFORE_SWAP = 3;
+
+// Swap map: for each color family, ordered candidates that typically pass contrast
+// with ≤2 darken iterations. Preserves the spirit of the original while avoiding mud.
+const SWAP_MAP: Record<string, string[]> = {
+  'warm-pink':     ['#e85d75', '#c44d58'],
+  'cool-pink':     ['#db4b8a', '#c2376f'],
+  'warm-orange':   ['#c2410c', '#9a3412'],
+  'bright-yellow': ['#d97706', '#a67c00'],
+  'bright-cyan':   ['#0e7490', '#155e75'],
+  'bright-lime':   ['#3f6212', '#65735c'],
+  'bright-purple': ['#7e22ce', '#581c87'],
+};
+
 export type TextColors = {
   headline: string;
   name: string;
@@ -95,11 +109,24 @@ export function harmonizeColors(zoneColor: string, accentColor: string): TextCol
 
   // Decorative channel
   const signoffInitial = desaturate(accentColor, 30);
-  console.log('[harmonize] initial colors — headline:', accentColor,    'cr:', contrastRatio(accentColor,    zoneColor).toFixed(2));
-  console.log('[harmonize] initial colors — signoff: ', signoffInitial, 'cr:', contrastRatio(signoffInitial, zoneColor).toFixed(2));
 
-  const headline = ensureContrast(accentColor,    zoneColor, CONTRAST_RATIOS.large_headline);
-  const signoff  = ensureContrast(signoffInitial, zoneColor, CONTRAST_RATIOS.signoff);
+  const accentIter  = countDarkenIterations(accentColor,    zoneColor, CONTRAST_RATIOS.large_headline);
+  const signoffIter = countDarkenIterations(signoffInitial, zoneColor, CONTRAST_RATIOS.signoff);
+
+  const headlineBase = accentIter  > MAX_DARKEN_BEFORE_SWAP
+    ? findHarmoniousSwap(accentColor,    zoneColor)
+    : accentColor;
+  const signoffBase  = signoffIter > MAX_DARKEN_BEFORE_SWAP
+    ? findHarmoniousSwap(signoffInitial, zoneColor)
+    : signoffInitial;
+
+  if (headlineBase !== accentColor) {
+    const family = identifyColorFamily(accentColor) ?? 'unknown';
+    console.log(`[accent-swap] original=${accentColor} family=${family} swapped=${headlineBase} reason=would-require-${accentIter}-darken-iterations zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)}`);
+  }
+
+  const headline = ensureContrast(headlineBase, zoneColor, CONTRAST_RATIOS.large_headline);
+  const signoff  = ensureContrast(signoffBase,  zoneColor, CONTRAST_RATIOS.signoff);
 
   // Legibility channel: name + body — run through ensureContrast as a safety check;
   // legibilityColor is already near-extreme so this returns it unchanged at step 0 in practice
@@ -128,6 +155,45 @@ export function desaturate(hex: string, pct: number): string {
   } catch {
     return hex;
   }
+}
+
+function countDarkenIterations(textHex: string, bgHex: string, minRatio: number): number {
+  let color = textHex;
+  for (let step = 0; step < 20; step++) {
+    if (contrastRatio(color, bgHex) >= minRatio) return step;
+    color = darken(color, 5);
+  }
+  return 20;
+}
+
+function identifyColorFamily(hex: string): string | null {
+  try {
+    const c = Color(hex);
+    const h = c.hue();
+    const s = c.saturationl();
+    const l = c.lightness();
+    if (s < 40 || l < 30 || l > 80) return null;
+    if (h >= 345 || h < 15)  return 'warm-pink';
+    if (h >= 15  && h < 40)  return 'warm-orange';
+    if (h >= 40  && h < 70)  return 'bright-yellow';
+    if (h >= 70  && h < 165) return 'bright-lime';
+    if (h >= 165 && h < 215) return 'bright-cyan';
+    if (h >= 255 && h < 295) return 'bright-purple';
+    if (h >= 295 && h < 345) return 'cool-pink';
+  } catch { /* ignore */ }
+  return null;
+}
+
+function findHarmoniousSwap(originalHex: string, bgHex: string): string {
+  const family = identifyColorFamily(originalHex);
+  if (family) {
+    for (const candidate of (SWAP_MAP[family] ?? [])) {
+      if (countDarkenIterations(candidate, bgHex, CONTRAST_RATIOS.large_headline) <= 2) {
+        return candidate;
+      }
+    }
+  }
+  return originalHex;
 }
 
 function relativeLuminance(hex: string): number {

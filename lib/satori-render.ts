@@ -20,6 +20,18 @@ const MAX_LINES: Record<Slot, number> = {
   signoff:  2,
 };
 
+// Name slot must visually dominate the headline — per-layout ratios enforce this.
+// Uses max() so the pairing's natural name size is never reduced below its own floor.
+const LAYOUT_NAME_RATIOS: Record<string, number> = {
+  centered_framed:     1.8,
+  vignette_center:     1.8,
+  hero_name_radial:    1.8,
+  top_heavy:           1.5,
+  magazine_split:      1.5,
+  asymmetric_diagonal: 1.4,
+  banner_horizontal:   1.4,
+};
+
 function copyValue(copy: FlyerCopyV2, slot: Slot): string {
   if (slot === 'name') return copy.recipient_name;
   return copy[slot];
@@ -86,7 +98,17 @@ export async function renderFlyerToBase64(
     console.log(`[render] About to render ${slot} slot. Text: "${text.slice(0, 40)}${text.length > 40 ? '...' : ''}" Color: ${color}`);
 
     // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
-    let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
+    let fontSize: number;
+    if (slot === 'name') {
+      const headlineBaseSize = Math.round(BASE_FONT_SIZE_PX * typo.headline.sizeRatio * scaleFactor);
+      const nameRatio = LAYOUT_NAME_RATIOS[designBrief.layoutId] ?? 1.6;
+      fontSize = Math.max(
+        Math.round(headlineBaseSize * nameRatio),
+        Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor),
+      );
+    } else {
+      fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
+    }
     const minFontSize = Math.round(fontSize * AUTO_FIT.min_size_ratio);
     for (let i = 0; i < AUTO_FIT.max_iterations; i++) {
       const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
