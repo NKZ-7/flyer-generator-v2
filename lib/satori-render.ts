@@ -93,7 +93,7 @@ export async function renderFlyerToBase64(
     const zone   = zones[slot];
     const spec   = typo[slot];
     const maxLn  = MAX_LINES[slot];
-    const align  = layout.text_alignment[slot];
+    const align  = slot === 'name' ? 'center' : layout.text_alignment[slot];
     const color  = textColors[slot];
 
     console.log(`[render] About to render ${slot} slot. Text: "${text.slice(0, 40)}${text.length > 40 ? '...' : ''}" Color: ${color}`);
@@ -146,6 +146,8 @@ export async function renderFlyerToBase64(
               flexDirection: 'column' as const,
               justifyContent: 'flex-start' as const,
               overflow: 'hidden' as const,
+              paddingTop:    slot === 'name' ? Math.round(28 * scaleFactor) : 0,
+              paddingBottom: slot === 'name' ? Math.round(28 * scaleFactor) : 0,
             },
             children: {
               type: 'span',
