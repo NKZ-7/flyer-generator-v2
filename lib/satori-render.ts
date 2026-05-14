@@ -65,6 +65,7 @@ export async function renderFlyerToBase64(
   const accentColor = await extractAccentColor(canvasBuffer, sampleZone);
 
   console.log('[render] Layout:', designBrief.layoutId, 'Theme:', designBrief.decorative_theme, 'Typography:', designBrief.typographyId);
+  console.log(`[typography] pairing=${designBrief.typographyId} name_font=${typo.name.font} headline_font=${typo.headline.font} body_font=${typo.body.font}`);
   console.log('[render] Will call harmonizeColors with:', { zoneColor, accentColor });
 
   const colors      = harmonizeColors(zoneColor, accentColor);

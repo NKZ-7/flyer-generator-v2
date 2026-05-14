@@ -1,3 +1,23 @@
+// ── Pairing reference (hero = name slot font, the largest rendered text) ──────
+// id                | hero/name font        | headline font        | body font
+// ─────────────────────────────────────────────────────────────────────────────
+// classical_elegant | Playfair Display      | Playfair Display     | Playfair Display
+// modern_clean      | Inter                 | Inter                | Inter
+// bold_impact       | Bebas Neue            | Bebas Neue           | Inter
+// romantic_serif    | Allura (script)       | Cormorant Garamond   | Cormorant Garamond
+// warm_handwritten  | Caveat (script)       | DM Serif Display     | DM Serif Display
+// minimal_swiss     | Inter Tight           | Inter Tight          | Inter
+// script_romance    | Great Vibes (script)  | Lora                 | Lora
+// editorial_serif   | Cormorant Garamond    | Cormorant Garamond   | Inter
+// playful_display   | Dancing Script        | Dancing Script       | Poppins
+// bold_geometric    | Raleway               | Raleway              | Montserrat
+// warm_personal     | Caveat (script)       | Poppins              | Poppins
+// urban_modern      | Bebas Neue            | Bebas Neue           | Inter Tight
+// ─────────────────────────────────────────────────────────────────────────────
+// Overlaps to be aware of:
+//   warm_handwritten + warm_personal → same Caveat hero; visually near-identical
+//   bold_impact + urban_modern       → same Bebas Neue hero; visually near-identical
+//   modern_clean + minimal_swiss     → both Inter; near-identical at render time
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { TypographyPairingId } from '../types';
