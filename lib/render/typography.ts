@@ -6,18 +6,15 @@
 // bold_impact       | Bebas Neue            | Bebas Neue           | Inter
 // romantic_serif    | Allura (script)       | Cormorant Garamond   | Cormorant Garamond
 // warm_handwritten  | Caveat (script)       | DM Serif Display     | DM Serif Display
-// minimal_swiss     | Inter Tight           | Inter Tight          | Inter
+// minimal_swiss     | Montserrat            | Inter Tight          | Inter
 // script_romance    | Great Vibes (script)  | Lora                 | Lora
 // editorial_serif   | Cormorant Garamond    | Cormorant Garamond   | Inter
 // playful_display   | Dancing Script        | Dancing Script       | Poppins
 // bold_geometric    | Raleway               | Raleway              | Montserrat
-// warm_personal     | Caveat (script)       | Poppins              | Poppins
-// urban_modern      | Bebas Neue            | Bebas Neue           | Inter Tight
+// warm_personal     | DM Serif Display      | Poppins              | Poppins
+// urban_modern      | Oswald                | Inter Tight          | Inter Tight
 // ─────────────────────────────────────────────────────────────────────────────
-// Overlaps to be aware of:
-//   warm_handwritten + warm_personal → same Caveat hero; visually near-identical
-//   bold_impact + urban_modern       → same Bebas Neue hero; visually near-identical
-//   modern_clean + minimal_swiss     → both Inter; near-identical at render time
+// Every pairing now has a unique hero font (no two name slots render the same typeface).
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { TypographyPairingId } from '../types';
@@ -87,9 +84,9 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
   },
   minimal_swiss: {
     id: 'minimal_swiss',
-    description: 'Inter Tight throughout — tight spacing, clean Swiss grid feel.',
+    description: 'Montserrat geometric hero; Inter Tight headline, Inter body — clean Swiss grid feel.',
     headline: { font: 'Inter Tight', weight: 700, sizeRatio: 0.65 },
-    name:     { font: 'Inter Tight', weight: 500, sizeRatio: 1.00 },
+    name:     { font: 'Montserrat',  weight: 700, sizeRatio: 1.00 },
     body:     { font: 'Inter',       weight: 400, sizeRatio: 0.33 },
     signoff:  { font: 'Inter',       weight: 500, sizeRatio: 0.42 },
   },
@@ -127,17 +124,17 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
   },
   warm_personal: {
     id: 'warm_personal',
-    description: 'Caveat handwritten for name; Poppins for warm, readable body.',
-    headline: { font: 'Poppins', weight: 700, sizeRatio: 0.62 },
-    name:     { font: 'Caveat',  weight: 700, sizeRatio: 1.10 },
-    body:     { font: 'Poppins', weight: 400, sizeRatio: 0.34 },
-    signoff:  { font: 'Caveat',  weight: 400, sizeRatio: 0.44 },
+    description: 'DM Serif Display warm serif hero; Poppins body; Caveat in signoff for personal warmth.',
+    headline: { font: 'Poppins',          weight: 700, sizeRatio: 0.62 },
+    name:     { font: 'DM Serif Display', weight: 400, sizeRatio: 1.10 },
+    body:     { font: 'Poppins',          weight: 400, sizeRatio: 0.34 },
+    signoff:  { font: 'Caveat',           weight: 400, sizeRatio: 0.44 },
   },
   urban_modern: {
     id: 'urban_modern',
-    description: 'Bebas Neue display + Inter Tight for sharp, contemporary poster feel.',
-    headline: { font: 'Bebas Neue',  weight: 400, sizeRatio: 0.68 },
-    name:     { font: 'Bebas Neue',  weight: 400, sizeRatio: 1.08 },
+    description: 'Oswald condensed hero; Inter Tight headline and body — sharp, contemporary, urban poster feel.',
+    headline: { font: 'Inter Tight', weight: 700, sizeRatio: 0.68 },
+    name:     { font: 'Oswald',      weight: 700, sizeRatio: 1.08 },
     body:     { font: 'Inter Tight', weight: 400, sizeRatio: 0.36 },
     signoff:  { font: 'Inter Tight', weight: 400, sizeRatio: 0.42 },
   },
@@ -206,6 +203,7 @@ export function loadTypographyFonts(pairingId: TypographyPairingId): SatoriFont[
 
     case 'minimal_swiss':
       sets.push([
+        { name: 'Montserrat',  data: woff('montserrat',  700), weight: 700, style: 'normal' },
         { name: 'Inter Tight', data: woff('inter-tight', 500), weight: 500, style: 'normal' },
         { name: 'Inter Tight', data: woff('inter-tight', 700), weight: 700, style: 'normal' },
       ]);
@@ -247,16 +245,16 @@ export function loadTypographyFonts(pairingId: TypographyPairingId): SatoriFont[
 
     case 'warm_personal':
       sets.push([
-        { name: 'Poppins', data: woff('poppins', 400), weight: 400, style: 'normal' },
-        { name: 'Poppins', data: woff('poppins', 700), weight: 700, style: 'normal' },
-        { name: 'Caveat',  data: woff('caveat',  400), weight: 400, style: 'normal' },
-        { name: 'Caveat',  data: woff('caveat',  700), weight: 700, style: 'normal' },
+        { name: 'DM Serif Display', data: woff('dm-serif-display', 400), weight: 400, style: 'normal' },
+        { name: 'Poppins',          data: woff('poppins',          400), weight: 400, style: 'normal' },
+        { name: 'Poppins',          data: woff('poppins',          700), weight: 700, style: 'normal' },
+        { name: 'Caveat',           data: woff('caveat',           400), weight: 400, style: 'normal' },
       ]);
       break;
 
     case 'urban_modern':
       sets.push([
-        { name: 'Bebas Neue',  data: woff('bebas-neue',  400), weight: 400, style: 'normal' },
+        { name: 'Oswald',      data: woff('oswald',      700), weight: 700, style: 'normal' },
         { name: 'Inter Tight', data: woff('inter-tight', 400), weight: 400, style: 'normal' },
         { name: 'Inter Tight', data: woff('inter-tight', 700), weight: 700, style: 'normal' },
       ]);

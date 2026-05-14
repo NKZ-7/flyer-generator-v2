@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createJob, getRecentThemes } from '@/lib/kv';
+import { createJob, getRecentThemes, getRecentPairings } from '@/lib/kv';
 import { randomUUID, createHash } from 'crypto';
 import type { FlyerPreferences } from '@/lib/types';
 
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
     // Theme memory is non-fatal — proceed without it
   }
 
+  let recentPairings: string[] = [];
+  try {
+    recentPairings = await getRecentPairings(sessionKey);
+  } catch {
+    // Pairing memory is non-fatal — proceed without it
+  }
+
   try {
     await createJob(jobId, sessionKey);
   } catch (err) {
@@ -70,7 +77,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-api-key': webhookSecret,
       },
-      body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets, recentThemes }),
+      body: JSON.stringify({ jobId, callbackUrl, preferences, userAssets, hasUserAssets, recentThemes, recentPairings }),
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

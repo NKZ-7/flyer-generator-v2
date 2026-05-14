@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { completeJob, completeJobComposite, completeJobGPTCanvas, failJob, getJobMeta, pushRecentTheme } from '@/lib/kv';
+import { completeJob, completeJobComposite, completeJobGPTCanvas, failJob, getJobMeta, pushRecentTheme, pushRecentPairing } from '@/lib/kv';
 import { loadTemplate, templateExists } from '@/lib/templates/index';
 import { validateCopy } from '@/lib/validate-copy';
 import type { DesignSpec, FlyerCopy, FlyerCopyV2, DesignBrief, TemplateCopy } from '@/lib/types';
@@ -87,10 +87,14 @@ export async function POST(request: NextRequest) {
 
       await completeJobGPTCanvas(jobId, designBrief as DesignBrief, copyV2, gptCanvasBase64);
 
-      // Record theme in session history (non-fatal)
+      // Record theme + pairing in session history (non-fatal)
       const theme = (designBrief as DesignBrief)?.decorative_theme;
       if (sessionKey && theme) {
         pushRecentTheme(sessionKey, theme).catch(() => { /* silent */ });
+      }
+      const pairingId = (designBrief as DesignBrief)?.typographyId;
+      if (sessionKey && pairingId) {
+        pushRecentPairing(sessionKey, pairingId).catch(() => { /* silent */ });
       }
 
     } else if (imageBase64) {

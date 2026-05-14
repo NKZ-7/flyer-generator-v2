@@ -146,3 +146,28 @@ export async function pushRecentTheme(sessionKey: string, theme: ThemeId): Promi
     { ex: 60 * 60 * 24 },
   );
 }
+
+// ── Pairing memory (session-level, 24h TTL keyed by hashed IP+date) ───────────
+
+/** Return the last ≤3 typography pairing IDs used in this session, most-recent-first. */
+export async function getRecentPairings(sessionKey: string): Promise<string[]> {
+  const raw = await getRedis().get(`pairing_history:${sessionKey}`);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw as string);
+    return Array.isArray(parsed) ? (parsed.slice(0, 3) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Prepend pairing to the session history; dedup, cap at 3, TTL 24h. */
+export async function pushRecentPairing(sessionKey: string, pairingId: string): Promise<void> {
+  const recent = await getRecentPairings(sessionKey);
+  const updated = [pairingId, ...recent.filter(p => p !== pairingId)].slice(0, 3);
+  await getRedis().set(
+    `pairing_history:${sessionKey}`,
+    JSON.stringify(updated),
+    { ex: 60 * 60 * 24 },
+  );
+}

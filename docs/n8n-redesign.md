@@ -25,11 +25,14 @@ The workflow receives a POST from `/api/flyer/start`:
     "region": "string"
   },
   "hasUserAssets": false,
-  "recentThemes": ["theme_id_1", "theme_id_2"]
+  "recentThemes": ["theme_id_1", "theme_id_2"],
+  "recentPairings": ["pairing_id_1"]
 }
 ```
 
 `recentThemes` contains the last 1–3 theme IDs used in this user session (keyed by hashed IP+date, 24h TTL). May be an empty array on first use.
+
+`recentPairings` contains the last 1–3 typography pairing IDs used in this session. May be empty on first use.
 
 ---
 
@@ -55,6 +58,7 @@ VENUE (if any): {preferences.venue}
 CONTACT (if any): {preferences.contactInfo}
 REGION: {preferences.region}
 RECENT_THEMES (do not reuse): {recentThemes}
+RECENT_PAIRINGS (avoid reusing): {recentPairings}
 
 Default aesthetic: clean, modern, internationally appealing.
 Do NOT assume any specific cultural, regional, or religious background.
@@ -172,22 +176,32 @@ Occasion-specific tone guidance:
 - independence_day: proud, celebratory, community-oriented
 
 Typography guidance:
-- VARY your typographyId choices across runs. Choose what best serves THIS card.
-- Match typographyId to vibe:
-    elegant -> classical_elegant or romantic_serif
-    warm -> warm_handwritten or classical_elegant
-    playful -> bold_impact or warm_handwritten
-    bold -> bold_impact or modern_clean
-    church -> classical_elegant or romantic_serif
-    minimal -> minimal_swiss or modern_clean
 
-New typography options (use when appropriate):
-- script_romance → weddings, anniversaries, valentines_day, romantic sympathy
-- editorial_serif → formal invitations, premium business, refined sympathy
-- playful_display → birthday (playful), congrats, happy_new_month
-- bold_geometric → business promo, invitation (corporate), congrats (bold)
-- warm_personal → birthday (warm), mothers_day, fathers_day, casual personal cards
-- urban_modern → business promo, invitation (club/event), bold birthday
+VARY your typographyId — never default to the same pairing repeatedly. Check RECENT_PAIRINGS and pick something different.
+
+Pairing catalog (hero = name slot, the largest typography on the card):
+- classical_elegant  — Playfair Display serif hero — formal occasions, anniversaries, milestone celebrations, church
+- modern_clean       — Inter sans hero — minimalist business, professional, contemporary
+- bold_impact        — Bebas Neue condensed hero — energetic congratulations, loud celebrations, announcements
+- romantic_serif     — Allura script hero — anniversaries, valentines_day, deeply tender
+- warm_handwritten   — Caveat casual script hero — casual heartfelt notes, close-friend birthdays (use sparingly; warm_personal often fits better for birthdays)
+- minimal_swiss      — Montserrat geometric hero — sophisticated minimalism, design-forward, formal modern
+- script_romance     — Great Vibes formal script hero — weddings, ceremonial, classic invitations
+- editorial_serif    — Cormorant Garamond serif hero — magazine-feeling, refined sympathy, sophisticated milestones
+- playful_display    — Dancing Script hero — fun celebrations, happy_new_month, distinctive personality
+- bold_geometric     — Raleway bold hero — brand-forward, posterlike, congrats (bold)
+- warm_personal      — DM Serif Display warm serif hero — birthday (warm), mothers_day, fathers_day, personal cards
+- urban_modern       — Oswald condensed hero — sharp, contemporary, urban events, bold birthday
+
+Vibe → pairing (starting points — use judgment and avoid RECENT_PAIRINGS):
+- elegant → classical_elegant, romantic_serif, or editorial_serif
+- warm    → warm_personal, warm_handwritten, or classical_elegant (rotate — do not always pick warm_handwritten)
+- playful → playful_display, bold_impact, or urban_modern
+- bold    → bold_impact, bold_geometric, or urban_modern
+- church  → classical_elegant, script_romance, or editorial_serif
+- minimal → minimal_swiss or modern_clean
+
+Anti-default: if RECENT_PAIRINGS contains your first-choice pairing, pick your second or third choice instead. Variety is required.
 
 Decoration density:
 Choose decoration_density based on vibe:
