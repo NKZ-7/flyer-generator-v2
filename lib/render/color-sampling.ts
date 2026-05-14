@@ -99,30 +99,34 @@ export async function extractAccentColor(imageBuffer: Buffer, sampleZone: Rect):
 export function harmonizeColors(zoneColor: string, accentColor: string): TextColors {
   console.log('[harmonize] IN  zoneColor:', zoneColor, 'accentColor:', accentColor);
 
-  // Legibility channel: pick ink by zone luminance
+  // Legibility channel: pick whichever extreme contrasts better with the zone.
+  // Direct CR comparison is immune to the cascade failure caused by relativeLuminance returning 0.
   const zoneLum      = relativeLuminance(zoneColor);
-  const legibilityColor = zoneLum < LEGIBILITY_LUMINANCE_THRESHOLD
-    ? LEGIBILITY_TEXT_COLOR_LIGHT
-    : LEGIBILITY_TEXT_COLOR;
+  const darkCR  = contrastRatio(LEGIBILITY_TEXT_COLOR,       zoneColor);
+  const lightCR = contrastRatio(LEGIBILITY_TEXT_COLOR_LIGHT, zoneColor);
+  const legibilityColor = darkCR >= lightCR ? LEGIBILITY_TEXT_COLOR : LEGIBILITY_TEXT_COLOR_LIGHT;
   console.log('[harmonize] zoneLum:', zoneLum.toFixed(3), '→ legibilityColor:', legibilityColor,
-    'cr:', contrastRatio(legibilityColor, zoneColor).toFixed(2));
+    'darkCR:', darkCR.toFixed(2), 'lightCR:', lightCR.toFixed(2));
 
   // Decorative channel
-  const signoffInitial = desaturate(accentColor, 30);
+  // Blend headline accent 12% toward the zone — ties the accent into the canvas palette
+  // so the headline feels designed-in rather than a separate color pasted on top.
+  const accentBlended  = blendWithZone(accentColor, zoneColor, 0.12);
+  const signoffInitial = desaturate(accentBlended, 30);
 
-  const accentIter  = countDarkenIterations(accentColor,    zoneColor, CONTRAST_RATIOS.large_headline);
+  const accentIter  = countDarkenIterations(accentBlended,  zoneColor, CONTRAST_RATIOS.large_headline);
   const signoffIter = countDarkenIterations(signoffInitial, zoneColor, CONTRAST_RATIOS.signoff);
 
   const headlineBase = accentIter  > MAX_DARKEN_BEFORE_SWAP
-    ? findHarmoniousSwap(accentColor,    zoneColor)
-    : accentColor;
+    ? findHarmoniousSwap(accentBlended,  zoneColor)
+    : accentBlended;
   const signoffBase  = signoffIter > MAX_DARKEN_BEFORE_SWAP
     ? findHarmoniousSwap(signoffInitial, zoneColor)
     : signoffInitial;
 
-  if (headlineBase !== accentColor) {
+  if (headlineBase !== accentBlended) {
     const family = identifyColorFamily(accentColor) ?? 'unknown';
-    console.log(`[accent-swap] original=${accentColor} family=${family} swapped=${headlineBase} reason=would-require-${accentIter}-darken-iterations zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)}`);
+    console.log(`[accent-swap] original=${accentColor} blended=${accentBlended} family=${family} swapped=${headlineBase} reason=would-require-${accentIter}-darken-iterations zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)}`);
   }
 
   const headline = ensureContrast(headlineBase, zoneColor, CONTRAST_RATIOS.large_headline);
@@ -132,6 +136,11 @@ export function harmonizeColors(zoneColor: string, accentColor: string): TextCol
   // legibilityColor is already near-extreme so this returns it unchanged at step 0 in practice
   const name = ensureContrast(legibilityColor, zoneColor, CONTRAST_RATIOS.large_headline);
   const body = ensureContrast(legibilityColor, zoneColor, CONTRAST_RATIOS.body_text);
+
+  console.log(`[legibility] slot=headline zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)} resolvedTextColor=${headline}`);
+  console.log(`[legibility] slot=name     zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)} resolvedTextColor=${name}`);
+  console.log(`[legibility] slot=body     zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)} resolvedTextColor=${body}`);
+  console.log(`[legibility] slot=signoff  zoneColor=${zoneColor} zoneLum=${zoneLum.toFixed(3)} resolvedTextColor=${signoff}`);
 
   console.log('[harmonize] OUT — headline:', headline, 'cr:', contrastRatio(headline, zoneColor).toFixed(2));
   console.log('[harmonize] OUT — name:    ', name,     'cr:', contrastRatio(name,     zoneColor).toFixed(2));
@@ -152,6 +161,21 @@ export function darken(hex: string, pct: number): string {
 export function desaturate(hex: string, pct: number): string {
   try {
     return Color(hex).desaturate(pct / 100).hex();
+  } catch {
+    return hex;
+  }
+}
+
+// Blend `hex` toward `zoneHex` by `ratio` (0–1). Pulls the accent slightly into
+// the canvas palette so the headline feels designed-in rather than pasted on.
+export function blendWithZone(hex: string, zoneHex: string, ratio: number): string {
+  try {
+    const c = Color(hex);
+    const z = Color(zoneHex);
+    const r = Math.round(c.red()   * (1 - ratio) + z.red()   * ratio);
+    const g = Math.round(c.green() * (1 - ratio) + z.green() * ratio);
+    const b = Math.round(c.blue()  * (1 - ratio) + z.blue()  * ratio);
+    return Color({ r, g, b }).hex();
   } catch {
     return hex;
   }
@@ -204,7 +228,9 @@ function relativeLuminance(hex: string): number {
          + 0.7152 * toLinear(c.green() / 255)
          + 0.0722 * toLinear(c.blue() / 255);
   } catch {
-    return 0;
+    // 0.5 (not 0) so a failed parse doesn't masquerade as "black zone",
+    // which would skew contrastRatio calculations for all callers.
+    return 0.5;
   }
 }
 

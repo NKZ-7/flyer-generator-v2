@@ -102,7 +102,7 @@ export const TYPOGRAPHY_PAIRINGS: Record<TypographyPairingId, TypographyPairing>
     id: 'editorial_serif',
     description: 'Cormorant Garamond headline and body; Inter for a clean modern contrast.',
     headline: { font: 'Cormorant Garamond', weight: 700, sizeRatio: 0.65 },
-    name:     { font: 'Cormorant Garamond', weight: 400, sizeRatio: 1.05 },
+    name:     { font: 'Cormorant Garamond', weight: 700, sizeRatio: 1.05 },
     body:     { font: 'Inter',              weight: 400, sizeRatio: 0.34 },
     signoff:  { font: 'Inter',              weight: 400, sizeRatio: 0.40 },
   },
