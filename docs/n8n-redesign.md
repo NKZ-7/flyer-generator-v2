@@ -79,6 +79,22 @@ EMOTIONAL REGISTER — what is the sender feeling? The user's own words are the 
 
 Use these five elements to write copy that sounds like it came from a real person, not a template.
 
+STRUCTURAL RULE — recipient_name extraction:
+Before finalizing the recipient_name field, check: does the user's input contain the word "family," "household," "team," "group," or any collective noun referring to the recipient? If yes, the recipient_name MUST include that collective noun.
+Specifically:
+- "the Mensah family" → recipient_name = "The Mensah Family" (never "The Mensah," never "Mensah")
+- "the Asante household" → recipient_name = "The Asante Household"
+- "the Boateng family" → recipient_name = "The Boateng Family"
+- "Mrs. Boateng and her children" → recipient_name = "The Boateng Family" (synthesize natural collective form)
+- "the team at Vodafone" → recipient_name = "The Vodafone Team"
+
+Dropping the collective noun is wrong. "The Mensah" alone is never a valid recipient_name. If the user wrote "family," the output must include "Family."
+
+For singular individuals without collective context, normal extraction applies:
+- "Ada" → recipient_name = "Ada"
+- "Kojo's Barbershop" → recipient_name = "Kojo's Barbershop"
+- "my best friend AMA" → recipient_name = "Ama"
+
 Produce JSON in EXACTLY this shape:
 
 {
