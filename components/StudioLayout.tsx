@@ -18,7 +18,6 @@ const defaultPrefs: FlyerPreferences = {
   contactInfo: '',
   style: 'event',
   colorScheme: 'dark',
-  primaryColor: '#f59e0b',
   fontStyle: 'modern',
   region: '',
 };

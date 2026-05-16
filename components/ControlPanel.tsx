@@ -88,12 +88,6 @@ const FONT_LABEL_CLS: Record<string, string> = {
   urban_modern:    'font-bold uppercase tracking-widest',
 };
 
-// Accent presets — warm top row, cool bottom row
-const ACCENT_PRESETS = [
-  '#f59e0b', '#f97316', '#ef4444', '#ec4899', '#e11d48', '#d4a76a',
-  '#7c3aed', '#3b82f6', '#14b8a6', '#10b981', '#64748b', '#22c55e',
-];
-
 
 export function ControlPanel({
   phase,
@@ -169,19 +163,16 @@ export function ControlPanel({
   function surpriseMe() {
     if (surpriseSpinning) return;
     setSurpriseSpinning(true);
-    const finalColor  = COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value;
-    const finalFont   = FONT_OPTIONS[Math.floor(Math.random() * FONT_OPTIONS.length)].value;
-    const finalAccent = ACCENT_PRESETS[Math.floor(Math.random() * ACCENT_PRESETS.length)];
+    const finalColor = COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value;
+    const finalFont  = FONT_OPTIONS[Math.floor(Math.random() * FONT_OPTIONS.length)].value;
     let cycles = 0;
     surpriseTimerRef.current = setInterval(() => {
       onPrefsChange('colorScheme', COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value as FlyerPreferences['colorScheme']);
       onPrefsChange('fontStyle',   FONT_OPTIONS[Math.floor(Math.random() * FONT_OPTIONS.length)].value as FlyerPreferences['fontStyle']);
-      onPrefsChange('primaryColor', ACCENT_PRESETS[Math.floor(Math.random() * ACCENT_PRESETS.length)]);
       if (++cycles >= 5) {
         clearInterval(surpriseTimerRef.current!);
-        onPrefsChange('colorScheme',  finalColor as FlyerPreferences['colorScheme']);
-        onPrefsChange('fontStyle',    finalFont as FlyerPreferences['fontStyle']);
-        onPrefsChange('primaryColor', finalAccent);
+        onPrefsChange('colorScheme', finalColor as FlyerPreferences['colorScheme']);
+        onPrefsChange('fontStyle',   finalFont as FlyerPreferences['fontStyle']);
         setSurpriseSpinning(false);
       }
     }, 60);
@@ -473,63 +464,6 @@ export function ControlPanel({
             </div>
           </div>
 
-          {/* Accent color */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
-              Accent Color
-            </p>
-            <div className="grid grid-cols-6 gap-1.5">
-              {ACCENT_PRESETS.map((hex) => {
-                const isActive = prefs.primaryColor?.toLowerCase() === hex.toLowerCase();
-                return (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => onPrefsChange('primaryColor', hex)}
-                    disabled={isGenerating}
-                    title={hex}
-                    className={`swatch-btn w-full aspect-square rounded-full border-2 relative transition-all ${
-                      isActive ? 'border-white' : 'border-transparent hover:border-white/50'
-                    }`}
-                    style={{
-                      backgroundColor: hex,
-                      '--swatch-color': hex,
-                    } as React.CSSProperties}
-                  >
-                    {isActive && (
-                      <span className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold">
-                        ✓
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="text-[10px] text-[#7B6B5B]mt-3 mb-1">Or enter your brand color</p>
-            <div className="flex items-center gap-2">
-              <div className="relative w-9 h-9 rounded border border-warm-600 overflow-hidden shrink-0">
-                <input
-                  type="color"
-                  value={prefs.primaryColor ?? '#f59e0b'}
-                  onChange={(e) => onPrefsChange('primaryColor', e.target.value)}
-                  disabled={isGenerating}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div
-                  className="absolute inset-0 rounded"
-                  style={{ backgroundColor: prefs.primaryColor ?? '#f59e0b' }}
-                />
-              </div>
-              <input
-                type="text"
-                value={prefs.primaryColor ?? '#f59e0b'}
-                onChange={(e) => onPrefsChange('primaryColor', e.target.value)}
-                disabled={isGenerating}
-                className="flex-1 bg-warm-900 border border-warm-600 text-zinc-200 font-mono text-[11px] rounded px-3 py-2 focus:outline-none focus:border-amber-400/50 focus:ring-1 focus:ring-amber-400/20 transition-colors disabled:opacity-40"
-              />
-            </div>
-          </div>
         </div>
       );
     }
@@ -602,18 +536,6 @@ export function ControlPanel({
           </div>
           <SummaryRow label="Colors"  value={colorLabel} />
           <SummaryRow label="Fonts"   value={fontLabel} />
-          <SummaryRow
-            label="Accent"
-            value={
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="w-3 h-3 rounded-full border border-white/20 inline-block"
-                  style={{ backgroundColor: prefs.primaryColor }}
-                />
-                {prefs.primaryColor}
-              </span>
-            }
-          />
         </div>
 
         {/* Hero generate button */}

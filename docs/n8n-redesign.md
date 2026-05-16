@@ -34,6 +34,8 @@ The workflow receives a POST from `/api/flyer/start`:
 
 `recentPairings` contains the last 1–3 typography pairing IDs used in this session. May be empty on first use.
 
+> **Accent color removed (2026-05-16):** `primaryColor` is no longer sent in the preferences payload. Text colors are now defined per-theme in `lib/render/themes.ts` (`textColorAccent` for headline/signoff, `textColorLegibility` for name/body) and applied directly by the Satori renderer. No canvas sampling, no user-facing color picker.
+
 ---
 
 ## 2. Workflow Stages

@@ -78,7 +78,6 @@ export interface FlyerPreferences {
   vibe?: 'elegant' | 'warm' | 'playful' | 'bold' | 'church' | 'minimal';
   // ── Style hints (still sent to n8n for palette/font guidance) ─
   colorScheme?: string;
-  primaryColor?: string;
   fontStyle?: string;
   // ── Content fields ────────────────────────────────────────────
   tagline?: string;
