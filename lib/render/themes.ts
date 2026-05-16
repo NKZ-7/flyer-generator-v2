@@ -22,6 +22,10 @@ export type DecorativeTheme = {
     | 'happy_new_month' | 'mothers_day' | 'fathers_day' | 'valentines_day'
     | 'eid' | 'christmas' | 'new_year' | 'easter' | 'independence_day'
   )[];
+  /** Hex color for headline + signoff slots — decorative, character-bearing, theme-matched. */
+  textColorAccent: string;
+  /** Hex color for recipient name + body slots — high contrast, guaranteed legible on cream. */
+  textColorLegibility: string;
 };
 
 export const THEMES: Record<ThemeId, DecorativeTheme> = {
@@ -35,6 +39,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'warm', 'minimal'],
     compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
       'happy_new_month', 'mothers_day', 'valentines_day', 'easter', 'independence_day'],
+    textColorAccent:      '#7A3838',
+    textColorLegibility:  '#1F1A14',
   },
 
   abundant_garden_borders: {
@@ -48,6 +54,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'warm', 'church'],
     compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
       'happy_new_month', 'mothers_day', 'valentines_day', 'easter'],
+    textColorAccent:      '#5A4A28',
+    textColorLegibility:  '#1F1A14',
   },
 
   geometric_confetti: {
@@ -60,6 +68,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['playful', 'bold', 'warm'],
     compatible_occasions: ['birthday', 'congrats', 'invitation',
       'happy_new_month', 'new_year', 'independence_day'],
+    textColorAccent:      '#C2410C',
+    textColorLegibility:  '#1F1A14',
   },
 
   celestial_dust: {
@@ -73,6 +83,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'warm', 'minimal'],
     compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
       'christmas', 'new_year', 'eid', 'easter', 'valentines_day'],
+    textColorAccent:      '#7B5C1E',
+    textColorLegibility:  '#1F1A14',
   },
 
   minimalist_line_botanical: {
@@ -86,6 +98,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['minimal', 'elegant', 'church'],
     compatible_occasions: ['sympathy', 'business', 'invitation', 'birthday',
       'happy_new_month', 'fathers_day', 'independence_day', 'easter'],
+    textColorAccent:      '#3C4A3A',
+    textColorLegibility:  '#1F1A14',
   },
 
   vintage_paper_texture: {
@@ -99,6 +113,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'church', 'warm'],
     compatible_occasions: ['sympathy', 'invitation', 'business',
       'fathers_day', 'christmas', 'easter', 'eid'],
+    textColorAccent:      '#6B4C2A',
+    textColorLegibility:  '#2A1F0F',
   },
 
   balloon_streamer: {
@@ -111,6 +127,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['playful', 'bold', 'warm'],
     compatible_occasions: ['birthday', 'congrats', 'invitation',
       'happy_new_month', 'new_year', 'independence_day'],
+    textColorAccent:      '#9B1C1C',
+    textColorLegibility:  '#1F1A14',
   },
 
   soft_brush_strokes: {
@@ -123,6 +141,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'minimal', 'warm'],
     compatible_occasions: ['sympathy', 'business', 'invitation', 'congrats',
       'happy_new_month', 'mothers_day', 'fathers_day', 'valentines_day', 'easter'],
+    textColorAccent:      '#6B4E37',
+    textColorLegibility:  '#1F1A14',
   },
 
   botanical_herbarium: {
@@ -136,6 +156,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'minimal', 'church'],
     compatible_occasions: ['sympathy', 'congrats', 'invitation', 'business',
       'mothers_day', 'fathers_day', 'easter'],
+    textColorAccent:      '#3D5A3E',
+    textColorLegibility:  '#1F1A14',
   },
 
   geometric_art_deco: {
@@ -148,6 +170,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['elegant', 'bold'],
     compatible_occasions: ['invitation', 'business', 'congrats', 'birthday',
       'new_year', 'christmas', 'fathers_day'],
+    textColorAccent:      '#7B5C1E',
+    textColorLegibility:  '#1F1A14',
   },
 
   watercolor_abstract: {
@@ -161,6 +185,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['warm', 'elegant', 'minimal'],
     compatible_occasions: ['sympathy', 'birthday', 'congrats',
       'happy_new_month', 'mothers_day', 'valentines_day', 'easter'],
+    textColorAccent:      '#7A4060',
+    textColorLegibility:  '#1F1A14',
   },
 
   sunset_gradient: {
@@ -173,6 +199,8 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
     compatible_vibes: ['warm', 'minimal', 'bold'],
     compatible_occasions: ['birthday', 'congrats', 'invitation',
       'happy_new_month', 'new_year', 'independence_day', 'fathers_day'],
+    textColorAccent:      '#9A4400',
+    textColorLegibility:  '#1F1A14',
   },
 };
 
