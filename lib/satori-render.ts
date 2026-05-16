@@ -62,7 +62,10 @@ export async function renderFlyerToBase64(
   console.log(`[typography] pairing=${designBrief.typographyId} name_font=${typo.name.font} headline_font=${typo.headline.font} body_font=${typo.body.font}`);
 
   // Text colors are owned by the theme — no canvas sampling, no fallback logic.
-  const theme = THEMES[designBrief.decorative_theme];
+  if (!THEMES[designBrief.decorative_theme]) {
+    console.error(`[render] Unknown decorative_theme="${designBrief.decorative_theme}" — falling back to watercolor_florals_sparse`);
+  }
+  const theme = THEMES[designBrief.decorative_theme] ?? THEMES['watercolor_florals_sparse'];
   const textColors: Record<Slot, string> = {
     headline: theme.textColorAccent,
     name:     theme.textColorLegibility,

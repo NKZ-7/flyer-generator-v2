@@ -20,6 +20,13 @@ const VALID_TYPO_IDS = new Set<string>([
   'bold_geometric', 'warm_personal', 'urban_modern',
 ]);
 
+const VALID_THEME_IDS = new Set<string>([
+  'watercolor_florals_sparse', 'abundant_garden_borders', 'geometric_confetti',
+  'celestial_dust', 'minimalist_line_botanical', 'vintage_paper_texture',
+  'balloon_streamer', 'soft_brush_strokes', 'botanical_herbarium',
+  'geometric_art_deco', 'watercolor_abstract', 'sunset_gradient',
+]);
+
 export async function POST(request: NextRequest) {
   let body: Awaited<ReturnType<typeof request.json>>;
   try {
@@ -72,8 +79,10 @@ export async function POST(request: NextRequest) {
       if (
         !VALID_LAYOUT_IDS.has(designBrief?.layoutId ?? '') ||
         !VALID_TYPO_IDS.has(designBrief?.typographyId ?? '') ||
+        !VALID_THEME_IDS.has(designBrief?.decorative_theme ?? '') ||
         !copyV2?.headline || typeof copyV2?.recipient_name !== 'string' || !copyV2?.body || !copyV2?.signoff
       ) {
+        console.error('[callback] Validation failed — layoutId:', designBrief?.layoutId, 'typographyId:', designBrief?.typographyId, 'decorative_theme:', designBrief?.decorative_theme);
         await failJob(jobId, 'GPT-canvas callback validation failed: missing or invalid fields');
         return Response.json({ ok: true });
       }
@@ -85,7 +94,14 @@ export async function POST(request: NextRequest) {
         sessionKey = existing?.sessionKey;
       } catch { /* non-fatal */ }
 
-      await completeJobGPTCanvas(jobId, designBrief as DesignBrief, copyV2, gptCanvasBase64);
+      try {
+        await completeJobGPTCanvas(jobId, designBrief as DesignBrief, copyV2, gptCanvasBase64);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[callback] completeJobGPTCanvas failed:', msg);
+        await failJob(jobId, `Render failed: ${msg}`);
+        return Response.json({ ok: true });
+      }
 
       // Record theme + pairing in session history (non-fatal)
       const theme = (designBrief as DesignBrief)?.decorative_theme;
