@@ -32,6 +32,7 @@ export type TextColors = {
 /**
  * Crop `zone` from the canvas, resize to 1×1, return the average hex color.
  * Falls back to warm cream if sampling fails.
+ * @deprecated No longer called — text colors are theme-defined in themes.ts.
  */
 export async function extractZoneColor(imageBuffer: Buffer, zone: Rect): Promise<string> {
   try {
@@ -52,6 +53,7 @@ export async function extractZoneColor(imageBuffer: Buffer, zone: Rect): Promise
  * Sample the layout's known decorated area, find the most saturated pixel,
  * and return that as the accent color. Falls back to warm gold if everything
  * is near-neutral.
+ * @deprecated No longer called — text colors are theme-defined in themes.ts.
  */
 export async function extractAccentColor(imageBuffer: Buffer, sampleZone: Rect): Promise<string> {
   try {
@@ -95,6 +97,7 @@ export async function extractAccentColor(imageBuffer: Buffer, sampleZone: Rect):
  *   Legibility channel (name, body) — fixed near-black/near-white ink chosen by zone luminance,
  *   guaranteed readable without needing accent extraction.
  *   Decorative channel (headline, signoff) — accent-harmonized, still contrast-checked.
+ * @deprecated No longer called — text colors are theme-defined in themes.ts.
  */
 export function harmonizeColors(zoneColor: string, accentColor: string): TextColors {
   console.log('[harmonize] IN  zoneColor:', zoneColor, 'accentColor:', accentColor);

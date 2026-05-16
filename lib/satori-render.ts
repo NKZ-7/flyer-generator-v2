@@ -3,63 +3,10 @@ import sharp from 'sharp';
 import type { DesignBrief, FlyerCopyV2 } from './types';
 import { LAYOUTS, validateSlotGaps } from './render/layouts';
 import { TYPOGRAPHY_PAIRINGS, loadTypographyFonts } from './render/typography';
-import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX, AUTO_FIT, LEGIBILITY_TEXT_COLOR } from './render/render-config';
-import { extractAccentColor, harmonizeColors } from './render/color-sampling';
+import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX, AUTO_FIT } from './render/render-config';
+import { THEMES } from './render/themes';
 
 const { width: CANVAS_W, height: CANVAS_H } = CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT];
-
-// Zones that contain spatially separated slots (hero_name_radial, top_heavy) can have
-// different luminance per slot. Sampling each slot's zone independently prevents
-// near-invisible text when one slot sits on dark decoration while another is on light cream.
-// When a zone is mixed light/dark (variance > threshold) the conservative near-black
-// fallback is chosen — near-black is more universally legible because most cream/light
-// backgrounds dominate even when some decoration intrudes.
-const AMBIGUOUS_ZONE_VARIANCE_THRESHOLD = 0.12;
-const VARIANCE_SAMPLE_GRID = 8; // 8×8 = 64 sample points per slot zone
-
-function slotRelativeLuminance(r: number, g: number, b: number): number {
-  const toLinear = (v: number) => {
-    const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-}
-
-async function sampleSlotZoneColor(
-  canvasBuffer: Buffer,
-  zone: { x: number; y: number; width: number; height: number },
-): Promise<{ color: string; luminance: number; variance: number }> {
-  try {
-    const GRID = VARIANCE_SAMPLE_GRID;
-    const { data, info } = await sharp(canvasBuffer)
-      .extract({ left: zone.x, top: zone.y, width: Math.max(zone.width, 1), height: Math.max(zone.height, 1) })
-      .resize(GRID, GRID, { fit: 'fill' })
-      .removeAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    const pixels = info.width * info.height;
-    const luminances: number[] = [];
-    let rSum = 0, gSum = 0, bSum = 0;
-
-    for (let i = 0; i < pixels; i++) {
-      const r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
-      rSum += r; gSum += g; bSum += b;
-      luminances.push(slotRelativeLuminance(r, g, b));
-    }
-
-    const avgR = Math.round(rSum / pixels);
-    const avgG = Math.round(gSum / pixels);
-    const avgB = Math.round(bSum / pixels);
-    const color = `#${avgR.toString(16).padStart(2, '0')}${avgG.toString(16).padStart(2, '0')}${avgB.toString(16).padStart(2, '0')}`;
-    const meanLum = luminances.reduce((s, l) => s + l, 0) / pixels;
-    const variance = luminances.reduce((s, l) => s + (l - meanLum) ** 2, 0) / pixels;
-
-    return { color, luminance: meanLum, variance };
-  } catch {
-    return { color: '#F5E6D0', luminance: 0.806, variance: 0 };
-  }
-}
 
 // Slot keys in order of compositing — bottom to top visually
 const SLOTS = ['headline', 'name', 'body', 'signoff'] as const;
@@ -108,47 +55,21 @@ export async function renderFlyerToBase64(
   const typo   = TYPOGRAPHY_PAIRINGS[designBrief.typographyId];
   const fonts  = loadTypographyFonts(designBrief.typographyId);
 
-  // Compute zones at the base canvas dimensions for color sampling and coordinate reference.
-  // The scaleFactor is applied per-zone when building composites.
-  const zones      = layout.computeZones(CANVAS_W, CANVAS_H);
+  const zones = layout.computeZones(CANVAS_W, CANVAS_H);
   validateSlotGaps(zones, CANVAS_H, designBrief.layoutId);
-  const sampleZone = layout.computeDecorationSampleZone(CANVAS_W, CANVAS_H);
-
-  const accentColor = await extractAccentColor(canvasBuffer, sampleZone);
 
   console.log('[render] Layout:', designBrief.layoutId, 'Theme:', designBrief.decorative_theme, 'Typography:', designBrief.typographyId);
   console.log(`[typography] pairing=${designBrief.typographyId} name_font=${typo.name.font} headline_font=${typo.headline.font} body_font=${typo.body.font}`);
 
-  // Per-slot zone sampling: each slot resolves its text color against its own zone background.
-  // Fixes hero_name_radial (name on dark upper zone while body zone is light) and top_heavy
-  // (headline near dark decoration boundary). Safe layouts are unaffected — their slots all
-  // share the same visual zone, so per-slot sampling returns identical values to the old single sample.
-  const textColors = {} as Record<Slot, string>;
-
-  for (const slot of SLOTS) {
-    const { color: slotZoneColor, luminance: slotLum, variance: slotVariance } =
-      await sampleSlotZoneColor(canvasBuffer, zones[slot]);
-
-    if (slotVariance > AMBIGUOUS_ZONE_VARIANCE_THRESHOLD) {
-      // Mixed zone: decoration partially crosses into the slot. Neither pure-black nor pure-white
-      // is fully safe, but near-black is the more universally legible choice because cream/light
-      // backgrounds dominate most zones even when some decoration intrudes.
-      textColors[slot] = LEGIBILITY_TEXT_COLOR;
-      console.log(
-        `[legibility] slot=${slot} zoneVariance=${slotVariance.toFixed(3)} dominantLum=${slotLum.toFixed(3)} ` +
-        `trigger=AMBIGUOUS_ZONE_FALLBACK resolvedColor=${LEGIBILITY_TEXT_COLOR}`,
-      );
-    } else {
-      const slotColors = harmonizeColors(slotZoneColor, accentColor);
-      textColors[slot] = slotColors[slot];
-    }
-  }
-
-  console.log('[render] Will render slots with these colors:');
-  console.log('  headline:', textColors.headline);
-  console.log('  name:    ', textColors.name);
-  console.log('  body:    ', textColors.body);
-  console.log('  signoff: ', textColors.signoff);
+  // Text colors are owned by the theme — no canvas sampling, no fallback logic.
+  const theme = THEMES[designBrief.decorative_theme];
+  const textColors: Record<Slot, string> = {
+    headline: theme.textColorAccent,
+    name:     theme.textColorLegibility,
+    body:     theme.textColorLegibility,
+    signoff:  theme.textColorAccent,
+  };
+  console.log(`[text-color] theme=${designBrief.decorative_theme} headline=${textColors.headline} name=${textColors.name} body=${textColors.body} signoff=${textColors.signoff} source=theme`);
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
 
