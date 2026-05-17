@@ -34,7 +34,7 @@ The workflow receives a POST from `/api/flyer/start`:
 
 `recentPairings` contains the last 1–3 typography pairing IDs used in this session. May be empty on first use.
 
-> **Accent color removed (2026-05-16):** `primaryColor` is no longer sent in the preferences payload. Text colors are now defined per-theme in `lib/render/themes.ts` (`textColorAccent` for headline/signoff, `textColorLegibility` for name/body) and applied directly by the Satori renderer. No canvas sampling, no user-facing color picker.
+> **Accent color removed (2026-05-16):** `primaryColor` is no longer sent in the preferences payload. Text colors are now defined per-theme in `lib/render/themes.ts` (`textColorAccent` for title/signoff, `textColorLegibility` for body) and applied directly by the Satori renderer. No canvas sampling, no user-facing color picker.
 
 ---
 
@@ -81,28 +81,32 @@ EMOTIONAL REGISTER — what is the sender feeling? The user's own words are the 
 
 Use these five elements to write copy that sounds like it came from a real person, not a template.
 
-STRUCTURAL RULE — recipient_name extraction:
-Before finalizing the recipient_name field, check: does the user's input contain the word "family," "household," "team," "group," or any collective noun referring to the recipient? If yes, the recipient_name MUST include that collective noun.
-Specifically:
-- "the Mensah family" → recipient_name = "The Mensah Family" (never "The Mensah," never "Mensah")
-- "the Asante household" → recipient_name = "The Asante Household"
-- "the Boateng family" → recipient_name = "The Boateng Family"
-- "Mrs. Boateng and her children" → recipient_name = "The Boateng Family" (synthesize natural collective form)
-- "the team at Vodafone" → recipient_name = "The Vodafone Team"
+TITLE CONSTRUCTION — the title slot replaces both headline and recipient_name. It is the single hero line on the card.
 
-Dropping the collective noun is wrong. "The Mensah" alone is never a valid recipient_name. If the user wrote "family," the output must include "Family."
+The title must read as a coherent human statement, not two fragments. Fuse the occasion signal and recipient identity into one line.
 
-For singular individuals without collective context, normal extraction applies:
-- "Ada" → recipient_name = "Ada"
-- "Kojo's Barbershop" → recipient_name = "Kojo's Barbershop"
-- "my best friend AMA" → recipient_name = "Ama"
+Per-occasion patterns (starting points — vary them):
+- Birthday: 'HAPPY BIRTHDAY, AMA' / 'HAPPY 25TH, AMA!' / 'HERE'S TO YOU, JAMES' / 'MANY MORE, MENSAH FAMILY'
+- Sympathy: 'WITH DEEPEST SYMPATHY, MENSAH FAMILY' / 'WE GRIEVE WITH YOU' / 'REMEMBERING MR. EDWARD'
+- Congrats: 'CONGRATS, JAMES!' / 'YOU DID IT, AMA!' / 'WELL DONE, DR. MENSAH'
+- Business: 'FRESH CUTS AT KOJO'S' / 'GRAND OPENING!' / 'NEW MENU — WHO'S IN?'
+- Invitation: 'YOU'RE INVITED!' / 'JOIN US, FRIEND' / 'HOUSEWARMING — ESI & KWAME'
+
+Collective nouns: if the user wrote "family," "household," "team," the title MUST include that word.
+- "the Mensah family" → title contains 'Mensah Family' (e.g. 'WITH SYMPATHY, MENSAH FAMILY')
+- Never just the surname: 'Mensah' alone is wrong when user wrote 'Mensah family'
+
+Naming rules:
+- Natural-case names: "AMA" in input → 'Ama' in title (never 'AMA')
+- No invented names: if no name given, use 'YOU' or 'FRIEND' or omit
+- Max 36 characters total
+- Reads naturally when spoken aloud
 
 Produce JSON in EXACTLY this shape:
 
 {
   "copy": {
-    "headline": "string — 14-22 chars ideal, max 28",
-    "recipient_name": "Primary addressee extracted from the user's description — person, family group, or business. See extraction rules below. Maximum 30 characters.",
+    "title": "string — unified hero slot, max 36 chars. One statement fusing occasion signal + recipient. Examples: 'HAPPY BIRTHDAY, AMA' / 'CONGRATS, JAMES!' / 'WITH SYMPATHY, MENSAH FAMILY'. Natural-case names. Family collectives preserved. No invented names.",
     "body": "string — 50-90 chars ideal, max 130, 1-2 sentences",
     "signoff": "string — 8-18 chars ideal, max 24",
     "date": "OPTIONAL — if a date or time is found in the form fields or user description, include it. Otherwise OMIT this field entirely.",
@@ -125,37 +129,21 @@ Produce JSON in EXACTLY this shape:
 Rules:
 
 CRITICAL — slot semantics:
-- recipient_name: The primary addressee. The recipient_name slot is the visual hero — it renders in the largest, most prominent typography and must stand alone. Maximum 30 characters.
-  Extraction rules:
-  - Single person named → use natural casing. "my best friend AMA" → "Ama" (not AMA).
-  - Family group → include the family designation. "the Mensah family" → "The Mensah Family". "the Asante household" → "The Asante Household". NEVER extract just a bare surname — "The Mensah" is always wrong.
-  - Synthesized family → "Mrs. Boateng and her children" → "The Boateng Family".
-  - Business → use business name as given. "Kojo's Barbershop" → "Kojo's Barbershop".
-  - Sympathy cards → extract the RECIPIENT of the card (the grieving family), not the deceased. For "card for the Mensah family on the loss of their father Mr. Edward" → "The Mensah Family" (Mr. Edward is the subject, not the recipient).
-  - No identifiable name → set to "" (empty string). Do NOT invent.
-  Extraction examples:
-  - 'birthday card for Ada' → 'Ada'
-  - 'the Mensah family on the loss of their father' → 'The Mensah Family'
-  - 'birthday card for Ama, my best friend' → 'Ama'
-  - 'Kojo's Barbershop promo' → 'Kojo's Barbershop'
-  - 'housewarming from Esi and Kwame' → 'Esi & Kwame'
-  - 'a warm card for my landlord' → '' (no name given)
-  - 'birthday card for my best friend' → '' (no name given)
-- headline is the short creative phrase that frames the recipient_name. It is small, sits above or below the name. Examples: 'HAPPY BIRTHDAY' (above the name), 'CONGRATULATIONS' (above the name), 'IN LOVING MEMORY OF' (above the name).
-- body is the longer warm message.
-- signoff is the short closer.
+- title: The single hero line — one statement fusing occasion + recipient. See TITLE CONSTRUCTION above. Max 36 chars.
+- body: The longer warm message. 50-90 chars ideal.
+- signoff: The short closer. 8-18 chars ideal.
 
-Headline clarity rule:
-The headline must make the occasion unambiguous on its own — the card may be seen without context. For each occasion, the headline must include at least one word that signals the occasion:
-- Birthday: include 'BIRTHDAY', 'BDAY', 'HAPPY [age]TH BIRTHDAY', 'HAPPY BIRTHDAY [name]', or similar. 'HAPPY 25TH' alone is NOT acceptable — it must pair with 'BIRTHDAY' or a name to make occasion obvious.
-- Sympathy/Memorial: include 'IN MEMORY', 'WITH SYMPATHY', 'REST IN PEACE', 'IN LOVING MEMORY', 'FOREVER REMEMBERED', or similar.
-- Congratulations: include 'CONGRATULATIONS', 'CONGRATS', 'WELL DONE', 'YOU DID IT', or similar.
-- Business Promo: the business name plus the offering or value prop (e.g. 'FRESH CUTS', 'NEW MENU', 'GRAND OPENING').
-- Invitation: include 'YOU'RE INVITED', 'JOIN US', 'SAVE THE DATE', or the event name (e.g. 'HOUSEWARMING', 'BABY SHOWER').
-Stay within the 28-character headline budget. If the literal occasion word doesn't fit, abbreviate creatively while preserving clarity (e.g. 'BDAY' instead of 'BIRTHDAY', 'CONGRATS' instead of 'CONGRATULATIONS').
+Title quality rules:
+1. Reads as a coherent human statement — occasion signal + recipient fused, not two fragments.
+2. Occasion must be unambiguous — include at least one signal word (BIRTHDAY, SYMPATHY, CONGRATS, INVITED, etc.) unless context makes it obvious.
+3. Natural-case names: 'AMA' in input → 'Ama' in title (never 'AMA').
+4. No invented names: if no recipient given, use 'YOU' / 'FRIEND' or omit.
+5. Family collective nouns preserved: 'Mensah Family' not 'Mensah'.
+6. Max 36 characters — trim signal word if needed ('BDAY' not 'BIRTHDAY').
+7. Sympathy titles lead with empathy ('WITH SYMPATHY', 'WE GRIEVE WITH YOU') — never a eulogy headline.
 
-Recipient name prominence:
-Treat the recipient_name as the single most important visual element on the card. The headline supports it; the name is the hero. Choose copy that lets the name breathe — don't bury it in a long compound headline. If the headline is short and punchy ('HAPPY BIRTHDAY' or 'CONGRATULATIONS!'), the name has room to dominate. If you find yourself writing a 25-character headline AND a long name AND a 130-character body, prioritize: trim the headline so the name's typography can be larger downstream.
+Title is the hero:
+The title is the single most important visual element — it renders in the largest, most prominent typography. Keep it short and powerful. A tight title ('CONGRATS, JAMES!') has more visual impact than a sprawling one ('HUGE CONGRATULATIONS TO YOU, JAMES!'). If you approach the 36-character budget, trim the occasion signal first — a short title lands harder.
 
 Easter egg behavior:
 If the user description is fewer than ~5 characters, contains no recognizable words, or is clearly nonsense (e.g. 'asdf', 'kkkk', '...', '?'), treat this as an easter egg request. Generate a card that is playful, chaotic-but-charming, and surprising — something that leans hard into the selected occasion and vibe but with a self-aware, fun twist. The card should feel like a delightful surprise, not a generic fallback. Examples of the spirit: a 'mystery person' birthday card that's warm and absurd, a sympathy card with quietly witty phrasing, a business card for a 'definitely real business.' Stay within the picked occasion and vibe — chaos-birthday-playful, not chaos-into-anything. Set recipient_name to something playful like 'Mystery Guest', 'You', or leave it empty depending on what reads best. All character budget rules still apply.
@@ -177,7 +165,7 @@ Pick the layoutId that genuinely best serves THIS card's emotional register AND 
 
 Content-length rules (mandatory):
 - If body length is over 70 characters: use centered_framed, top_heavy, magazine_split, or vignette_center. These have larger body zones.
-- If body length is under 70 characters AND recipient_name is one or two words: hero_name_radial and banner_horizontal become available.
+- If body length is under 70 characters AND title is short (20 characters or fewer): hero_name_radial and banner_horizontal become available.
 - Use asymmetric_diagonal for body length 50-90 characters with a clean modern feel.
 
 Emotional fit guidance:
@@ -263,7 +251,7 @@ Typography guidance:
 
 VARY your typographyId — never default to the same pairing repeatedly. Check RECENT_PAIRINGS and pick something different.
 
-Pairing catalog (hero = name slot, the largest typography on the card):
+Pairing catalog (hero = title slot, the largest typography on the card):
 - classical_elegant  — Playfair Display serif hero — formal occasions, anniversaries, milestone celebrations, church
 - modern_clean       — Inter sans hero — minimalist business, professional, contemporary
 - bold_impact        — Bebas Neue condensed hero — energetic congratulations, loud celebrations, announcements
@@ -372,13 +360,12 @@ General rules:
 The n8n parse node (Code node) must check ALL of the following. If ANY check fails, set `parseSuccess: false` and include a `parseError` field describing what failed — this routes into the retry branch:
 
 1. JSON parses cleanly
-2. `copy.headline.length <= 28`
-3. `copy.recipient_name.length <= 30`
-4. `copy.body.length <= 130`
-5. `copy.signoff.length <= 24`
-6. `design_brief.layoutId` is one of the 7 valid layoutId values
-7. `design_brief.typographyId` is one of the 12 valid typographyId values
-8. `design_brief.decoration_density` is one of: `'sparse'`, `'moderate'`, `'rich'`
+2. `copy.title.length <= 36`
+3. `copy.body.length <= 130`
+4. `copy.signoff.length <= 24`
+5. `design_brief.layoutId` is one of the 7 valid layoutId values
+6. `design_brief.typographyId` is one of the 12 valid typographyId values
+7. `design_brief.decoration_density` is one of: `'sparse'`, `'moderate'`, `'rich'`
 
 ```javascript
 const raw = $input.item.json.content[0].text;
@@ -389,31 +376,6 @@ try {
   return [{ json: { parseSuccess: false, parseError: 'Invalid JSON: ' + e.message } }];
 }
 
-// Sanitize recipient_name: strip salutations/prefixes Claude may have added
-function sanitizeRecipientName(raw) {
-  if (!raw || typeof raw !== 'string') return raw;
-  const prefixPatterns = [
-    /^happy\s+birthday\s+/i,
-    /^dear\s+/i,
-    /^congratulations\s+(to\s+)?/i,
-    /^in\s+loving\s+memory\s+of\s+/i,
-    /^to\s+/i,
-  ];
-  let name = raw.trim();
-  for (const pat of prefixPatterns) {
-    name = name.replace(pat, '').trim();
-  }
-  return name;
-}
-if (parsed.copy && typeof parsed.copy.recipient_name === 'string' && parsed.copy.recipient_name) {
-  parsed.copy.recipient_name = sanitizeRecipientName(parsed.copy.recipient_name);
-}
-
-const validOccasions = [
-  'birthday', 'sympathy', 'congrats', 'business', 'invitation',
-  'happy_new_month', 'mothers_day', 'fathers_day', 'valentines_day',
-  'eid', 'christmas', 'new_year', 'easter', 'independence_day'
-];
 const validLayouts = ['centered_framed', 'asymmetric_diagonal', 'top_heavy', 'magazine_split', 'vignette_center', 'banner_horizontal', 'hero_name_radial'];
 const validTypography = ['classical_elegant', 'modern_clean', 'bold_impact', 'romantic_serif', 'warm_handwritten', 'minimal_swiss', 'script_romance', 'editorial_serif', 'playful_display', 'bold_geometric', 'warm_personal', 'urban_modern'];
 const validDensity = ['sparse', 'moderate', 'rich'];
@@ -428,8 +390,7 @@ const validThemes = [
 const errors = [];
 if (!parsed.copy) errors.push('missing copy');
 else {
-  if (!parsed.copy.headline || parsed.copy.headline.length > 28) errors.push(`headline length ${parsed.copy.headline?.length} exceeds 28`);
-  if (typeof parsed.copy.recipient_name !== 'string' || parsed.copy.recipient_name.length > 30) errors.push(`recipient_name must be a string, max 30 chars`);
+  if (!parsed.copy.title || parsed.copy.title.length > 36) errors.push(`title length ${parsed.copy.title?.length} exceeds 36`);
   if (!parsed.copy.body || parsed.copy.body.length > 130) errors.push(`body length ${parsed.copy.body?.length} exceeds 130`);
   if (!parsed.copy.signoff || parsed.copy.signoff.length > 24) errors.push(`signoff length exceeds 24`);
 }
@@ -632,8 +593,7 @@ POST to `{callbackUrl}`:
     "text_treatment": "..."
   },
   "copy": {
-    "headline": "...",
-    "recipient_name": "...",
+    "title": "...",
     "body": "...",
     "signoff": "..."
   },
