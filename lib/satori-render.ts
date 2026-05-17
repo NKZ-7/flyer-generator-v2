@@ -3,38 +3,28 @@ import sharp from 'sharp';
 import type { DesignBrief, FlyerCopyV2 } from './types';
 import { LAYOUTS, validateSlotGaps } from './render/layouts';
 import { TYPOGRAPHY_PAIRINGS, loadTypographyFonts } from './render/typography';
+import type { FontSpec, TypographyPairing } from './render/typography';
 import { CANVAS_DIMENSIONS, DEFAULT_CANVAS_FORMAT, BASE_FONT_SIZE_PX, AUTO_FIT } from './render/render-config';
 import { THEMES } from './render/themes';
 
 const { width: CANVAS_W, height: CANVAS_H } = CANVAS_DIMENSIONS[DEFAULT_CANVAS_FORMAT];
 
 // Slot keys in order of compositing — bottom to top visually
-const SLOTS = ['headline', 'name', 'body', 'signoff'] as const;
+const SLOTS = ['title', 'body', 'signoff'] as const;
 type Slot = typeof SLOTS[number];
 
 // Max lines heuristic per slot
 const MAX_LINES: Record<Slot, number> = {
-  headline: 2,
-  name:     2,
-  body:     6,
-  signoff:  2,
+  title:   3,
+  body:    6,
+  signoff: 2,
 };
 
-// Name slot must visually dominate the headline — per-layout ratios enforce this.
-// Uses max() so the pairing's natural name size is never reduced below its own floor.
-const LAYOUT_NAME_RATIOS: Record<string, number> = {
-  centered_framed:     1.8,
-  vignette_center:     1.8,
-  hero_name_radial:    1.8,
-  top_heavy:           1.5,
-  magazine_split:      1.5,
-  asymmetric_diagonal: 1.4,
-  banner_horizontal:   1.4,
-};
-
-function copyValue(copy: FlyerCopyV2, slot: Slot): string {
-  if (slot === 'name') return copy.recipient_name;
-  return copy[slot];
+// Map each slot to the correct TypographyPairing spec:
+// title uses the name/display spec (the pairing's hero font), body and signoff use their own.
+function slotSpec(typo: TypographyPairing, slot: Slot): FontSpec {
+  if (slot === 'title') return typo.name;
+  return typo[slot];
 }
 
 export async function renderFlyerToBase64(
@@ -59,7 +49,7 @@ export async function renderFlyerToBase64(
   validateSlotGaps(zones, CANVAS_H, designBrief.layoutId);
 
   console.log('[render] Layout:', designBrief.layoutId, 'Theme:', designBrief.decorative_theme, 'Typography:', designBrief.typographyId);
-  console.log(`[typography] pairing=${designBrief.typographyId} name_font=${typo.name.font} headline_font=${typo.headline.font} body_font=${typo.body.font}`);
+  console.log(`[typography] pairing=${designBrief.typographyId} title_font=${typo.name.font} body_font=${typo.body.font}`);
 
   // Text colors are owned by the theme — no canvas sampling, no fallback logic.
   if (!THEMES[designBrief.decorative_theme]) {
@@ -67,39 +57,27 @@ export async function renderFlyerToBase64(
   }
   const theme = THEMES[designBrief.decorative_theme] ?? THEMES['watercolor_florals_sparse'];
   const textColors: Record<Slot, string> = {
-    headline: theme.textColorAccent,
-    name:     theme.textColorLegibility,
-    body:     theme.textColorLegibility,
-    signoff:  theme.textColorAccent,
+    title:   theme.textColorAccent,
+    body:    theme.textColorLegibility,
+    signoff: theme.textColorAccent,
   };
-  console.log(`[text-color] theme=${designBrief.decorative_theme} headline=${textColors.headline} name=${textColors.name} body=${textColors.body} signoff=${textColors.signoff} source=theme`);
+  console.log(`[text-color] theme=${designBrief.decorative_theme} title=${textColors.title} body=${textColors.body} signoff=${textColors.signoff} source=theme`);
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
 
   for (const slot of SLOTS) {
-    const text = copyValue(copy, slot).trim();
+    const text = copy[slot]?.trim();
     if (!text) continue;
 
     const zone   = zones[slot];
-    const spec   = typo[slot];
+    const spec   = slotSpec(typo, slot);
     const maxLn  = MAX_LINES[slot];
-    const align  = slot === 'name' ? 'center' : layout.text_alignment[slot];
     const color  = textColors[slot];
 
     console.log(`[render] About to render ${slot} slot. Text: "${text.slice(0, 40)}${text.length > 40 ? '...' : ''}" Color: ${color}`);
 
     // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
-    let fontSize: number;
-    if (slot === 'name') {
-      const headlineBaseSize = Math.round(BASE_FONT_SIZE_PX * typo.headline.sizeRatio * scaleFactor);
-      const nameRatio = LAYOUT_NAME_RATIOS[designBrief.layoutId] ?? 1.6;
-      fontSize = Math.max(
-        Math.round(headlineBaseSize * nameRatio),
-        Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor),
-      );
-    } else {
-      fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
-    }
+    let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
     const minFontSize = Math.round(fontSize * AUTO_FIT.min_size_ratio);
     for (let i = 0; i < AUTO_FIT.max_iterations; i++) {
       const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
@@ -134,10 +112,8 @@ export async function renderFlyerToBase64(
               height: zoneH,
               display: 'flex' as const,
               flexDirection: 'column' as const,
-              justifyContent: 'flex-start' as const,
+              justifyContent: slot === 'title' ? 'center' : 'flex-start' as const,
               overflow: 'hidden' as const,
-              paddingTop:    slot === 'name' ? Math.round(28 * scaleFactor) : 0,
-              paddingBottom: slot === 'name' ? Math.round(28 * scaleFactor) : 0,
             },
             children: {
               type: 'span',
@@ -147,7 +123,7 @@ export async function renderFlyerToBase64(
                   fontSize,
                   fontWeight: spec.weight,
                   color,
-                  textAlign: align,
+                  textAlign: 'center' as const,
                   lineHeight: slot === 'body' ? 1.5 : 1.2,
                   wordBreak: 'break-word' as const,
                   width: '100%',
@@ -168,10 +144,9 @@ export async function renderFlyerToBase64(
   // Debug zone outlines — activated via debugZones param OR DEBUG_ZONES=true env var
   if (debugZones || process.env.DEBUG_ZONES === 'true') {
     const debugColors: Record<Slot, string> = {
-      headline: 'rgba(255,0,0,0.35)',
-      name:     'rgba(0,200,0,0.35)',
-      body:     'rgba(0,80,255,0.35)',
-      signoff:  'rgba(255,140,0,0.35)',
+      title:   'rgba(0,200,0,0.35)',
+      body:    'rgba(0,80,255,0.35)',
+      signoff: 'rgba(255,140,0,0.35)',
     };
     for (const slot of SLOTS) {
       const zone = zones[slot];

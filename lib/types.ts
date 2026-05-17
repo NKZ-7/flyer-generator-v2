@@ -84,7 +84,7 @@ export interface FlyerPreferences {
   eventDate?: string;
   venue?: string;
   contactInfo?: string;
-  // The user's full free-text description. Claude extracts recipient_name from this in Stage A.
+  // The user's full free-text description. Claude constructs the title from this in Stage A.
   // title is kept for backward compat but is no longer populated by the form.
   additionalContext?: string;
   region?: string;
@@ -150,11 +150,10 @@ export type DesignBrief = {
   text_treatment: string;
 };
 
-// 4-field copy shape for GPT-canvas path.
+// 3-field copy shape for GPT-canvas path.
 // Named FlyerCopyV2 to avoid collision with legacy 5-field FlyerCopy (composite path).
 export type FlyerCopyV2 = {
-  headline: string;
-  recipient_name: string;
+  title: string;      // unified hero slot — occasion phrase + recipient name as one statement
   body: string;
   signoff: string;
   // Optional event details — Claude extracts from free text or uses form fields
