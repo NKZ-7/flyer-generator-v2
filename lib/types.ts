@@ -148,6 +148,7 @@ export type DesignBrief = {
   decoration_density: DecorationDensity;
   decorative_theme: ThemeId;
   text_treatment: string;
+  focal_motif?: string;
 };
 
 // 3-field copy shape for GPT-canvas path.

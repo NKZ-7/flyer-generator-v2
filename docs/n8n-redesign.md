@@ -122,7 +122,8 @@ Produce JSON in EXACTLY this shape:
     "typographyId": "one of: classical_elegant | modern_clean | bold_impact | romantic_serif | warm_handwritten | minimal_swiss | script_romance | editorial_serif | playful_display | bold_geometric | warm_personal | urban_modern",
     "decoration_density": "one of: sparse | moderate | rich",
     "decorative_theme": "one of the 12 theme IDs listed below",
-    "text_treatment": "description of the empty text zone, e.g. soft cream wash with subtle paper texture"
+    "text_treatment": "description of the empty text zone, e.g. soft cream wash with subtle paper texture",
+    "focal_motif": "OPTIONAL — empty string or 1-4 word descriptor personalizing the anchor element. Examples: 'graduation cap with diploma scroll', 'paper airplane in flight', 'stethoscope', 'barber razor and comb'. Return empty string when no specific motif emerges from input."
   }
 }
 
@@ -348,6 +349,31 @@ If the user's notes mention WHO is sending the card (e.g. 'from his sister', 'lo
 If no sender is mentioned, use a warm impersonal closer like 'With love', 'Warmly', 'Thinking of you', etc. — depending on occasion tone.
 
 The sender mention should feel natural and warm, never formulaic. Don't append the sender as a separate line if it doesn't read smoothly with the closer.
+
+Focal motif selection:
+Based on the user's free-text input, infer a focal motif that personalizes the card. The motif is a 1-4 word descriptor of an object, symbol, or scene that visually anchors the recipient's identity, profession, hobby, age, or the occasion's context.
+
+Look for explicit signals:
+- Profession: "medical student" → 'stethoscope'; "engineer" → 'gears and tools'; "teacher" → 'open book with pencil'; "chef" → 'whisk with herbs'; "musician" → 'relevant instrument silhouette'
+- Hobby: "loves planes" → 'paper airplane in flight'; "soccer fan" → 'soccer ball'; "reader" → 'stack of books'; "gardener" → 'watering can with plants'; "gamer" → 'controller silhouette'
+- Age + context: "12 year old loves planes" → 'paper airplane in flight'; "retiring" → 'sunset over open road'; "graduation" → 'graduation cap with tassel'
+- Achievement: "Stanford grad" → 'graduation cap with diploma scroll'; "new baby" → 'baby footprints'; "wedding" → 'wedding rings'; "anniversary" → 'two intertwined rings'
+- Cultural occasion: "Eid card" → 'crescent moon with star'; "Christmas" → 'evergreen branch with ornaments'; "Independence Day, Ghana" → 'Ghana flag with star'
+- Religious (when explicit): "baptism" → 'dove with olive branch'; "first communion" → 'chalice with bread'
+
+When no clear motif emerges: return focal_motif: "" (empty string). Do not invent details. "Birthday card for Ama turning 25" with no other context → return empty.
+Aggressive inference: when signal is clear, commit. "Kojo becoming a doctor" → 'stethoscope'. "James graduating Stanford" → 'graduation cap with diploma scroll'.
+
+Safety — never return a motif involving: weapons designed to harm (guns, knives as weapons, military weaponry; hunter's rifle acceptable when user explicitly frames a hunting context), hate symbols (swastikas, Confederate flag, white nationalist or terrorist iconography), explicit sexual imagery, drug paraphernalia in a celebratory context. Return focal_motif: "" if a banned motif is requested.
+
+Examples:
+"Birthday card for my friend Kwame, who's a chef. He's turning 30." → focal_motif: "chef's whisk with herbs"
+"Congratulations card for James on his graduation from Stanford." → focal_motif: "graduation cap with diploma scroll"
+"Sympathy card for the Mensah family on the loss of their father." → focal_motif: "" (sympathy — use theme-default florals or wreath)
+"Birthday card for my 12-year-old nephew who loves planes." → focal_motif: "paper airplane in flight"
+"Eid card for my parents." → focal_motif: "crescent moon with star"
+"Promo for Kojo's Barbershop — fresh cuts every weekend" → focal_motif: "barber razor and comb"
+"Anniversary card for my wife. 10 years married." → focal_motif: "two intertwined wedding rings"
 
 General rules:
 - Forbidden: cliches, hollow phrases, anything generic.
@@ -600,7 +626,8 @@ POST to `{callbackUrl}`:
     "typographyId": "warm_handwritten",
     "decoration_density": "sparse",
     "decorative_theme": "watercolor_florals_sparse",
-    "text_treatment": "..."
+    "text_treatment": "...",
+    "focal_motif": "graduation cap with diploma scroll"
   },
   "copy": {
     "title": "...",
