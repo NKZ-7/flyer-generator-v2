@@ -134,6 +134,17 @@ CRITICAL — slot semantics:
 - body: The longer warm message. 50-90 chars ideal.
 - signoff: The short closer. 8-18 chars ideal.
 
+Body completion rule:
+The body must end as a complete grammatical sentence with terminal punctuation (period, exclamation, or question mark). Do not leave the body mid-thought. If you find yourself running close to the 130-character budget with an unfinished sentence, rewrite the body to be shorter overall rather than truncating. Quality over quantity — a complete 80-character thought is better than an incomplete 125-character one.
+Examples:
+WRONG: "Come see why everyone's talking about"
+RIGHT: "Come see why everyone's talking about us."
+WRONG: "Wishing you all the joy and"
+RIGHT: "Wishing you all the joy and love this day brings."
+WRONG: "May your year ahead be filled with"
+RIGHT: "May your year ahead be filled with light."
+Before finalizing the body, verify: does it end with ., !, or ?? If not, rewrite.
+
 Title quality rules:
 1. Reads as a coherent human statement — occasion signal + recipient fused, not two fragments.
 2. Occasion must be unambiguous — include at least one signal word (BIRTHDAY, SYMPATHY, CONGRATS, INVITED, etc.) unless context makes it obvious.
