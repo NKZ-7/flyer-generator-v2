@@ -14,9 +14,9 @@ const SLOTS = ['title', 'body', 'signoff'] as const;
 type Slot = typeof SLOTS[number];
 
 // Max lines heuristic per slot
-// Title is capped at 1: it must never wrap — auto-fit shrinks to fit single line
+// Title allows 2 lines so short titles can word-wrap naturally; auto-fit only kicks in for genuinely long text
 const MAX_LINES: Record<Slot, number> = {
-  title:   1,
+  title:   2,
   body:    6,
   signoff: 2,
 };
@@ -78,18 +78,20 @@ export async function renderFlyerToBase64(
     console.log(`[render] About to render ${slot} slot. Text: "${text.slice(0, 40)}${text.length > 40 ? '...' : ''}" Color: ${color}`);
 
     // Auto-fit: char-count heuristic — reduce font size until text fits within maxLn lines
-    // Title uses 0.6 (conservative) because large display fonts render wider than body fonts
     let fontSize = Math.round(BASE_FONT_SIZE_PX * spec.sizeRatio * scaleFactor);
     const minFontSize = Math.round(fontSize * AUTO_FIT.min_size_ratio);
-    const charWidthFactor = slot === 'title' ? 0.6 : 0.55;
     for (let i = 0; i < AUTO_FIT.max_iterations; i++) {
-      const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * charWidthFactor));
+      const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
       const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1));
       if (estimatedLines <= maxLn || fontSize <= minFontSize) break;
       fontSize -= AUTO_FIT.size_step_px;
     }
     if (slot === 'title' && fontSize <= minFontSize) {
-      console.warn(`[render] Title "${text}" still too long at min font size ${minFontSize}px — Stage A title exceeds budget, rendering with ellipsis`);
+      const charsPerLine = Math.floor((zone.width * scaleFactor) / (fontSize * 0.55));
+      const finalLines = Math.ceil(text.length / Math.max(charsPerLine, 1));
+      if (finalLines > maxLn) {
+        console.warn(`[render] Title "${text}" overflows at min font size ${minFontSize}px — Stage A produced a title too long for this zone, will clip`);
+      }
     }
 
     const zoneW = Math.round(zone.width  * scaleFactor);
@@ -131,9 +133,9 @@ export async function renderFlyerToBase64(
                   color,
                   textAlign: 'center' as const,
                   lineHeight: slot === 'body' ? 1.5 : 1.2,
-                  // Title: single-line only, no wrapping, graceful ellipsis if still overflows at min size
+                  // Title: word-boundary breaks only (no mid-word splits); body/signoff allow break-word
                   ...(slot === 'title'
-                    ? { whiteSpace: 'nowrap' as const, overflow: 'hidden' as const, textOverflow: 'ellipsis' as const }
+                    ? { wordBreak: 'normal' as const }
                     : { wordBreak: 'break-word' as const }),
                   width: '100%',
                 },

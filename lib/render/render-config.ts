@@ -24,7 +24,7 @@ export const LEGIBILITY_TEXT_COLOR_LIGHT = '#FAF6F0';
 export const LEGIBILITY_LUMINANCE_THRESHOLD = 0.5;
 
 export const AUTO_FIT = {
-  max_iterations: 10,
+  max_iterations: 30,  // 30 steps × 2px = 60px shrink range; enough for any display font at any zone width
   size_step_px:   2,
   min_size_ratio: 0.6,
 };
