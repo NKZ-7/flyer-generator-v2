@@ -250,7 +250,10 @@ Copy-writing principles (apply to all occasions):
 
 Typography guidance:
 
-VARY your typographyId — never default to the same pairing repeatedly. Check RECENT_PAIRINGS and pick something different.
+User typography override (highest precedence):
+If the request includes a USER TYPOGRAPHY OVERRIDE line, you MUST use that exact typographyId. The variety rotation rule does not apply when the user has explicitly picked a font. User choice wins over variety.
+
+VARY your typographyId — never default to the same pairing repeatedly. Check RECENT_PAIRINGS and pick something different. (Only applies when no user override is present.)
 
 Pairing catalog (hero = title slot, the largest typography on the card):
 - classical_elegant  — Playfair Display serif hero — formal occasions, anniversaries, milestone celebrations, church
