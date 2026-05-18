@@ -486,6 +486,7 @@ const d = $input.first().json;
 const { design_brief, occasion, vibe } = d;
 const zoneInstructions = GPT_ZONE_INSTRUCTIONS[design_brief.layoutId] || GPT_ZONE_INSTRUCTIONS.centered_framed;
 const tags = Array.isArray(design_brief.energy_tags) ? design_brief.energy_tags.join(', ') : '';
+const focalMotif = (design_brief.focal_motif || '').trim();
 
 const imagePrompt = [
   'Create a square 1024x1024 designed canvas for a greeting card.',
@@ -520,17 +521,22 @@ const imagePrompt = [
   `- Respect theme aesthetic. The focal element and the supporting decoration should belong to the same visual world. A celebration theme's focal element could be a confetti burst or party motif; a sympathy theme's focal element could be a single large wreath or quiet floral spray; a business theme's focal element could be a strong abstract shape or pattern.`,
   '- Edge composition matters. Even subtle elements at the edges of the canvas — a vine trailing off the right side, a wash of color in the bottom corner — make the composition feel framed and intentional. Avoid hard empty edges.',
   'Think of the canvas as a complete designed piece where the content zone is the focal text area and the rest is the designed environment around it. Not a piece of paper with text in one spot and confetti randomly thrown around it.',
+  ...(focalMotif ? [
+    '',
+    `Focal motif: "${focalMotif}"`,
+    'Render this as the substantial anchor element in the decorative zone. It should occupy a meaningful portion of the canvas outside the content zone (a corner, quadrant, or half). It is the hero of the decoration — other theme elements (petals, dots, strokes) support around it.',
+    'Render in theme visual style: watercolor themes (watercolor_florals_sparse, watercolor_abstract, abundant_garden_borders) → soft watercolor illustration with bleeding edges and pigment washes; geometric themes (geometric_confetti, geometric_art_deco) → flat bold illustration with clean shapes in theme colors; line-art themes (minimalist_line_botanical) → single continuous-line drawing, monochrome; atmospheric themes (soft_brush_strokes, sunset_gradient) → motif blended into soft atmospheric wash; paper/vintage themes (vintage_paper_texture, botanical_herbarium) → pressed-specimen or vintage plate style.',
+  ] : [
+    '',
+    'No focal motif specified — use the theme default substantial anchor element (large floral cluster, bold confetti burst, atmospheric color wash, etc., as appropriate for the chosen theme).',
+  ]),
   '',
   `The empty text zones must be visually treated as: ${design_brief.text_treatment}. These zones are an INTENTIONAL part of the design -- they should feel like deliberate negative space, not blank gaps.`,
   '',
   'Premium quality, professional design, no text whatsoever, no letters, no numbers, no signatures, no watermarks.',
 ].join('\n');
 
-return [{ json: {
-  ...d,
-  imagePrompt,
-  imageRequestBody: { model: 'gpt-image-1', prompt: imagePrompt, n: 1, size: '1024x1024', quality: 'low' }
-} }];
+return [{ json: { ...d, imagePrompt, imageRequestBody: { model: 'gpt-image-1', prompt: imagePrompt, n: 1, size: '1024x1024', quality: 'low' } } }];
 ```
 
 ---
