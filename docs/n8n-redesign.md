@@ -134,17 +134,6 @@ CRITICAL — slot semantics:
 - body: The longer warm message. 50-90 chars ideal.
 - signoff: The short closer. 8-18 chars ideal.
 
-Body completion rule:
-The body must end as a complete grammatical sentence with terminal punctuation (period, exclamation, or question mark). Do not leave the body mid-thought. If you find yourself running close to the 130-character budget with an unfinished sentence, rewrite the body to be shorter overall rather than truncating. Quality over quantity — a complete 80-character thought is better than an incomplete 125-character one.
-Examples:
-WRONG: "Come see why everyone's talking about"
-RIGHT: "Come see why everyone's talking about us."
-WRONG: "Wishing you all the joy and"
-RIGHT: "Wishing you all the joy and love this day brings."
-WRONG: "May your year ahead be filled with"
-RIGHT: "May your year ahead be filled with light."
-Before finalizing the body, verify: does it end with ., !, or ?? If not, rewrite.
-
 Title quality rules:
 1. Reads as a coherent human statement — occasion signal + recipient fused, not two fragments.
 2. Occasion must be unambiguous — include at least one signal word (BIRTHDAY, SYMPATHY, CONGRATS, INVITED, etc.) unless context makes it obvious.
@@ -226,7 +215,7 @@ business / promo:
 invitation:
   - Hosts-to-guests. "Join us," "we'd love to have you," "you're invited."
   - When sender is named, include as host: "Esi and Kwame invite you to their housewarming."
-  - Extract date/venue/contact into the appropriate optional fields, not the body.
+  - Include key practical details (date, time, venue) in the body when the user provided them — see "Invitation and Business Promo bodies" rule below.
 
 happy_new_month: hopeful, fresh-start energy, brief and uplifting
 mothers_day: deeply warm, gratitude-focused, sentimental
@@ -390,6 +379,33 @@ General rules:
 - Forbidden: cliches, hollow phrases, anything generic.
 - The copy should feel personal, not template-stamped.
 - Stay within character budgets. Meaning over decoration.
+
+Invitation and Business Promo bodies — include practical details:
+When the user's input includes specific date, time, venue, address, or contact information for an Invitation or Business Promo occasion, include the most important practical details in the body copy. Don't drop the address if the user took the trouble to mention it.
+Prioritization when space is tight:
+1. Date + time (most essential)
+2. Venue or address (next most essential)
+3. Contact or RSVP info (only if room)
+Examples:
+- Input: "Housewarming from Esi and Kwame, this Saturday at 7pm, 23 Oxford Street"
+  → Acceptable body: "Join us Saturday at 7pm, 23 Oxford Street. Can't wait to see you there."
+  → Acceptable body: "Saturday, 7pm at 23 Oxford Street. Come hang with us."
+- Input: "Birthday party for Ama, Saturday March 5 at Bloom Café from 6pm"
+  → Acceptable body: "Saturday March 5 at Bloom Café, from 6pm. Come celebrate Ama!"
+Don't pad addresses with extra prose when the budget is tight. "Saturday at 7pm, 23 Oxford Street" is more useful than "We can't wait to see you on Saturday."
+Birthday, Sympathy, and Congratulations cards don't typically require addresses or times in the body — Stage A should not invent or force them.
+Only include address/time/venue when the user explicitly mentioned them. Never invent or assume.
+
+CRITICAL — Complete sentences before finalizing:
+Before outputting the JSON, re-read every text field (title, body, signoff). Each one MUST be a complete grammatical thought ending in ., !, or ?.
+If any field ends mid-thought, mid-word, or with a hanging preposition/conjunction (and, with, for, the, a, an, of, in, on, at, to, but, or), REWRITE it before producing the JSON. There is no exception to this rule.
+Examples of incomplete endings that must be rewritten:
+  "Come see why everyone's talking about" — rewrite as "Come see why everyone's talking about us."
+  "Join us for an evening of food and" — rewrite as "Join us for an evening of food and laughter."
+  "Can't wait to see" — rewrite as "Can't wait to see you there."
+  "Wishing you a year filled with" — rewrite as "Wishing you a year filled with joy."
+The 130-character body budget is a maximum, not a target. A complete 80-character thought is always better than an incomplete 120-character one. Quality wins over quantity. If you can't fit a complete thought in 130 chars, shorten the body — never truncate.
+Likewise: the title (~36 char budget) and signoff (~24 char budget) must each be complete and grammatically whole. No mid-thought endings, ever.
 ```
 
 #### Validation rules in the parse node
