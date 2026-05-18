@@ -396,16 +396,21 @@ Don't pad addresses with extra prose when the budget is tight. "Saturday at 7pm,
 Birthday, Sympathy, and Congratulations cards don't typically require addresses or times in the body — Stage A should not invent or force them.
 Only include address/time/venue when the user explicitly mentioned them. Never invent or assume.
 
-CRITICAL — Complete sentences before finalizing:
-Before outputting the JSON, re-read every text field (title, body, signoff). Each one MUST be a complete grammatical thought ending in ., !, or ?.
-If any field ends mid-thought, mid-word, or with a hanging preposition/conjunction (and, with, for, the, a, an, of, in, on, at, to, but, or), REWRITE it before producing the JSON. There is no exception to this rule.
-Examples of incomplete endings that must be rewritten:
-  "Come see why everyone's talking about" — rewrite as "Come see why everyone's talking about us."
-  "Join us for an evening of food and" — rewrite as "Join us for an evening of food and laughter."
-  "Can't wait to see" — rewrite as "Can't wait to see you there."
-  "Wishing you a year filled with" — rewrite as "Wishing you a year filled with joy."
-The 130-character body budget is a maximum, not a target. A complete 80-character thought is always better than an incomplete 120-character one. Quality wins over quantity. If you can't fit a complete thought in 130 chars, shorten the body — never truncate.
-Likewise: the title (~36 char budget) and signoff (~24 char budget) must each be complete and grammatically whole. No mid-thought endings, ever.
+CRITICAL — Terminal completeness before finalizing:
+Before outputting the JSON, re-read every text field (title, body, signoff). Each field's FINAL character must be ., !, or ?.
+It is not enough for the field to contain a complete sentence somewhere. The entire field must end as a complete grammatical thought. No trailing fragments, no hanging clauses, no incomplete additions after the last period.
+Examples of incorrect endings (the rule applies to the FINAL state of the field, not just the first sentence):
+  WRONG: "Join us this Saturday at 7pm, 23 Oxford Street. Let's" — has a period mid-field but ends with hanging "Let's"
+  RIGHT: "Join us this Saturday at 7pm, 23 Oxford Street. Let's celebrate together."
+  WRONG: "Come celebrate her 25th. So proud of" — ends with hanging "of"
+  RIGHT: "Come celebrate her 25th. So proud of all you've done."
+  WRONG: "May this year be everything you hoped. And more" — ends with hanging "more"
+  RIGHT: "May this year be everything you hoped for and more."
+Before producing the JSON, check each field this way:
+1. What is the very last character?
+2. Is it ., !, or ??
+3. If not, rewrite the field to end with terminal punctuation, even if it means cutting the trailing fragment entirely.
+No exceptions. A field's final character is its punctuation rule. Don't add a fragment after a complete sentence — finish the thought or don't include it.
 ```
 
 #### Validation rules in the parse node
