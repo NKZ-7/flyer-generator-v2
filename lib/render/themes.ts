@@ -18,7 +18,7 @@ export type DecorativeTheme = {
   gpt_decoration_prompt: string;
   compatible_vibes: ('elegant' | 'warm' | 'playful' | 'bold' | 'church' | 'minimal')[];
   compatible_occasions: (
-    | 'birthday' | 'sympathy' | 'congrats' | 'business' | 'invitation'
+    | 'birthday' | 'sympathy' | 'motivation' | 'congrats' | 'business' | 'invitation'
     | 'happy_new_month' | 'mothers_day' | 'fathers_day' | 'valentines_day'
     | 'eid' | 'christmas' | 'new_year' | 'easter' | 'independence_day'
   )[];
@@ -37,7 +37,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'Two small floral clusters in opposite corners with abundant breathing room. ' +
       'Hand-painted feel, gentle washes, no harsh lines.',
     compatible_vibes: ['elegant', 'warm', 'minimal'],
-    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
+    compatible_occasions: ['birthday', 'sympathy', 'motivation', 'congrats', 'invitation',
       'happy_new_month', 'mothers_day', 'valentines_day', 'easter', 'independence_day'],
     textColorAccent:      '#7A3838',
     textColorLegibility:  '#1F1A14',
@@ -81,7 +81,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'delicate accents. Warm gold and soft cream tones, with optional gentle navy or ' +
       'rose hints. No floral elements.',
     compatible_vibes: ['elegant', 'warm', 'minimal'],
-    compatible_occasions: ['birthday', 'sympathy', 'congrats', 'invitation',
+    compatible_occasions: ['birthday', 'sympathy', 'motivation', 'congrats', 'invitation',
       'christmas', 'new_year', 'eid', 'easter', 'valentines_day'],
     textColorAccent:      '#7B5C1E',
     textColorLegibility:  '#1F1A14',
@@ -96,7 +96,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'fine ink line on cream background. Modern, restrained, and quiet. Negative space ' +
       'is the dominant aesthetic.',
     compatible_vibes: ['minimal', 'elegant', 'church'],
-    compatible_occasions: ['sympathy', 'business', 'invitation', 'birthday',
+    compatible_occasions: ['sympathy', 'motivation', 'business', 'invitation', 'birthday',
       'happy_new_month', 'fathers_day', 'independence_day', 'easter'],
     textColorAccent:      '#3C4A3A',
     textColorLegibility:  '#1F1A14',
@@ -111,7 +111,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'and ivory tones, possibly with a faint border or aged corner accents. Quiet and ' +
       'timeless. No bright colors.',
     compatible_vibes: ['elegant', 'church', 'warm'],
-    compatible_occasions: ['sympathy', 'invitation', 'business',
+    compatible_occasions: ['sympathy', 'motivation', 'invitation', 'business',
       'fathers_day', 'christmas', 'easter', 'eid'],
     textColorAccent:      '#6B4C2A',
     textColorLegibility:  '#2A1F0F',
@@ -139,7 +139,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'decorated zones, with no specific objects or shapes. Purely textural. Calming ' +
       'and atmospheric, like watercolor experiments on paper. Warm muted tones.',
     compatible_vibes: ['elegant', 'minimal', 'warm'],
-    compatible_occasions: ['sympathy', 'business', 'invitation', 'congrats',
+    compatible_occasions: ['sympathy', 'motivation', 'business', 'invitation', 'congrats',
       'happy_new_month', 'mothers_day', 'fathers_day', 'valentines_day', 'easter'],
     textColorAccent:      '#6B4E37',
     textColorLegibility:  '#1F1A14',
@@ -154,7 +154,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'wildflower, on cream paper. Refined and quiet, with naturalist precision. Sage ' +
       'and olive tones, with subtle warm browns.',
     compatible_vibes: ['elegant', 'minimal', 'church'],
-    compatible_occasions: ['sympathy', 'congrats', 'invitation', 'business',
+    compatible_occasions: ['sympathy', 'motivation', 'congrats', 'invitation', 'business',
       'mothers_day', 'fathers_day', 'easter'],
     textColorAccent:      '#3D5A3E',
     textColorLegibility:  '#1F1A14',
@@ -183,7 +183,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'softly: blush, lavender, peach, butter yellow, or soft sage. Gentle and ' +
       'understated.',
     compatible_vibes: ['warm', 'elegant', 'minimal'],
-    compatible_occasions: ['sympathy', 'birthday', 'congrats',
+    compatible_occasions: ['sympathy', 'motivation', 'birthday', 'congrats',
       'happy_new_month', 'mothers_day', 'valentines_day', 'easter'],
     textColorAccent:      '#7A4060',
     textColorLegibility:  '#1F1A14',
@@ -197,7 +197,7 @@ export const THEMES: Record<ThemeId, DecorativeTheme> = {
       'between warm cream, blush, peach, and golden hues. Minimal additional decoration: ' +
       'perhaps one or two delicate accent shapes. Modern and vibe-driven.',
     compatible_vibes: ['warm', 'minimal', 'bold'],
-    compatible_occasions: ['birthday', 'congrats', 'invitation',
+    compatible_occasions: ['birthday', 'motivation', 'congrats', 'invitation',
       'happy_new_month', 'new_year', 'independence_day', 'fathers_day'],
     textColorAccent:      '#9A4400',
     textColorLegibility:  '#1F1A14',
