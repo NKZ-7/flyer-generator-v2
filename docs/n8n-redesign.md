@@ -91,6 +91,8 @@ Per-occasion patterns (starting points — vary them):
 - Congrats: 'CONGRATS, JAMES!' / 'YOU DID IT, AMA!' / 'WELL DONE, DR. MENSAH'
 - Business: 'FRESH CUTS AT KOJO'S' / 'GRAND OPENING!' / 'NEW MENU — WHO'S IN?'
 - Invitation: 'YOU'RE INVITED!' / 'JOIN US, FRIEND' / 'HOUSEWARMING — ESI & KWAME'
+- Motivation: 'YOU GOT THIS' / 'YOU'VE GOT THIS, [NAME]' / 'KEEP GOING' / 'I BELIEVE IN YOU' / 'THINKING OF YOU' / 'FOR [NAME]' / 'STAY STRONG' / 'YOU CAN DO HARD THINGS'
+  (avoid clichés: never 'HANG IN THERE', 'CHIN UP', 'BETTER DAYS')
 
 Collective nouns: if the user wrote "family," "household," "team," the title MUST include that word.
 - "the Mensah family" → title contains 'Mensah Family' (e.g. 'WITH SYMPATHY, MENSAH FAMILY')
@@ -217,6 +219,22 @@ invitation:
   - When sender is named, include as host: "Esi and Kwame invite you to their housewarming."
   - Include key practical details (date, time, venue) in the body when the user provided them — see "Invitation and Business Promo bodies" rule below.
 
+motivation:
+  - Cards in this category exist to lift the recipient up. The sender is reminding the recipient of their strength, capability, or worth — or quietly supporting them through a hard moment without grief framing.
+  - Address the recipient directly in second person ("you," "your"). Always.
+  - Avoid greeting-card boilerplate like "Hang in there!" / "Better days ahead!" Real friends don't write that.
+  - The body should feel specific to a person, even when the user input is sparse. Use the user's emotional language when they provided it.
+  - Never assume the cause. Don't write "I know your divorce has been hard" unless the user mentioned divorce. Stay supportive without naming what isn't named.
+  - The card should leave the recipient feeling stronger, more seen, or more capable — not pitied.
+  - NEVER use phrases like "I'm so sorry for your loss," "sending condolences," or any grief-coded language for Motivation cards. These belong to sympathy, not motivation.
+  - Vibe determines register:
+    - warm/heartfelt → quietly supportive, intimate — "I'm here with you, you've got this."
+    - bold/energetic → active push, exclamatory — "YOU GOT THIS. KEEP GOING."
+    - elegant/classy → measured strength — "You have what it takes. I believe in you."
+    - playful/fun → bright and chipper — "Reminder: you're amazing. That's the message."
+    - minimal/clean → spare and direct — "Keep going. You're doing it."
+    - church/traditional → faith-anchored — "He's with you in this season. You are stronger than you know."
+
 happy_new_month: hopeful, fresh-start energy, brief and uplifting
 mothers_day: deeply warm, gratitude-focused, sentimental
 fathers_day: warm but understated, appreciation-focused
@@ -316,6 +334,7 @@ Available themes (id: description):
 Compatibility (occasion | compatible themes):
 birthday         : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, balloon_streamer, geometric_art_deco, watercolor_abstract, sunset_gradient
 sympathy         : watercolor_florals_sparse, abundant_garden_borders, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract
+motivation       : watercolor_florals_sparse, celestial_dust, minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, watercolor_abstract, sunset_gradient
 congrats         : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, watercolor_abstract, sunset_gradient
 invitation       : watercolor_florals_sparse, abundant_garden_borders, geometric_confetti, celestial_dust, minimalist_line_botanical, vintage_paper_texture, balloon_streamer, soft_brush_strokes, botanical_herbarium, geometric_art_deco, sunset_gradient
 business         : minimalist_line_botanical, vintage_paper_texture, soft_brush_strokes, botanical_herbarium, geometric_art_deco
@@ -367,6 +386,18 @@ Look for explicit signals:
 When no clear motif emerges: return focal_motif: "" (empty string). Do not invent details. "Birthday card for Ama turning 25" with no other context → return empty.
 Aggressive inference: when signal is clear, commit. "Kojo becoming a doctor" → 'stethoscope'. "James graduating Stanford" → 'graduation cap with diploma scroll'.
 
+For Motivation cards, focal motifs should be hopeful, strengthening, or warm visual symbols — never sympathy-coded (wreaths, lilies, white roses). Good motif options:
+- "Sunrise over a horizon"
+- "Mountain peak with light breaking"
+- "Open hand reaching upward"
+- "Two hands clasped"
+- "Blooming flower against soft light"
+- "Bird in flight against open sky"
+- "Path leading forward through landscape"
+- "Star or constellation"
+- "Warm hearth or candle flame"
+When the user's input is specific (profession, hobby, or moment), lean into those signals: a runner before a marathon → "running shoes on a road"; a musician before a concert → "instrument in soft light."
+
 Safety — never return a motif involving: weapons designed to harm (guns, knives as weapons, military weaponry; hunter's rifle acceptable when user explicitly frames a hunting context), hate symbols (swastikas, Confederate flag, white nationalist or terrorist iconography), explicit sexual imagery, drug paraphernalia in a celebratory context. Return focal_motif: "" if a banned motif is requested.
 
 Focal motif must be a visual concept only — no numbers, dates, or text:
@@ -403,6 +434,31 @@ Examples:
 "Eid card for my parents." → focal_motif: "crescent moon with star"
 "Promo for Kojo's Barbershop — fresh cuts every weekend" → focal_motif: "barber razor and comb"
 "Anniversary card for my wife. 10 years married." → focal_motif: "two intertwined wedding rings"
+
+Motivation worked examples:
+
+EXAMPLE — Motivation, Warm vibe, friend going through a hard season:
+User input: "A card for my friend Akua. She's going through a really tough season — divorce, work stress, just a lot. I want her to know she's loved and she'll come through this."
+WRONG (sympathy-coded, generic):
+  Title: "WITH SYMPATHY" — wrong occasion framing
+  Body: "I'm so sorry you're going through this difficult time. Sending you my deepest love and support." — reads as a death notice
+RIGHT (motivation, warm, addressed to her):
+  Title: "THINKING OF YOU, AKUA"
+  Body: "This is a hard season, but you are not the season. You're strong, loved, and going to come through this."
+  Signoff: "Always in your corner"
+
+EXAMPLE — Motivation, Bold vibe, encouragement before a big exam:
+User input: "Card for my brother Kojo — he has his medical school finals next week. He's been studying like crazy."
+  Title: "YOU GOT THIS, KOJO"
+  Body: "All those late nights, every page memorized — it all comes together this week. Go show them."
+  Signoff: "Proud of you, brother"
+
+EXAMPLE — Motivation, Warm vibe, no specific cause given:
+User input: "A quiet card for someone going through a hard time."
+  Title: "THINKING OF YOU"
+  Body: "I don't know exactly what you're carrying right now, but I know it's heavy. You're stronger than you feel today."
+  Signoff: "Always here"
+  (Notice: no assumption about the cause. No "your loss" framing. Just present, supportive, warm.)
 
 General rules:
 - Forbidden: cliches, hollow phrases, anything generic.
