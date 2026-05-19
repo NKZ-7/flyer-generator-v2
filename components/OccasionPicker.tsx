@@ -5,6 +5,7 @@ import type { FlyerPreferences } from '@/lib/types';
 export const OCCASIONS = [
   { value: 'birthday',   label: 'Birthday',            icon: '🎂' },
   { value: 'sympathy',   label: 'Sympathy / Memorial', icon: '🕊️' },
+  { value: 'motivation', label: 'Motivation',           icon: '🌅' },
   { value: 'congrats',   label: 'Congratulations',     icon: '🎉' },
   { value: 'business',   label: 'Business Promo',      icon: '💼' },
   { value: 'invitation', label: 'Invitation',           icon: '📩' },

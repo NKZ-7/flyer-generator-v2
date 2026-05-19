@@ -16,7 +16,7 @@ The workflow receives a POST from `/api/flyer/start`:
   "callbackUrl": "string",
   "preferences": {
     "additionalContext": "string (the user's full free-text description)",
-    "occasion": "birthday | sympathy | congrats | business | invitation | happy_new_month | mothers_day | fathers_day | valentines_day | eid | christmas | new_year | easter | independence_day",
+    "occasion": "birthday | sympathy | motivation | congrats | business | invitation | happy_new_month | mothers_day | fathers_day | valentines_day | eid | christmas | new_year | easter | independence_day",
     "vibe": "elegant | warm | playful | bold | church | minimal",
     "tagline": "string",
     "eventDate": "string",
@@ -368,6 +368,32 @@ When no clear motif emerges: return focal_motif: "" (empty string). Do not inven
 Aggressive inference: when signal is clear, commit. "Kojo becoming a doctor" → 'stethoscope'. "James graduating Stanford" → 'graduation cap with diploma scroll'.
 
 Safety — never return a motif involving: weapons designed to harm (guns, knives as weapons, military weaponry; hunter's rifle acceptable when user explicitly frames a hunting context), hate symbols (swastikas, Confederate flag, white nationalist or terrorist iconography), explicit sexual imagery, drug paraphernalia in a celebratory context. Return focal_motif: "" if a banned motif is requested.
+
+Focal motif must be a visual concept only — no numbers, dates, or text:
+GPT image generation is unreliable when asked to render specific numbers, ages, dates, or words inside images. The focal motif description must describe a visual object or scene, never a textual or numerical element.
+
+WRONG — focal motifs that include text or numbers:
+- "30th birthday number with sunburst" (the "30" will render incorrectly)
+- "graduation cap with 'Class of 2026' banner" (the text will be garbled)
+- "anniversary card with '30 years' in the center" (the number will be wrong)
+- "champagne bottle with date label"
+- "calendar showing the wedding date"
+- "milestone marker with the age"
+
+RIGHT — focal motifs as pure visual concepts:
+- "celebratory sunburst with confetti" (instead of "30th birthday number")
+- "champagne flutes with bubbles rising" (instead of "30th anniversary")
+- "graduation cap with diploma scroll" (no text — visual object only)
+- "two intertwined wedding rings with floral spray" (no date — visual symbol)
+- "balloon cluster with streaming ribbons" (no numbers — pure visual)
+- "single peony in full bloom" (no labels — botanical object)
+
+Translate any age/date/year/text-containing input into a purely visual equivalent. For milestone birthdays, use celebratory visual symbols (sunbursts, balloons, confetti bursts, champagne, stars) — never numbers. For anniversaries, use unity symbols (intertwined rings, paired florals, two birds) — never year counts. For graduations, use achievement symbols (caps, scrolls, books) — never institution names or years.
+
+Before finalizing the focal_motif field, check:
+- Does the description contain any digits (0-9)? If yes, rewrite without them.
+- Does the description specify any text to render (words, names, labels)? If yes, rewrite as a pure visual concept.
+- Could a designer draw this without writing anything? If no, rewrite.
 
 Examples:
 "Birthday card for my friend Kwame, who's a chef. He's turning 30." → focal_motif: "chef's whisk with herbs"

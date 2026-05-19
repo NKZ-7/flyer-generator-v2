@@ -57,6 +57,7 @@ export type Occasion =
   // Visible in UI
   | 'birthday'
   | 'sympathy'
+  | 'motivation'
   | 'congrats'
   | 'business'
   | 'invitation'

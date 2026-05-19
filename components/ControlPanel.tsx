@@ -20,6 +20,7 @@ interface ControlPanelProps {
 const OCCASION_PLACEHOLDERS: Record<string, { tagline: string; venue: string }> = {
   birthday:   { tagline: "e.g. Wishing you all the joy in the world",  venue: 'e.g. The Grand Ballroom, Accra' },
   sympathy:   { tagline: 'e.g. Forever in our hearts',                  venue: 'e.g. Community Chapel' },
+  motivation: { tagline: 'e.g. You have what it takes',                 venue: 'e.g. —' },
   congrats:   { tagline: 'e.g. You made it — we always knew you would', venue: 'e.g. Head Office, Accra' },
   business:   { tagline: 'e.g. Unbeatable deals, every day',            venue: 'e.g. All branches nationwide' },
   invitation: { tagline: "e.g. The night you won't forget",             venue: 'e.g. National Theatre, Accra' },
