@@ -61,9 +61,6 @@ export function StudioLayout() {
               AI-POWERED CARDS &amp; FLYERS
             </span>
           </div>
-          <span className="ml-2 text-[10px] font-mono bg-amber-400/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-400/20 uppercase tracking-widest">
-            v2
-          </span>
         </div>
 
         <div className="flex items-center gap-1">
