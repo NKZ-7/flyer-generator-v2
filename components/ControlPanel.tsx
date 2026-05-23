@@ -184,23 +184,39 @@ export function ControlPanel({
 
   function ProgressIndicator({ current }: { current: 1 | 2 | 3 }) {
     return (
-      <div className="flex items-center justify-center gap-2 px-5 py-3 border-b border-warm-600 shrink-0">
+      <div className="flex items-center justify-center px-5 border-b border-warm-600 shrink-0">
         {([1, 2, 3] as const).map((n, i) => (
           <Fragment key={n}>
-            <div
-              className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-semibold border ${
-                n < current
-                  ? 'bg-amber-400 border-amber-400 text-zinc-950'
-                  : n === current
-                  ? 'bg-amber-400/20 border-amber-400 text-amber-300'
-                  : 'bg-warm-900 border-warm-600 text-[#6B5B4E]'
+            <button
+              type="button"
+              onClick={() => navigate(n)}
+              disabled={isGenerating || n === current}
+              aria-label={`Go to step ${n}: ${STEP_LABELS[n - 1]}`}
+              aria-current={n === current ? 'step' : undefined}
+              style={{ minWidth: 44, minHeight: 44 }}
+              className={`shrink-0 flex items-center justify-center rounded-full transition-opacity ${
+                n === current
+                  ? 'cursor-default'
+                  : isGenerating
+                  ? 'cursor-not-allowed opacity-40'
+                  : 'cursor-pointer hover:opacity-75'
               }`}
             >
-              {n < current ? '✓' : n}
-            </div>
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors pointer-events-none ${
+                  n < current
+                    ? 'bg-amber-400 border-amber-400 text-zinc-950'
+                    : n === current
+                    ? 'bg-amber-400/20 border-amber-400 text-amber-300'
+                    : 'bg-warm-900 border-warm-600 text-[#6B5B4E]'
+                }`}
+              >
+                {n < current ? '✓' : n}
+              </span>
+            </button>
             {i < 2 && (
               <div
-                className={`h-px w-8 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-warm-600'}`}
+                className={`h-px w-6 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-warm-600'}`}
               />
             )}
           </Fragment>
