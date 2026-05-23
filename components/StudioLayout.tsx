@@ -48,7 +48,7 @@ export function StudioLayout() {
   const showActions = generator.phase === 'done';
 
   return (
-    <div className="flex flex-col h-screen bg-warm-900 text-zinc-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-dvh bg-warm-900 text-zinc-100 overflow-hidden font-sans">
       {/* ── Header ────────────────────────────────────────────── */}
       <header className="flex items-center justify-between px-5 h-12 border-b border-warm-600 shrink-0 bg-warm-800">
         <div className="flex items-center gap-2.5">
