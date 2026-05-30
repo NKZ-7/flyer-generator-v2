@@ -23,6 +23,8 @@
     "@fontsource/playfair-display": "^5.2.8",
     "@fontsource/poppins": "^5.2.7",
     "@fontsource/raleway": "^5.2.8",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
     "@upstash/redis": "^1.37.0",
     "color": "^5.0.3",
     "next": "16.2.3",
