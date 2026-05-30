@@ -7,6 +7,7 @@ import { ControlPanel } from './ControlPanel';
 import { VersionStrip } from './VersionStrip';
 import { DownloadModal } from './DownloadModal';
 import { ActionsPanel } from './RefinementChat';
+import { AuthButton } from './AuthButton';
 import type { FlyerPreferences, UserAsset } from '@/lib/types';
 
 const defaultPrefs: FlyerPreferences = {
@@ -22,10 +23,14 @@ const defaultPrefs: FlyerPreferences = {
   region: '',
 };
 
-export function StudioLayout() {
+interface StudioLayoutProps {
+  initialPrefs?: Partial<FlyerPreferences>;
+}
+
+export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
   const generator = useGenerator();
   const [showDownload, setShowDownload] = useState(false);
-  const [prefs, setPrefs] = useState<FlyerPreferences>(defaultPrefs);
+  const [prefs, setPrefs] = useState<FlyerPreferences>({ ...defaultPrefs, ...initialPrefs });
   const [userAssets, setUserAssets] = useState<UserAsset[]>([]);
 
   function setPrefsKey<K extends keyof FlyerPreferences>(key: K, val: FlyerPreferences[K]) {
@@ -63,9 +68,12 @@ export function StudioLayout() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-[#7B6B5B] font-mono">AI ready</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-[#7B6B5B]">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-mono hidden sm:inline">AI ready</span>
+          </div>
+          <AuthButton />
         </div>
       </header>
 
