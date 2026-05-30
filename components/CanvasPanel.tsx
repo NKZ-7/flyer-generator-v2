@@ -2,6 +2,7 @@
 
 import type { GeneratorPhase, VersionEntry, FlyerPreferences } from '@/lib/types';
 import { StylePreview } from './StylePreview';
+import { SignInPrompt } from './SignInPrompt';
 
 interface CanvasPanelProps {
   phase: GeneratorPhase;
@@ -47,6 +48,9 @@ export function CanvasPanel({
           <ErrorState message={errorMsg} onRetry={onReset} />
         )}
       </div>
+
+      {/* Sign-in nudge — only for anonymous users after card is ready */}
+      {phase === 'done' && currentVersion && <SignInPrompt />}
 
       {/* Bottom toolbar — only when a flyer is ready */}
       {phase === 'done' && currentVersion && (
