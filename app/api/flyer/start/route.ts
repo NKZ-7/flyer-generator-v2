@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { createJob, getRecentThemes, getRecentPairings } from '@/lib/kv';
+import { createJob, getRecentThemes, getRecentPairings, setJobUserId, setJobPrefs } from '@/lib/kv';
 import { randomUUID, createHash } from 'crypto';
 import type { FlyerPreferences } from '@/lib/types';
+import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,21 @@ export async function POST(request: NextRequest) {
     const msg = err instanceof Error ? err.message : String(err);
     return Response.json({ error: `Redis error: ${msg}` }, { status: 500 });
   }
+
+  // Store user identity and form prefs for later Supabase card save (non-fatal)
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await setJobUserId(jobId, user.id);
+    }
+  } catch { /* non-fatal — anonymous generation still works */ }
+
+  setJobPrefs(jobId, {
+    occasion: preferences.occasion,
+    vibe: preferences.vibe,
+    additionalContext: preferences.additionalContext,
+  }).catch(() => { /* non-fatal */ });
 
   const webhookUrl = process.env.N8N_WEBHOOK_URL;
   if (!webhookUrl) {

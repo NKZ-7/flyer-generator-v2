@@ -122,6 +122,43 @@ export async function acquireRenderLock(jobId: string): Promise<boolean> {
   return result !== null;
 }
 
+// ── Per-job user identity (auth) ─────────────────────────────────────────────
+
+export async function setJobUserId(jobId: string, userId: string): Promise<void> {
+  await getRedis().set(`job:${jobId}:user`, userId, { ex: TTL });
+}
+
+export async function getJobUserId(jobId: string): Promise<string | null> {
+  return getRedis().get<string>(`job:${jobId}:user`);
+}
+
+// ── Per-job form prefs (occasion/vibe/description for DB save) ────────────────
+
+export interface JobPrefs {
+  occasion?: string;
+  vibe?: string;
+  additionalContext?: string;
+}
+
+export async function setJobPrefs(jobId: string, prefs: JobPrefs): Promise<void> {
+  await getRedis().set(`job:${jobId}:prefs`, JSON.stringify(prefs), { ex: TTL });
+}
+
+export async function getJobPrefs(jobId: string): Promise<JobPrefs | null> {
+  return getJson<JobPrefs>(`job:${jobId}:prefs`);
+}
+
+// ── Card-saved flag (prevents duplicate Supabase writes) ─────────────────────
+
+export async function markCardSaved(jobId: string): Promise<void> {
+  await getRedis().set(`job:${jobId}:card_saved`, '1', { ex: TTL });
+}
+
+export async function isCardSaved(jobId: string): Promise<boolean> {
+  const val = await getRedis().get(`job:${jobId}:card_saved`);
+  return val !== null;
+}
+
 // ── Theme memory (session-level, 24h TTL keyed by hashed IP+date) ─────────────
 
 /** Return the last ≤3 theme IDs used in this session, oldest-first. */

@@ -1,6 +1,40 @@
-import { getJobMeta, getJobRender, getJobCanvas, completeRender, failRender, acquireRenderLock } from '@/lib/kv';
+import { getJobMeta, getJobRender, getJobCanvas, completeRender, failRender, acquireRenderLock, getJobUserId, getJobPrefs, markCardSaved, isCardSaved } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
 import { renderTemplateToBase64 } from '@/lib/template-render';
+import type { DesignBrief, FlyerCopyV2 } from '@/lib/types';
+import { insertCard, uploadCardImage } from '@/lib/supabase/db';
+
+async function saveCardRecord(
+  jobId: string,
+  meta: { designBrief?: DesignBrief; copyV2?: FlyerCopyV2 },
+  dataUrl: string,
+): Promise<void> {
+  if (await isCardSaved(jobId)) return;
+
+  const userId = await getJobUserId(jobId);
+  if (!userId) return; // anonymous — skip
+
+  const prefs = await getJobPrefs(jobId);
+
+  const imageUrl = await uploadCardImage(jobId, dataUrl);
+
+  await insertCard({
+    user_id: userId,
+    title: meta.copyV2?.title ?? '',
+    body: meta.copyV2?.body ?? '',
+    signoff: meta.copyV2?.signoff ?? '',
+    occasion: prefs?.occasion ?? null,
+    vibe: prefs?.vibe ?? null,
+    typography_id: meta.designBrief?.typographyId ?? null,
+    theme_id: meta.designBrief?.decorative_theme ?? null,
+    layout_id: meta.designBrief?.layoutId ?? null,
+    focal_motif: meta.designBrief?.focal_motif ?? null,
+    image_url: imageUrl,
+    user_description: prefs?.additionalContext ?? null,
+  });
+
+  await markCardSaved(jobId);
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,6 +71,11 @@ export async function GET(
       dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, 1);
       await completeRender(jobId, dataUrl);
       render = { status: 'done', prerenderedDataUrl: dataUrl };
+
+      // Save card to Supabase for authenticated users (non-fatal)
+      saveCardRecord(jobId, meta, dataUrl).catch(err => {
+        console.error('[status] saveCard failed (non-fatal):', err instanceof Error ? err.message : err);
+      });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       await failRender(jobId, errMsg);
