@@ -23,7 +23,6 @@
 
 html, body {
   height: 100dvh;
-  overflow: hidden; /* Studio is full-viewport — no page scroll */
 }
 
 body {

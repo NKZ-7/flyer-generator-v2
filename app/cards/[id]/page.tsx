@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getCardById } from '@/lib/supabase/db';
 import { AuthButton } from '@/components/AuthButton';
+import { DownloadButton } from '@/components/DownloadButton';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -93,13 +94,11 @@ export default async function CardPage({ params }: PageProps) {
         {/* Actions */}
         <div className="flex gap-3 pt-1">
           {card.image_url && (
-            <a
-              href={card.image_url}
-              download={`sendly-${id.slice(0, 8)}.png`}
+            <DownloadButton
+              url={card.image_url}
+              filename={`sendly-${id.slice(0, 8)}.png`}
               className="flex-1 py-3 min-h-[44px] text-sm font-medium text-center border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors flex items-center justify-center"
-            >
-              Download
-            </a>
+            />
           )}
           <Link
             href={`/?prefill=${prefill}`}
