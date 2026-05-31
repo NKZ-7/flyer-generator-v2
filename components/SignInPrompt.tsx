@@ -8,16 +8,22 @@ export function SignInPrompt() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) setShow(true);
-    });
+    let subscription: { unsubscribe: () => void } | null = null;
+    try {
+      const supabase = createClient();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setShow(!session?.user);
-    });
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) setShow(true);
+      }).catch(() => setShow(true));
 
-    return () => subscription.unsubscribe();
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        setShow(!session?.user);
+      });
+      subscription = data.subscription;
+    } catch {
+      setShow(true);
+    }
+    return () => subscription?.unsubscribe();
   }, []);
 
   if (!show) return null;
