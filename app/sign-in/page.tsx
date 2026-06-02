@@ -1,14 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
-export default function SignInPage() {
-  const [email, setEmail] = useState('');
+const AUTH_ERRORS: Record<string, string> = {
+  auth_failed: "That sign-in link didn't work. Try again — they expire after a short time, and each link can only be used once.",
+  expired:     'That link has expired. Request a new one below.',
+};
+
+function SignInForm() {
+  const searchParams = useSearchParams();
+  const nextParam    = searchParams.get('next') ?? '/';
+  const errorCode    = searchParams.get('error') ?? null;
+
+  const [email, setEmail]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent]     = useState(false);
+  const [error, setError]   = useState<string | null>(
+    errorCode ? (AUTH_ERRORS[errorCode] ?? 'Something went wrong signing you in. Try again below.') : null,
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,9 +31,11 @@ export default function SignInPage() {
     setError(null);
 
     const supabase = createClient();
+    const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextParam)}`;
+
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: trimmed,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: callbackUrl },
     });
 
     setLoading(false);
@@ -74,6 +88,13 @@ export default function SignInPage() {
           </p>
         </div>
 
+        {/* Auth-error banner (shown when callback redirected here with ?error=) */}
+        {error && (
+          <div className="rounded bg-red-900/20 border border-red-500/30 px-4 py-3">
+            <p className="text-xs text-red-300 leading-relaxed">{error}</p>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -85,9 +106,6 @@ export default function SignInPage() {
             autoFocus
             className="w-full bg-warm-800 border border-warm-600 text-zinc-200 text-sm rounded px-4 py-3 placeholder-[#5A4C40] focus:outline-none focus:ring-1 focus:border-amber-400/50 focus:ring-amber-400/20 transition-colors"
           />
-          {error && (
-            <p className="text-xs text-red-400">{error}</p>
-          )}
           <button
             type="submit"
             disabled={loading || !email.trim()}
@@ -107,5 +125,14 @@ export default function SignInPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+// useSearchParams requires a Suspense boundary in the Next.js App Router.
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

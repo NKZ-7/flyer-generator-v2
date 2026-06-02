@@ -166,7 +166,7 @@ function RateLimitState({
         </div>
         <div className="flex flex-col items-center gap-2.5 w-full">
           <Link
-            href="/sign-in"
+            href="/sign-in?next=/"
             className="w-full px-4 py-2.5 text-xs font-semibold bg-amber-400 text-zinc-950 rounded hover:bg-amber-300 transition-colors text-center block"
           >
             Sign in
