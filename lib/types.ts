@@ -211,7 +211,13 @@ export interface JobStatusResponse {
 // UI state
 // ──────────────────────────────────────────────
 
-export type GeneratorPhase = 'idle' | 'generating' | 'done' | 'error';
+export type GeneratorPhase = 'idle' | 'generating' | 'done' | 'error' | 'rate_limited';
+
+export interface RateLimitInfo {
+  reason:  'anonymous' | 'signed_in';
+  resetAt: string; // ISO-8601 timestamp
+  remaining: number;
+}
 
 export type { CanvasFormat } from './render/render-config';
 

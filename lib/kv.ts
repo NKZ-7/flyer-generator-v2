@@ -6,8 +6,9 @@ let _redis: Redis | null = null;
 function getRedis(): Redis {
   if (!_redis) {
     _redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url:                  process.env.UPSTASH_REDIS_REST_URL!,
+      token:                process.env.UPSTASH_REDIS_REST_TOKEN!,
+      enableAutoPipelining: false,
     });
   }
   return _redis;
@@ -32,10 +33,8 @@ async function getJson<T>(key: string): Promise<T | null> {
 
 export async function createJob(jobId: string, sessionKey?: string): Promise<void> {
   const meta: JobMeta = { status: 'pending', ...(sessionKey ? { sessionKey } : {}) };
-  await Promise.all([
-    getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL }),
-    getRedis().set(renderKey(jobId), JSON.stringify({ status: 'pending' } satisfies JobRender), { ex: TTL }),
-  ]);
+  await getRedis().set(metaKey(jobId), JSON.stringify(meta), { ex: TTL });
+  await getRedis().set(renderKey(jobId), JSON.stringify({ status: 'pending' } satisfies JobRender), { ex: TTL });
 }
 
 export async function getJobMeta(jobId: string): Promise<JobMeta | null> {

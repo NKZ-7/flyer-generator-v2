@@ -1,6 +1,7 @@
 'use client';
 
-import type { GeneratorPhase, VersionEntry, FlyerPreferences } from '@/lib/types';
+import Link from 'next/link';
+import type { GeneratorPhase, RateLimitInfo, VersionEntry, FlyerPreferences } from '@/lib/types';
 import { StylePreview } from './StylePreview';
 import { SignInPrompt } from './SignInPrompt';
 
@@ -8,6 +9,7 @@ interface CanvasPanelProps {
   phase: GeneratorPhase;
   currentVersion: VersionEntry | null;
   errorMsg: string | null;
+  rateLimitInfo: RateLimitInfo | null;
   onDownload: () => void;
   onReset: () => void;
   prefs: FlyerPreferences;
@@ -17,6 +19,7 @@ export function CanvasPanel({
   phase,
   currentVersion,
   errorMsg,
+  rateLimitInfo,
   onDownload,
   onReset,
   prefs,
@@ -46,6 +49,9 @@ export function CanvasPanel({
         )}
         {phase === 'error' && (
           <ErrorState message={errorMsg} onRetry={onReset} />
+        )}
+        {phase === 'rate_limited' && rateLimitInfo && (
+          <RateLimitState info={rateLimitInfo} onReset={onReset} />
         )}
       </div>
 
@@ -118,6 +124,95 @@ function ErrorState({
       >
         Try again
       </button>
+    </div>
+  );
+}
+
+function RateLimitState({
+  info,
+  onReset,
+}: {
+  info: RateLimitInfo;
+  onReset: () => void;
+}) {
+  const resetDate = new Date(info.resetAt);
+
+  const friendlyDate = new Intl.DateTimeFormat(undefined, {
+    weekday: 'long',
+    month:   'long',
+    day:     'numeric',
+  }).format(resetDate);
+
+  const friendlyDateTime = new Intl.DateTimeFormat(undefined, {
+    month:  'long',
+    day:    'numeric',
+    hour:   'numeric',
+    minute: '2-digit',
+  }).format(resetDate);
+
+  if (info.reason === 'anonymous') {
+    return (
+      <div className="flex flex-col items-center gap-5 max-w-[260px] text-center">
+        <div className="w-10 h-10 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 text-base leading-none">
+          ◈
+        </div>
+        <div>
+          <p className="text-[#2A211A] text-sm font-semibold leading-snug">
+            You've made 4 cards in the last few days.
+          </p>
+          <p className="text-[#8B7355] text-xs mt-2 leading-relaxed">
+            Sign in to keep going — I'll save your future cards too.
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-2.5 w-full">
+          <Link
+            href="/sign-in"
+            className="w-full px-4 py-2.5 text-xs font-semibold bg-amber-400 text-zinc-950 rounded hover:bg-amber-300 transition-colors text-center block"
+          >
+            Sign in
+          </Link>
+          <p className="text-[#8B7355] text-[11px]">
+            Or come back on {friendlyDate}.
+          </p>
+          <button
+            onClick={onReset}
+            className="text-[11px] text-[#6B5B4E] hover:text-[#8B7355] transition-colors underline underline-offset-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Signed-in rate limit
+  return (
+    <div className="flex flex-col items-center gap-5 max-w-[260px] text-center">
+      <div className="w-10 h-10 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 text-base leading-none">
+        ◈
+      </div>
+      <div>
+        <p className="text-[#2A211A] text-sm font-semibold leading-snug">
+          You've made a lot today.
+        </p>
+        <p className="text-[#8B7355] text-xs mt-2 leading-relaxed">
+          Take a breath — you can make more starting {friendlyDateTime}.
+        </p>
+      </div>
+      <div className="flex flex-col items-center gap-2.5">
+        <Link
+          href="/history"
+          className="px-4 py-2 text-xs text-[#8B7355] border border-cream-border rounded hover:border-[#8B7355] hover:text-warm-800 transition-colors"
+        >
+          View your cards
+        </Link>
+        <button
+          onClick={onReset}
+          className="text-[11px] text-[#6B5B4E] hover:text-[#8B7355] transition-colors underline underline-offset-2"
+        >
+          Dismiss
+        </button>
+      </div>
     </div>
   );
 }

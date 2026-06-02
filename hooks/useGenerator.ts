@@ -5,6 +5,7 @@ import { usePolling } from './usePolling';
 import type {
   FlyerPreferences,
   GeneratorPhase,
+  RateLimitInfo,
   VersionEntry,
   JobMeta,
   UserAsset,
@@ -16,6 +17,7 @@ export function useGenerator() {
   const [phase, setPhase] = useState<GeneratorPhase>('idle');
   const [jobId, setJobId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
   const [versionHistory, setVersionHistory] = useState<VersionEntry[]>([]);
   const [currentVersion, setCurrentVersion] = useState<VersionEntry | null>(null);
   const [isRefining, setIsRefining] = useState(false);
@@ -82,6 +84,17 @@ export function useGenerator() {
           hasUserAssets: assets.length > 0,
         }),
       });
+
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        setRateLimitInfo({
+          reason:    (data.reason as RateLimitInfo['reason']) ?? 'anonymous',
+          resetAt:   (data.resetAt  as string) ?? new Date().toISOString(),
+          remaining: 0,
+        });
+        setPhase('rate_limited');
+        return;
+      }
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -151,6 +164,7 @@ export function useGenerator() {
     setJobId(null);
     jobIdRef.current = null;
     setErrorMsg(null);
+    setRateLimitInfo(null);
     setCurrentVersion(null);
     setIsRefining(false);
   }, []);
@@ -164,6 +178,7 @@ export function useGenerator() {
     phase,
     jobId,
     errorMsg,
+    rateLimitInfo,
     versionHistory,
     currentVersion,
     generate,

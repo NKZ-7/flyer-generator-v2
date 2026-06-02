@@ -69,10 +69,6 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-[#7B6B5B]">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono hidden sm:inline">AI ready</span>
-          </div>
           <AuthButton />
         </div>
       </header>
@@ -89,6 +85,7 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
             phase={generator.phase}
             currentVersion={generator.currentVersion}
             errorMsg={generator.errorMsg}
+            rateLimitInfo={generator.rateLimitInfo}
             onDownload={() => setShowDownload(true)}
             onReset={handleReset}
             prefs={prefs}
