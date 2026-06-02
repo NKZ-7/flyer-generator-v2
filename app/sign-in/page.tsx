@@ -41,7 +41,12 @@ function SignInForm() {
     setLoading(false);
 
     if (otpError) {
-      setError(otpError.message);
+      const msg = otpError.message.toLowerCase();
+      if (msg.includes('rate limit') || msg.includes('too many')) {
+        setError('You requested a few links in a row — wait a minute, then try again.');
+      } else {
+        setError(otpError.message);
+      }
     } else {
       setSent(true);
     }
