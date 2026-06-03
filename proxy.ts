@@ -1,52 +1,16 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
+import { type NextRequest } from 'next/server';
+import { updateSession } from '@/lib/supabase/middleware';
 
+// Next.js 16 uses proxy.ts (renamed from middleware.ts).
+// Session refresh and route protection live in lib/supabase/middleware.ts
+// following the canonical @supabase/ssr pattern.
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
-
-  // Refresh session — must happen before any auth check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protect /history and /cards — redirect to sign-in if not authenticated
-  const path = request.nextUrl.pathname;
-  if (
-    !user &&
-    (path.startsWith('/history') || path.startsWith('/cards/'))
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/sign-in';
-    return NextResponse.redirect(url);
-  }
-
-  return supabaseResponse;
+  return await updateSession(request);
 }
 
 export const config = {
   matcher: [
-    // Run on all routes except Next.js internals and static files
+    // Run on all routes except Next.js internals and static assets.
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

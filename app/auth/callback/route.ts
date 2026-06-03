@@ -28,10 +28,12 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get('code');
   const next = safeNext(url.searchParams.get('next'));
 
-  // Supabase sometimes delivers error params directly to the callback URL
-  // (e.g., when the magic link itself is invalid or the token has already been used).
-  if (url.searchParams.get('error')) {
-    return signInError(url, 'auth_failed', next);
+  // Supabase delivers error params directly to the callback URL for OAuth failures.
+  // access_denied means the user explicitly cancelled the Google consent screen.
+  const supabaseError = url.searchParams.get('error');
+  if (supabaseError) {
+    const code = supabaseError === 'access_denied' ? 'oauth_cancelled' : 'auth_failed';
+    return signInError(url, code, next);
   }
 
   if (!code) {
