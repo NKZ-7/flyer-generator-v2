@@ -7,6 +7,9 @@ import { OccasionPicker, OCCASIONS } from './OccasionPicker';
 import { VibePicker, VIBES } from './VibePicker';
 import type { FlyerPreferences, UserAsset, GeneratorPhase } from '@/lib/types';
 
+// Flip to true to restore the photo-upload section when post-launch photo support ships.
+const SHOW_PHOTO_UPLOAD = false;
+
 interface ControlPanelProps {
   phase: GeneratorPhase;
   onGenerate: (prefs: FlyerPreferences) => void;
@@ -352,36 +355,38 @@ export function ControlPanel({
 
           {/* Region */}
           <FloatingField
-            label="Your Region / Country"
+            label="Where you're from (optional)"
             value={prefs.region ?? ''}
             onChange={(v) => onPrefsChange('region', v)}
             placeholder="e.g. Nigeria, Ghana, UK, USA"
             disabled={isGenerating}
           />
 
-          {/* Photos & Assets */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-1">
-              Your Photos & Assets
-              <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
-                — optional
-              </span>
-            </p>
-            <p className="text-[10px] text-[#7B6B5B]mb-2 leading-relaxed">
-              Upload photos of people, products, or logos you want in your card.
-              We&rsquo;ll blend them into the design seamlessly.
-            </p>
-            {userAssets.length > 0 && !prefs.additionalContext && (
-              <p className="text-[10px] text-amber-400/70 mb-2 leading-relaxed">
-                Tip: use the text box above to explain who or what is in your photos.
+          {/* Photos & Assets — hidden until post-launch photo support ships */}
+          {SHOW_PHOTO_UPLOAD && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-1">
+                Your Photos & Assets
+                <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
+                  — optional
+                </span>
               </p>
-            )}
-            <AssetUploader
-              assets={userAssets}
-              onAssetsChange={onAssetsChange}
-              disabled={isGenerating}
-            />
-          </div>
+              <p className="text-[10px] text-[#7B6B5B]mb-2 leading-relaxed">
+                Upload photos of people, products, or logos you want in your card.
+                We&rsquo;ll blend them into the design seamlessly.
+              </p>
+              {userAssets.length > 0 && !prefs.additionalContext && (
+                <p className="text-[10px] text-amber-400/70 mb-2 leading-relaxed">
+                  Tip: use the text box above to explain who or what is in your photos.
+                </p>
+              )}
+              <AssetUploader
+                assets={userAssets}
+                onAssetsChange={onAssetsChange}
+                disabled={isGenerating}
+              />
+            </div>
+          )}
         </div>
       );
     }
