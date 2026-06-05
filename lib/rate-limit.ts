@@ -49,6 +49,58 @@ async function oldestResetAt(
   return new Date(Number(score ?? now) + windowMs);
 }
 
+// ── Usage info (read-only — does NOT increment counters) ─────────────────────
+
+export interface UsageInfo {
+  used:        number;
+  limit:       number;
+  remaining:   number;
+  resetAt:     Date;
+  resetWindow: 'daily' | 'rolling_3_days';
+}
+
+/** Read current anonymous usage without recording a new generation. */
+export async function getAnonymousUsage(anonId: string, ip: string): Promise<UsageInfo> {
+  const redis = getRedis();
+  const now         = Date.now();
+  const windowStart = now - ANON_WINDOW_MS;
+  const key1 = `rl:anon:${anonId}`;
+  const key2 = `rl:ip:${ip}`;
+
+  await redis.zremrangebyscore(key1, '-inf', windowStart);
+  await redis.zremrangebyscore(key2, '-inf', windowStart);
+  const c1 = Number(await redis.zcard(key1));
+  const c2 = Number(await redis.zcard(key2));
+  const used = Math.max(c1, c2);
+
+  return {
+    used,
+    limit:     ANONYMOUS_LIMIT,
+    remaining: Math.max(0, ANONYMOUS_LIMIT - used),
+    resetAt:   await oldestResetAt(redis, c2 >= c1 ? key2 : key1, now, ANON_WINDOW_MS),
+    resetWindow: 'rolling_3_days',
+  };
+}
+
+/** Read current signed-in usage without recording a new generation. */
+export async function getSignedInUsage(userId: string): Promise<UsageInfo> {
+  const redis = getRedis();
+  const now         = Date.now();
+  const windowStart = now - SIGNED_WINDOW_MS;
+  const key = `rl:user:${userId}`;
+
+  await redis.zremrangebyscore(key, '-inf', windowStart);
+  const used = Number(await redis.zcard(key));
+
+  return {
+    used,
+    limit:     SIGNED_IN_LIMIT,
+    remaining: Math.max(0, SIGNED_IN_LIMIT - used),
+    resetAt:   await oldestResetAt(redis, key, now, SIGNED_WINDOW_MS),
+    resetWindow: 'daily',
+  };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /** Check (and record) a card generation for an anonymous user.

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGenerator } from '@/hooks/useGenerator';
+import { useUsage } from '@/hooks/useUsage';
 import { CanvasPanel } from './CanvasPanel';
 import { ControlPanel } from './ControlPanel';
 import { VersionStrip } from './VersionStrip';
 import { DownloadModal } from './DownloadModal';
 import { ActionsPanel } from './RefinementChat';
 import { AuthButton } from './AuthButton';
+import { UsageCounter } from './UsageCounter';
 import type { FlyerPreferences, UserAsset } from '@/lib/types';
 
 const defaultPrefs: FlyerPreferences = {
@@ -29,9 +31,19 @@ interface StudioLayoutProps {
 
 export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
   const generator = useGenerator();
+  const { data: usageData, loading: usageLoading, refetch: refetchUsage } = useUsage();
   const [showDownload, setShowDownload] = useState(false);
   const [prefs, setPrefs] = useState<FlyerPreferences>({ ...defaultPrefs, ...initialPrefs });
   const [userAssets, setUserAssets] = useState<UserAsset[]>([]);
+
+  // Refetch usage counter immediately after a card generation completes.
+  const prevPhaseRef = useRef(generator.phase);
+  useEffect(() => {
+    if (prevPhaseRef.current === 'generating' && generator.phase === 'done') {
+      refetchUsage();
+    }
+    prevPhaseRef.current = generator.phase;
+  }, [generator.phase, refetchUsage]);
 
   function setPrefsKey<K extends keyof FlyerPreferences>(key: K, val: FlyerPreferences[K]) {
     setPrefs((prev) => ({ ...prev, [key]: val }));
@@ -68,7 +80,8 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <UsageCounter data={usageData} loading={usageLoading} />
           <AuthButton />
         </div>
       </header>
@@ -92,7 +105,7 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
           />
         </div>
 
-        {/* Right: controls + optional chat panel */}
+        {/* Right: controls + optional actions panel */}
         <div className="flex-1 md:flex-[2] min-w-0 min-h-0 flex flex-col overflow-hidden divide-y divide-warm-600">
           {/* IMPORTANT: overflow-hidden — ControlPanel scrolls internally per step */}
           <div className="flex-1 min-h-0 overflow-hidden">
