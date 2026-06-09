@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { DeleteAccountModal } from './DeleteAccountModal';
 
 export function AuthButton() {
   const [user, setUser]         = useState<User | null>(null);
   const [loading, setLoading]   = useState(true);
-  const [open, setOpen]         = useState(false);
-  const [avatarErr, setAvatarErr] = useState(false);
+  const [open, setOpen]               = useState(false);
+  const [avatarErr, setAvatarErr]     = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const wrapRef                 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,7 +123,18 @@ export function AuthButton() {
               Sign out
             </button>
           </form>
+          <div className="border-t border-warm-600/40" />
+          <button
+            onClick={() => { setOpen(false); setShowDeleteModal(true); }}
+            className="w-full text-left flex items-center px-4 py-3 text-xs text-red-400/50 hover:text-red-400/80 hover:bg-warm-700/50 transition-colors"
+          >
+            Delete my account
+          </button>
         </div>
+      )}
+
+      {showDeleteModal && (
+        <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />
       )}
     </div>
   );
