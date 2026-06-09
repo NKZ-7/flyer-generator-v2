@@ -114,6 +114,20 @@ export function AuthButton() {
           >
             My cards
           </Link>
+          <Link
+            href="/privacy"
+            onClick={() => setOpen(false)}
+            className="flex items-center px-4 py-3 text-xs text-[#9A8A7A] hover:text-zinc-200 hover:bg-warm-700/50 transition-colors"
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/terms"
+            onClick={() => setOpen(false)}
+            className="flex items-center px-4 py-3 text-xs text-[#9A8A7A] hover:text-zinc-200 hover:bg-warm-700/50 transition-colors"
+          >
+            Terms of Service
+          </Link>
           <div className="border-t border-warm-600/60" />
           <form action="/sign-out" method="POST">
             <button

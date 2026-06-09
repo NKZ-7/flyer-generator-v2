@@ -94,11 +94,11 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-3 mr-1">
-            <Link href="/privacy" className="text-[10px] text-[#3D2F25] hover:text-[#6B5B4E] transition-colors">
+          <div className="flex items-center gap-3 mr-1">
+            <Link href="/privacy" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-[10px] text-[#3D2F25] hover:text-[#6B5B4E] transition-colors">
+            <Link href="/terms" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
               Terms
             </Link>
           </div>
