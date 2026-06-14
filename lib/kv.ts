@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import type { JobMeta, JobRender, FlyerCopy, DesignSpec, TemplateCopy, DesignBrief, FlyerCopyV2 } from './types';
 import type { ThemeId } from './render/themes';
+import { uploadCanvasToStorage } from './supabase/db';
 
 let _redis: Redis | null = null;
 function getRedis(): Redis {
@@ -86,13 +87,22 @@ export async function completeRender(jobId: string, dataUrl?: string): Promise<v
   await getRedis().set(renderKey(jobId), JSON.stringify(render), { ex: TTL });
 }
 
-/** Store large canvas base64 in a dedicated key to stay under the 1MB per-value Redis limit. */
+/** Upload canvas (~3MB) to Supabase Storage (bypasses Redis 1MB per-value limit),
+ *  then store only the public URL in Redis. */
 export async function storeJobCanvas(jobId: string, base64: string): Promise<void> {
-  await getRedis().set(canvasKey(jobId), base64, { ex: TTL });
+  const url = await uploadCanvasToStorage(jobId, base64);
+  if (!url) throw new Error('Failed to upload canvas to Supabase Storage');
+  await getRedis().set(canvasKey(jobId), url, { ex: TTL });
 }
 
+/** Fetch canvas from Supabase Storage via its public URL and return as base64. */
 export async function getJobCanvas(jobId: string): Promise<string | null> {
-  return getRedis().get<string>(canvasKey(jobId));
+  const url = await getRedis().get<string>(canvasKey(jobId));
+  if (!url) return null;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return buffer.toString('base64');
 }
 
 /** GPT-canvas path: store design brief + copy, mark canvas available. */

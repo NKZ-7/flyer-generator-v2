@@ -109,3 +109,23 @@ export async function uploadCardImage(
   const { data } = supabase.storage.from('card-images').getPublicUrl(path);
   return data.publicUrl;
 }
+
+/** Upload raw gptCanvasBase64 (~3MB) to Supabase Storage to avoid Redis per-value limits.
+ *  Returns the public URL, or null on failure. */
+export async function uploadCanvasToStorage(jobId: string, base64: string): Promise<string | null> {
+  const supabase = getServiceClient();
+  const buffer = Buffer.from(base64, 'base64');
+  const path = `canvas/${jobId}.png`;
+
+  const { error } = await supabase.storage
+    .from('card-images')
+    .upload(path, buffer, { contentType: 'image/png', upsert: true });
+
+  if (error) {
+    console.error('[db] uploadCanvasToStorage error:', error.message);
+    return null;
+  }
+
+  const { data } = supabase.storage.from('card-images').getPublicUrl(path);
+  return data.publicUrl;
+}
