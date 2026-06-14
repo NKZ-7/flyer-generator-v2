@@ -89,12 +89,34 @@ function SignInForm() {
           )}
         </button>
 
+        {/* Legal notice */}
+        <p className="text-center text-[11px] text-[#6B5B4E] leading-relaxed -mt-3">
+          By signing in, you agree to our{' '}
+          <Link href="/terms" className="text-[#9A8A7A] underline underline-offset-2 hover:text-zinc-300 transition-colors">
+            Terms
+          </Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="text-[#9A8A7A] underline underline-offset-2 hover:text-zinc-300 transition-colors">
+            Privacy Policy
+          </Link>.
+        </p>
+
         <div className="text-center">
           <Link
             href="/"
             className="text-xs text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors"
           >
             ← Back to Sendly
+          </Link>
+        </div>
+
+        {/* Footer links */}
+        <div className="flex justify-center gap-5 pt-2">
+          <Link href="/privacy" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
+            Privacy
+          </Link>
+          <Link href="/terms" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
+            Terms
           </Link>
         </div>
 
