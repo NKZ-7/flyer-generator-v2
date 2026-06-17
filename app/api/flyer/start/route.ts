@@ -27,7 +27,7 @@ interface WireAsset {
 
 function buildAnonCookie(anonId: string, secure: boolean): string {
   const maxAge = 365 * 24 * 60 * 60;
-  return `sendly_anon_id=${anonId}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure ? '; Secure' : ''}`;
+  return `cardonica_anon_id=${anonId}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure ? '; Secure' : ''}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   } catch { /* non-fatal — anonymous generation still works */ }
 
   // ── Anonymous identifier (cookie-first, IP fallback) ─────────────────────────
-  let anonId     = request.cookies.get('sendly_anon_id')?.value ?? null;
+  let anonId     = request.cookies.get('cardonica_anon_id')?.value ?? null;
   const isNewAnonId = !anonId;
   if (!anonId) anonId = randomUUID();
 

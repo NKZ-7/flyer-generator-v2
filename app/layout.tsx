@@ -44,7 +44,7 @@ const caveat = Caveat({ variable: '--font-caveat', subsets: ['latin'], weight: [
 const bebasNeue = Bebas_Neue({ variable: '--font-bebas', subsets: ['latin'], weight: ['400'] });
 
 export const metadata: Metadata = {
-  title: 'Sendly — AI Card & Flyer Maker',
+  title: 'Cardonica — AI Card & Flyer Maker',
   description: 'Create beautiful cards and flyers in seconds with AI.',
 };
 

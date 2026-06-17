@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   // Anonymous path — need cookie + IP.
   const ip     = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  const anonId = request.cookies.get('sendly_anon_id')?.value ?? 'unknown';
+  const anonId = request.cookies.get('cardonica_anon_id')?.value ?? 'unknown';
 
   try {
     const u   = await getAnonymousUsage(anonId, ip);

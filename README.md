@@ -1,4 +1,4 @@
-# Sendly — AI Card & Flyer Maker
+# Cardonica — AI Card & Flyer Maker
 
 AI-powered greeting cards and marketing flyers, generated in seconds.
 

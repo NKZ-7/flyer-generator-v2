@@ -57,7 +57,7 @@ export default async function HistoryPage() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <span className="text-amber-400 text-lg leading-none">◈</span>
           <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200 group-hover:text-amber-300 transition-colors">
-            Sendly
+            Cardonica
           </span>
         </Link>
         <AuthButton />

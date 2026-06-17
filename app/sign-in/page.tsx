@@ -51,7 +51,7 @@ function SignInForm() {
           <div className="flex items-center justify-center gap-2 mb-3">
             <span className="text-amber-400 text-2xl leading-none">◈</span>
             <span className="font-display text-xl font-semibold tracking-[0.2em] uppercase text-zinc-200">
-              Sendly
+              Cardonica
             </span>
           </div>
           <p className="text-sm text-[#9A8A7A] leading-relaxed">
@@ -106,7 +106,7 @@ function SignInForm() {
             href="/"
             className="text-xs text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors"
           >
-            ← Back to Sendly
+            ← Back to Cardonica
           </Link>
         </div>
 

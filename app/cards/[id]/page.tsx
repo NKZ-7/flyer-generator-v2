@@ -96,7 +96,7 @@ export default async function CardPage({ params }: PageProps) {
           {card.image_url && (
             <DownloadButton
               url={card.image_url}
-              filename={`sendly-${id.slice(0, 8)}.png`}
+              filename={`cardonica-${id.slice(0, 8)}.png`}
               className="flex-1 py-3 min-h-[44px] text-sm font-medium text-center border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors flex items-center justify-center"
             />
           )}

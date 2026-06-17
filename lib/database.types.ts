@@ -1,4 +1,4 @@
-// Minimal hand-written Database type for Sendly.
+// Minimal hand-written Database type for Cardonica.
 // Replace with generated types once the Supabase project is live:
 //   npx supabase gen types typescript --project-id <id> > lib/database.types.ts
 

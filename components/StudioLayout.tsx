@@ -85,7 +85,7 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
           <span className="text-amber-400 text-lg leading-none">◈</span>
           <div className="flex flex-col leading-none">
             <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200">
-              Sendly
+              Cardonica
             </span>
             <span className="text-[9px] text-[#6B5B4E] tracking-widest uppercase mt-0.5">
               AI-POWERED CARDS &amp; FLYERS

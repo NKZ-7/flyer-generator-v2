@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Sendly',
+  title: 'Privacy Policy — Cardonica',
 };
 
 export default function PrivacyPage() {
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <Link href="/" className="flex items-center gap-2">
           <span className="text-amber-400 text-lg leading-none">◈</span>
           <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200">
-            Sendly
+            Cardonica
           </span>
         </Link>
         <Link href="/" className="text-xs text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
@@ -27,8 +27,8 @@ export default function PrivacyPage() {
         <p className="text-sm text-[#6B5B4E] mb-8">Last updated: June 9, 2026</p>
 
         <p className="text-[#9A8A7A] leading-relaxed mb-10">
-          Sendly is a small tool, and we want to be upfront about what we collect and why.
-          This policy explains the data that flows through Sendly, where it goes, and what you can do about it.
+          Cardonica is a small tool, and we want to be upfront about what we collect and why.
+          This policy explains the data that flows through Cardonica, where it goes, and what you can do about it.
         </p>
 
         <Section title="What we collect">
@@ -132,8 +132,8 @@ export default function PrivacyPage() {
 
         <Section title="Children">
           <p className="text-[#9A8A7A] text-sm leading-relaxed">
-            Sendly is not intended for anyone under 13. We don&rsquo;t knowingly collect data from children under 13.
-            If you believe a child has used Sendly, email us at{' '}
+            Cardonica is not intended for anyone under 13. We don&rsquo;t knowingly collect data from children under 13.
+            If you believe a child has used Cardonica, email us at{' '}
             <a href="mailto:gabas2424@gmail.com" className="text-amber-400/80 hover:text-amber-400 transition-colors">
               gabas2424@gmail.com
             </a>{' '}
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
       {/* Footer */}
       <footer className="border-t border-warm-600 py-5 px-5 shrink-0">
         <div className="max-w-2xl mx-auto flex items-center justify-between text-[11px] text-[#6B5B4E]">
-          <span>&copy; 2026 Sendly by Asarri</span>
+          <span>&copy; 2026 Cardonica by Asarri</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-[#9A8A7A] transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-[#9A8A7A] transition-colors">Terms</Link>
