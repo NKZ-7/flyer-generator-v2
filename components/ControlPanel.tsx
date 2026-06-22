@@ -78,6 +78,8 @@ export function ControlPanel({
   const [transitioning, setTransitioning] = useState(false);
   const [titleError, setTitleError] = useState(false);
   const [surpriseSpinning, setSurpriseSpinning] = useState(false);
+  const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null);
+  const [hoveredFont, setHoveredFont] = useState<string | null>(null);
   const surpriseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const isGenerating = phase === 'generating';
@@ -407,17 +409,20 @@ export function ControlPanel({
               {COLOR_OPTIONS.map((opt) => {
                 const strips = COLOR_STRIPS[opt.value] ?? [];
                 const selected = prefs.colorScheme === opt.value;
+                const isHovered = !selected && hoveredSwatch === opt.value && !isGenerating;
                 return (
                   <div
                     key={opt.value}
                     onClick={() => !isGenerating && onPrefsChange('colorScheme', opt.value as FlyerPreferences['colorScheme'])}
+                    onMouseEnter={() => setHoveredSwatch(opt.value)}
+                    onMouseLeave={() => setHoveredSwatch(null)}
                     style={{
-                      background: selected ? 'rgba(227,169,60,0.08)' : '#241C13',
-                      border: selected ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
+                      background: selected ? 'rgba(227,169,60,0.08)' : isHovered ? 'rgba(227,169,60,0.05)' : '#241C13',
+                      border: selected ? '1px solid rgba(227,169,60,0.50)' : isHovered ? '1px solid rgba(227,169,60,0.35)' : '1px solid #33281B',
                       borderRadius: 12,
                       overflow: 'hidden',
                       cursor: isGenerating ? 'not-allowed' : 'pointer',
-                      transform: selected ? 'translateY(-1px)' : 'none',
+                      transform: selected || isHovered ? 'translateY(-1px)' : 'none',
                       boxShadow: selected ? '0 0 0 1px #E3A93C,0 8px 22px -10px rgba(227,169,60,0.6)' : 'none',
                       transition: 'all 0.15s',
                     }}
@@ -445,19 +450,22 @@ export function ControlPanel({
               {FONT_OPTIONS.map((opt) => {
                 const selected = prefs.fontStyle === opt.value;
                 const fontMeta = FONT_STYLE_MAP[opt.value];
+                const isFontHovered = !selected && hoveredFont === opt.value && !isGenerating;
                 if (!fontMeta) return null;
                 return (
                   <div
                     key={opt.value}
                     onClick={() => !isGenerating && onPrefsChange('fontStyle', opt.value as FlyerPreferences['fontStyle'])}
+                    onMouseEnter={() => setHoveredFont(opt.value)}
+                    onMouseLeave={() => setHoveredFont(null)}
                     style={{
-                      background: selected ? 'rgba(227,169,60,0.08)' : '#241C13',
-                      border: selected ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
+                      background: selected ? 'rgba(227,169,60,0.08)' : isFontHovered ? 'rgba(227,169,60,0.05)' : '#241C13',
+                      border: selected ? '1px solid rgba(227,169,60,0.50)' : isFontHovered ? '1px solid rgba(227,169,60,0.35)' : '1px solid #33281B',
                       borderRadius: 12,
                       padding: '14px 10px',
                       cursor: isGenerating ? 'not-allowed' : 'pointer',
                       textAlign: 'center',
-                      transform: selected ? 'translateY(-1px)' : 'none',
+                      transform: selected || isFontHovered ? 'translateY(-1px)' : 'none',
                       boxShadow: selected ? '0 0 0 1px #E3A93C,0 8px 22px -10px rgba(227,169,60,0.6)' : 'none',
                       transition: 'all 0.15s',
                     }}

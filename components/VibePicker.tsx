@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { FlyerPreferences } from '@/lib/types';
 
 export const VIBES = [
@@ -18,10 +19,13 @@ interface VibePickerProps {
 }
 
 export function VibePicker({ value, onChange, disabled }: VibePickerProps) {
+  const [hovered, setHovered] = useState<string | null>(null);
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
       {VIBES.map((opt) => {
         const selected = value === opt.value;
+        const isHovered = !selected && hovered === opt.value;
         return (
           <button
             key={opt.value}
@@ -29,6 +33,8 @@ export function VibePicker({ value, onChange, disabled }: VibePickerProps) {
             onClick={() => onChange(opt.value as FlyerPreferences['vibe'])}
             disabled={disabled}
             className="disabled:opacity-40 disabled:cursor-not-allowed"
+            onMouseEnter={() => setHovered(opt.value)}
+            onMouseLeave={() => setHovered(null)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -39,9 +45,10 @@ export function VibePicker({ value, onChange, disabled }: VibePickerProps) {
               fontSize: 13,
               cursor: 'pointer',
               transition: 'all 0.15s',
-              background: selected ? 'rgba(227,169,60,0.10)' : '#241C13',
-              border: selected ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
-              color: selected ? '#E9D9BF' : '#A8957F',
+              background: selected ? 'rgba(227,169,60,0.10)' : isHovered ? 'rgba(227,169,60,0.05)' : '#241C13',
+              border: selected ? '1px solid rgba(227,169,60,0.50)' : isHovered ? '1px solid rgba(227,169,60,0.35)' : '1px solid #33281B',
+              color: selected ? '#E9D9BF' : isHovered ? '#D8C9B4' : '#A8957F',
+              transform: isHovered ? 'translateY(-1px)' : 'none',
               width: '100%',
               textAlign: 'left',
             }}
