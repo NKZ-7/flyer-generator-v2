@@ -1,19 +1,49 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
-  --font-mono: var(--font-mono);
-  --font-oswald: var(--font-oswald);
-  --font-playfair: var(--font-playfair);
-
-  --color-warm-900: #1F1810;
-  --color-warm-800: #2A211A;
-  --color-warm-700: #342A22;
-  --color-warm-600: #3D3228;
-  --color-cream: #FAF6F0;
-  --color-cream-dim: #EFE5D8;
-  --color-cream-border: #D8C9B5;
+  /* surfaces */
+  --color-app:        #16110C;
+  --color-warm-900:   #1C160F;
+  --color-warm-850:   #1F1810;
+  --color-warm-800:   #241C13;
+  --color-warm-700:   #2E2417;
+  --color-warm-border:#33281B;
+  --color-warm-line:  #2E2418;
+  --color-warm-line2: #2A2014;
+  /* legacy aliases — keep untouched pages (terms/privacy/cards/error/FloatingField) coherent */
+  --color-warm-600:   #33281B;
+  --color-cream-border:#33281B;
+  --color-cream-dim:  #C4B49E;
+  /* text */
+  --color-cream:      #F1E8DB;
+  --color-cream-dim:  #C4B49E;
+  --color-muted:      #8A7560;
+  --color-muted-2:    #9A8472;
+  --color-dim:        #6B5742;
+  --color-dim-2:      #5E4E3E;
+  /* accent */
+  --color-gold:       #E3A93C;
+  --color-gold-bright:#E9B547;
+  --color-gold-deep:  #CF9530;
+  /* canvas */
+  --color-canvas-1:   #F6F0E5;
+  --color-canvas-2:   #E7DAC4;
+  --color-canvas-3:   #DCCDB2;
+  --color-canvas-ink: #3A2C1C;
+  --color-canvas-sub: #8A7257;
+  --color-canvas-bar: #CFBC9F;
+  /* fonts */
+  --font-sans:        var(--font-sans);
+  --font-display:     var(--font-display);
+  --font-mono:        var(--font-mono);
+  --font-oswald:      var(--font-oswald);
+  --font-playfair:    var(--font-playfair);
+  --font-cormorant:   var(--font-cormorant);
+  --font-great-vibes: var(--font-great-vibes);
+  --font-dancing:     var(--font-dancing);
+  --font-raleway:     var(--font-raleway);
+  --font-caveat:      var(--font-caveat);
+  --font-bebas:       var(--font-bebas);
 }
 
 /* ── Base reset ───────────────────────────────────────────── */
@@ -26,7 +56,7 @@ html, body {
 }
 
 body {
-  background: #1F1810;
+  background: #16110C;
   color: #f4f4f5;
   font-family: var(--font-sans, 'DM Sans', sans-serif);
   -webkit-font-smoothing: antialiased;
@@ -50,28 +80,22 @@ body {
   font-family: var(--font-playfair, 'Playfair Display', serif);
 }
 
-/* ── Shimmer animation (generate button) ─────────────────── */
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
+.font-cormorant { font-family: var(--font-cormorant, 'Cormorant Garamond', serif); }
+.font-great-vibes { font-family: var(--font-great-vibes, 'Great Vibes', cursive); }
+.font-dancing { font-family: var(--font-dancing, 'Dancing Script', cursive); }
+.font-raleway { font-family: var(--font-raleway, 'Raleway', sans-serif); }
+.font-caveat { font-family: var(--font-caveat, 'Caveat', cursive); }
+.font-bebas { font-family: var(--font-bebas, 'Bebas Neue', sans-serif); }
 
-.btn-generate-shimmer {
-  background-color: #fbbf24;
-  background-image: linear-gradient(
-    105deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.18) 50%,
-    transparent 60%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2.5s linear infinite;
+/* ── Buttons & cards ──────────────────────────────────────── */
+.btn-gold {
+  background: linear-gradient(150deg, #E9B547, #CF9530);
+  color: #1C160F;
+  box-shadow: 0 8px 22px -6px rgba(227,169,60,0.55);
+  transition: filter 0.15s;
 }
-
-.btn-generate-shimmer:hover {
-  background-color: #fcd34d;
-  animation-duration: 1.2s;
-}
+.btn-gold:hover { filter: brightness(1.06); }
+.card-shadow { box-shadow: 0 36px 70px -18px rgba(40,26,12,0.62), inset 0 0 0 1px rgba(255,255,255,0.06); }
 
 /* ── Step slide animations ────────────────────────────────── */
 @keyframes slideInRight  { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -84,103 +108,57 @@ body {
 .step-enter-backward { animation: slideInLeft   0.28s ease both; }
 .step-exit-backward  { animation: slideOutRight 0.28s ease both; pointer-events: none; }
 
-/* ── Accent swatch hover glow ─────────────────────────────── */
-.swatch-btn:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 5px var(--swatch-color));
-}
-
-/* ── Canvas scan animation (loading state) ────────────────── */
+/* ── Canvas / loading animations ──────────────────────────── */
 @keyframes scan {
-  0%   { top: 0%; opacity: 0; }
+  0%   { top: -10%; opacity: 0; }
   10%  { opacity: 1; }
   90%  { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  100% { top: 105%; opacity: 0; }
 }
-
-/* ── Ambient preview float animations (legacy, kept for safety) ── */
-@keyframes float-a {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  40%  { transform: translateY(-14px) rotate(3deg); }
-  70%  { transform: translateY(6px) rotate(-2deg); }
+@keyframes shimmer-gold {
+  0%   { background-position: -180% center; }
+  100% { background-position:  180% center; }
 }
-
-@keyframes float-b {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  30%  { transform: translateY(10px) rotate(-4deg); }
-  65%  { transform: translateY(-8px) rotate(2deg); }
-}
-
-@keyframes float-c {
-  0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
-  35%  { transform: translate(8px, -10px) rotate(5deg); }
-  70%  { transform: translate(-6px, 6px) rotate(-3deg); }
-}
-
-/* ── Motif directional drift animations ──────────────────── */
-@keyframes drift-ltr {
-  0%   { transform: translateX(-150px) rotate(-8deg);  opacity: 0; }
-  10%  { opacity: 1; }
-  88%  { opacity: 1; }
-  100% { transform: translateX(calc(100vw + 150px)) rotate(12deg); opacity: 0; }
-}
-
-@keyframes drift-rtl {
-  0%   { transform: translateX(calc(100vw + 150px)) rotate(8deg);  opacity: 0; }
-  10%  { opacity: 1; }
-  88%  { opacity: 1; }
-  100% { transform: translateX(-150px) rotate(-12deg); opacity: 0; }
-}
-
-@keyframes drift-diag-dn {
-  0%   { transform: translate(-130px, -60px) rotate(0deg);  opacity: 0; }
-  10%  { opacity: 1; }
-  88%  { opacity: 1; }
-  100% { transform: translate(calc(100vw + 130px), 60px) rotate(25deg); opacity: 0; }
-}
-
-@keyframes drift-diag-up {
-  0%   { transform: translate(-130px, 60px) rotate(0deg);  opacity: 0; }
-  10%  { opacity: 1; }
-  88%  { opacity: 1; }
-  100% { transform: translate(calc(100vw + 130px), -60px) rotate(-20deg); opacity: 0; }
-}
-
-/* ── Line drawing animations ─────────────────────────────── */
-@keyframes draw-offset {
-  0%   { stroke-dashoffset: 1000; }
-  80%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@keyframes fade-drawing {
-  0%   { opacity: 0; }
-  6%   { opacity: 0.35; }
-  78%  { opacity: 0.35; }
-  100% { opacity: 0; }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* ── Handwritten phrase reveal ────────────────────────────── */
-@keyframes phrase-wipe {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes phrase-hold-fade {
-  0%      { opacity: 1; }
-  81.25%  { opacity: 1; }
-  93.75%  { opacity: 0; }
-  100%    { opacity: 0; }
-}
+.animate-scan { animation: scan 2.1s ease-in-out infinite; }
+.animate-shimmer-gold { animation: shimmer-gold 1.5s linear infinite; }
+.animate-fade-up { animation: fade-up 0.45s ease both; }
+.animate-sheet-up { animation: sheet-up 0.3s cubic-bezier(0.32,0.72,0,1) both; }
+.animate-spin-slow { animation: spin-slow 1s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ambient-float, .motif-drift { animation: none !important; }
-  .line-draw { animation: none !important; stroke-dashoffset: 0; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ── Mobile responsiveness ────────────────────────────────── */
+@media (max-width: 767px) {
+  .studio-body { flex-direction: column !important; }
+  .canvas-panel { flex: none !important; height: 286px !important; }
+  .control-panel { flex: 1 !important; max-width: none !important; min-width: 0 !important; }
+}
+
+/* ── History grid ─────────────────────────────────────────── */
+.history-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 640px) {
+  .history-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 900px) {
+  .history-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* ── Scrollbar styling ────────────────────────────────────── */

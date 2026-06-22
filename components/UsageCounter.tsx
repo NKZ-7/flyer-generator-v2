@@ -22,20 +22,22 @@ export function UsageCounter({ data, loading }: UsageCounterProps) {
   // Nothing while loading — no skeleton, no reserved space
   if (loading || !data) return null;
 
-  const isZero  = data.remaining === 0;
-  const isOne   = data.remaining === 1;
-
   return (
-    <span
-      className={`text-[10px] font-mono tabular-nums px-2 py-0.5 rounded-full transition-colors ${
-        isZero
-          ? 'text-[#9A8A7A] bg-warm-700/40'
-          : isOne
-          ? 'text-amber-400/90 bg-amber-400/10'
-          : 'text-[#6B5B4E]'
-      }`}
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        background: '#241C13',
+        border: '1px solid #33281B',
+        borderRadius: 999,
+        padding: '4px 12px',
+      }}
     >
-      {chipLabel(data)}
-    </span>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E3A93C', flexShrink: 0 }} />
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#8A7560', whiteSpace: 'nowrap' }}>
+        {chipLabel(data)}
+      </span>
+    </div>
   );
 }

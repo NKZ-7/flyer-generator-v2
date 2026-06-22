@@ -78,27 +78,35 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
   const showActions = generator.phase === 'done';
 
   return (
-    <div className="flex flex-col h-dvh bg-warm-900 text-zinc-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-dvh overflow-hidden font-sans" style={{ background: '#16110C', color: '#F1E8DB' }}>
       {/* ── Header ────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-5 h-12 border-b border-warm-600 shrink-0 bg-warm-800">
+      <header
+        className="flex items-center justify-between px-5 shrink-0"
+        style={{ height: 60, background: '#1C160F', borderBottom: '1px solid #2E2418' }}
+      >
         <div className="flex items-center gap-2.5">
-          <span className="text-amber-400 text-lg leading-none">◈</span>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(150deg,#E3A93C,#B47C2A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1C160F', fontSize: 15, fontWeight: 700 }}>
+            ◈
+          </div>
           <div className="flex flex-col leading-none">
-            <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200">
-              Cardonica
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F1E8DB' }}>
+              CARDONICA
             </span>
-            <span className="text-[9px] text-[#6B5B4E] tracking-widest uppercase mt-0.5">
-              AI-POWERED CARDS &amp; FLYERS
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8A7560', marginTop: 2 }}>
+              AI CARDS &amp; FLYERS
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-3 mr-1">
-            <Link href="/privacy" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
+          <div className="hidden sm:flex items-center gap-4 mr-1">
+            <Link href="/history" className="hover:text-[#E3A93C] transition-colors" style={{ fontSize: 12, color: '#9A8472' }}>
+              Your cards
+            </Link>
+            <Link href="/privacy" className="hover:text-[#E3A93C] transition-colors" style={{ fontSize: 12, color: '#9A8472' }}>
               Privacy
             </Link>
-            <Link href="/terms" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
+            <Link href="/terms" className="hover:text-[#E3A93C] transition-colors" style={{ fontSize: 12, color: '#9A8472' }}>
               Terms
             </Link>
           </div>
@@ -108,13 +116,9 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
       </header>
 
       {/* ── Main panels ───────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 divide-y md:divide-y-0 md:divide-x divide-warm-600">
-        {/* Canvas — h-80 on mobile for idle/generating, flex-1 when done */}
-        <div
-          className={`md:flex-[3] min-w-0 ${
-            generator.phase === 'done' ? 'flex-1' : 'h-80 md:h-auto'
-          }`}
-        >
+      <div className="studio-body flex flex-1 min-h-0">
+        {/* Canvas */}
+        <div className="canvas-panel min-w-0" style={{ flex: '1.55' }}>
           <CanvasPanel
             phase={generator.phase}
             currentVersion={generator.currentVersion}
@@ -127,7 +131,10 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
         </div>
 
         {/* Right: controls + optional actions panel */}
-        <div className="flex-1 md:flex-[2] min-w-0 min-h-0 flex flex-col overflow-hidden divide-y divide-warm-600">
+        <div
+          className="control-panel min-w-0 min-h-0 flex flex-col overflow-hidden"
+          style={{ flex: 1, minWidth: 380, maxWidth: 440, display: 'flex', flexDirection: 'column' }}
+        >
           {/* IMPORTANT: overflow-hidden — ControlPanel scrolls internally per step */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <ControlPanel
@@ -143,7 +150,7 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
 
           {/* Actions panel — appears when a flyer is done */}
           {showActions && (
-            <div className="h-52 shrink-0">
+            <div className="h-52 shrink-0" style={{ borderTop: '1px solid #2A2014' }}>
               <ActionsPanel
                 onRegenerate={handleRegenerate}
                 onEditInputs={handleEditInputs}
@@ -175,7 +182,7 @@ export function StudioLayout({ initialPrefs }: StudioLayoutProps = {}) {
 
       {/* ── Account deleted toast ─────────────────────────────── */}
       {deletedToast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-warm-800 border border-warm-600 rounded-xl shadow-2xl text-sm text-zinc-200 whitespace-nowrap">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-[#241C13] border border-[#33281B] text-[#C4B49E] rounded-xl shadow-2xl text-sm whitespace-nowrap">
           Your account and data have been deleted.
         </div>
       )}

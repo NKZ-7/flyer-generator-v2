@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DIGITAL_PRESETS, PRINT_PRESETS } from '@/lib/constants';
 
 interface DownloadModalProps {
@@ -21,8 +21,8 @@ function AspectBox({ w, h }: { w: number; h: number }) {
   const boxH = ratio < 1 ? MAX : Math.round(MAX / ratio);
   return (
     <div
-      className="inline-block rounded-sm border border-zinc-500 bg-zinc-700 shrink-0"
-      style={{ width: boxW, height: boxH }}
+      className="inline-block rounded-sm shrink-0"
+      style={{ width: boxW, height: boxH, border: '1px solid #4A3C2C', background: '#2E2417' }}
     />
   );
 }
@@ -32,6 +32,14 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
   const [preset, setPreset] = useState('social');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   function handleJpegDownload() {
     const img = new Image();
@@ -105,204 +113,236 @@ export function DownloadModal({ jobId, imageDataUrl, onClose, onNewFlyer, onEdit
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative bg-[#111113] border border-zinc-800 rounded-lg w-full max-w-md shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Export</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Choose how you want to share your card</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors w-7 h-7 flex items-center justify-center rounded hover:bg-zinc-800"
-          >
-            ✕
-          </button>
+  const content = (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid #34281A' }}>
+        <div>
+          <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 23, fontWeight: 600, color: '#F1E8DB', marginBottom: 2 }}>Export</h2>
+          <p style={{ fontSize: 12, color: '#8A7560' }}>Choose how you want to share your card</p>
         </div>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded"
+          style={{ color: '#6B5742', fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
+        >
+          ✕
+        </button>
+      </div>
 
-        {/* Quick Save — JPEG direct download */}
-        <div className="px-6 pt-5 pb-4 border-b border-zinc-800">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-zinc-500 font-semibold mb-3">
-            Quick Save
-          </p>
+      {/* Quick Save — JPEG direct download */}
+      <div className="px-6 pt-5 pb-4" style={{ borderBottom: '1px solid #34281A' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 12 }}>
+          Quick Save
+        </p>
+        <button
+          onClick={handleJpegDownload}
+          className="w-full flex items-center justify-between px-4 py-3"
+          style={{ background: '#241C13', border: '1px solid #33281B', borderRadius: 11, fontSize: 13, color: '#D8C9B4', cursor: 'pointer', transition: 'border-color 0.15s' }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#E3A93C')}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#33281B')}
+        >
+          <span className="flex items-center gap-2.5">
+            <span style={{ fontSize: 18 }}>🖼️</span>
+            <span>
+              <span style={{ fontWeight: 500 }}>Save as JPEG</span>
+              <span className="block" style={{ fontSize: 11, color: '#6B5742', marginTop: 2 }}>
+                1024 × 1024 px — saves directly to your device
+              </span>
+            </span>
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6B5742' }}>JPG</span>
+        </button>
+      </div>
+
+      {/* Edit / Refine */}
+      {onEdit && (
+        <div className="px-6 pt-4 pb-4" style={{ borderBottom: '1px solid #34281A' }}>
           <button
-            onClick={handleJpegDownload}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400/50 hover:bg-amber-400/5 transition-all text-sm text-zinc-200"
+            onClick={onEdit}
+            className="w-full flex items-center justify-between px-4 py-3"
+            style={{ background: '#241C13', border: '1px solid #33281B', borderRadius: 11, fontSize: 13, color: '#C4B49E', cursor: 'pointer', transition: 'border-color 0.15s' }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#5A4C40')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#33281B')}
           >
             <span className="flex items-center gap-2.5">
-              <span className="text-base">🖼️</span>
+              <span style={{ fontSize: 18 }}>✏️</span>
               <span>
-                <span className="font-medium">Save as JPEG</span>
-                <span className="block text-[11px] text-zinc-500 mt-0.5">
-                  1024 × 1024 px — saves directly to your device
+                <span style={{ fontWeight: 500 }}>Edit / Refine</span>
+                <span className="block" style={{ fontSize: 11, color: '#6B5742', marginTop: 2 }}>
+                  Go back and describe changes in plain English
                 </span>
               </span>
             </span>
-            <span className="text-xs text-zinc-500">JPG</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6B5742' }}>AI</span>
           </button>
         </div>
+      )}
 
-        {/* Edit / Refine */}
-        {onEdit && (
-          <div className="px-6 pt-4 pb-4 border-b border-zinc-800">
-            <button
-              onClick={onEdit}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800 transition-all text-sm text-zinc-300"
-            >
-              <span className="flex items-center gap-2.5">
-                <span className="text-base">✏️</span>
-                <span>
-                  <span className="font-medium">Edit / Refine</span>
-                  <span className="block text-[11px] text-zinc-500 mt-0.5">
-                    Go back and describe changes in plain English
-                  </span>
-                </span>
-              </span>
-              <span className="text-xs text-zinc-500">AI</span>
-            </button>
-          </div>
-        )}
-
-        <div className="p-5 space-y-4">
-          {/* Flyer thumbnail */}
-          <div className="flex gap-4 items-start">
-            <div className="shrink-0 w-16 rounded overflow-hidden border border-zinc-700">
-              <img src={imageDataUrl} alt="Flyer preview" className="w-full object-cover" />
-            </div>
-
-            {/* Mode toggle */}
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-semibold mb-2">
-                What do you want to do?
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => switchMode('digital')}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-medium transition-all ${
-                    mode === 'digital'
-                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500'
-                  }`}
-                >
-                  <span className="text-lg leading-none">📱</span>
-                  Share Online
-                </button>
-                <button
-                  onClick={() => switchMode('print')}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-lg border text-xs font-medium transition-all ${
-                    mode === 'print'
-                      ? 'bg-amber-400/10 border-amber-400/50 text-amber-300'
-                      : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500'
-                  }`}
-                >
-                  <span className="text-lg leading-none">🖨️</span>
-                  Print It
-                </button>
-              </div>
-            </div>
+      <div className="p-5 space-y-4">
+        {/* Flyer thumbnail */}
+        <div className="flex gap-4 items-start">
+          <div className="shrink-0 w-16 overflow-hidden" style={{ borderRadius: 6, border: '1px solid #33281B' }}>
+            <img src={imageDataUrl} alt="Flyer preview" className="w-full object-cover" />
           </div>
 
-          {/* Option list */}
-          <div className="space-y-1.5">
-            {mode === 'digital' ? (
-              <>
-                {digitalEntries.map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    onClick={() => setPreset(key)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
-                      preset === key
-                        ? 'bg-amber-400/10 border-amber-400/40'
-                        : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-600'
-                    }`}
-                  >
-                    <AspectBox w={cfg.width} h={cfg.height} />
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-xs font-semibold ${preset === key ? 'text-amber-200' : 'text-zinc-200'}`}>
-                        {cfg.label}
-                      </div>
-                      <div className="text-[10px] text-zinc-500 mt-0.5">{cfg.desc}</div>
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-600 shrink-0">
-                      {cfg.width}×{cfg.height}
-                    </div>
-                  </button>
-                ))}
-                <p className="text-[10px] text-zinc-600 pt-1 pl-1">
-                  ℹ Sized perfectly for sharing — no cropping needed
-                </p>
-              </>
-            ) : (
-              <>
-                {printEntries.map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    onClick={() => setPreset(key)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
-                      preset === key
-                        ? 'bg-amber-400/10 border-amber-400/40'
-                        : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-600'
-                    }`}
-                  >
-                    <AspectBox w={cfg.widthMm} h={cfg.heightMm} />
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-xs font-semibold ${preset === key ? 'text-amber-200' : 'text-zinc-200'}`}>
-                        {cfg.label}
-                      </div>
-                      <div className="text-[10px] text-zinc-500 mt-0.5">{cfg.desc}</div>
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-600 shrink-0">
-                      {cfg.widthMm}×{cfg.heightMm}mm
-                    </div>
-                  </button>
-                ))}
-                <p className="text-[10px] text-zinc-600 pt-1 pl-1">
-                  ℹ PDF ready for any print shop — just send the file · 300 DPI · 3mm bleed included
-                </p>
-              </>
-            )}
-          </div>
-
-          {error && (
-            <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded px-3 py-2">
-              {error}
+          {/* Mode toggle */}
+          <div className="flex-1">
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 8 }}>
+              What do you want to do?
             </p>
+            <div className="grid grid-cols-2 gap-2">
+              {([['digital', '📱', 'Share Online'], ['print', '🖨️', 'Print It']] as const).map(([m, icon, label]) => (
+                <button
+                  key={m}
+                  onClick={() => switchMode(m)}
+                  className="flex flex-col items-center gap-1.5 py-3"
+                  style={{
+                    borderRadius: 11,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    background: mode === m ? 'rgba(227,169,60,0.10)' : '#241C13',
+                    border: mode === m ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
+                    color: mode === m ? '#E9D9BF' : '#A8957F',
+                  }}
+                >
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>{icon}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Option list */}
+        <div className="space-y-1.5">
+          {mode === 'digital' ? (
+            <>
+              {digitalEntries.map(([key, cfg]) => (
+                <button
+                  key={key}
+                  onClick={() => setPreset(key)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
+                  style={{
+                    borderRadius: 11,
+                    transition: 'all 0.15s',
+                    background: preset === key ? 'rgba(227,169,60,0.08)' : '#241C13',
+                    border: preset === key ? '1px solid rgba(227,169,60,0.40)' : '1px solid #33281B',
+                  }}
+                >
+                  <AspectBox w={cfg.width} h={cfg.height} />
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontSize: 12, fontWeight: 600, color: preset === key ? '#E9D9BF' : '#D8C9B4' }}>
+                      {cfg.label}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#6B5742', marginTop: 2 }}>{cfg.desc}</div>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6B5742' }} className="shrink-0">
+                    {cfg.width}×{cfg.height}
+                  </div>
+                </button>
+              ))}
+              <p style={{ fontSize: 10, color: '#6B5742', paddingTop: 4, paddingLeft: 4 }}>
+                ℹ Sized perfectly for sharing — no cropping needed
+              </p>
+            </>
+          ) : (
+            <>
+              {printEntries.map(([key, cfg]) => (
+                <button
+                  key={key}
+                  onClick={() => setPreset(key)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
+                  style={{
+                    borderRadius: 11,
+                    transition: 'all 0.15s',
+                    background: preset === key ? 'rgba(227,169,60,0.08)' : '#241C13',
+                    border: preset === key ? '1px solid rgba(227,169,60,0.40)' : '1px solid #33281B',
+                  }}
+                >
+                  <AspectBox w={cfg.widthMm} h={cfg.heightMm} />
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontSize: 12, fontWeight: 600, color: preset === key ? '#E9D9BF' : '#D8C9B4' }}>
+                      {cfg.label}
+                    </div>
+                    <div style={{ fontSize: 10, color: '#6B5742', marginTop: 2 }}>{cfg.desc}</div>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6B5742' }} className="shrink-0">
+                    {cfg.widthMm}×{cfg.heightMm}mm
+                  </div>
+                </button>
+              ))}
+              <p style={{ fontSize: 10, color: '#6B5742', paddingTop: 4, paddingLeft: 4 }}>
+                ℹ PDF ready for any print shop — just send the file · 300 DPI · 3mm bleed included
+              </p>
+            </>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-2 px-5 pb-5">
-          <button
-            onClick={() => { onClose(); onNewFlyer(); }}
-            className="px-4 py-2.5 text-xs text-zinc-400 border border-zinc-700 rounded hover:border-zinc-600 hover:text-zinc-200 transition-colors"
-          >
-            New card
-          </button>
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className={`flex-1 py-2.5 text-sm font-semibold rounded transition-all ${
-              loading
-                ? 'bg-amber-400/20 text-amber-400/50 cursor-not-allowed'
-                : 'bg-amber-400 text-zinc-950 hover:bg-amber-300'
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400/80 rounded-full animate-spin" />
-                Rendering…
-              </span>
-            ) : (
-              downloadLabel
-            )}
-          </button>
+        {error && (
+          <p className="text-xs px-3 py-2" style={{ color: '#FCA5A5', background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.3)', borderRadius: 8 }}>
+            {error}
+          </p>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex gap-2 px-5 pb-5">
+        <button
+          onClick={() => { onClose(); onNewFlyer(); }}
+          className="px-4 py-2.5"
+          style={{ fontSize: 12, color: '#C4B49E', border: '1px solid #33281B', background: 'transparent', borderRadius: 8, cursor: 'pointer' }}
+        >
+          New card
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={loading}
+          className={loading ? 'flex-1 py-2.5' : 'btn-gold flex-1 py-2.5'}
+          style={{
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            ...(loading ? { background: 'rgba(227,169,60,0.2)', color: 'rgba(227,169,60,0.5)' } : {}),
+          }}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400/80 rounded-full animate-spin" />
+              Rendering…
+            </span>
+          ) : (
+            downloadLabel
+          )}
+        </button>
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(12,9,5,0.7)', backdropFilter: 'blur(6px)', zIndex: 50 }} onClick={onClose}>
+        <div
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, maxHeight: '92dvh', overflowY: 'auto', background: '#1F1810', borderTop: '1px solid #34281A', borderRadius: '22px 22px 0 0', animation: 'sheet-up 0.3s cubic-bezier(0.32,0.72,0,1) both' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ width: 40, height: 4, borderRadius: 999, background: '#33281B', margin: '12px auto 0' }} />
+          {content}
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(12,9,5,0.7)', backdropFilter: 'blur(6px)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
+      <div
+        style={{ background: '#1F1810', border: '1px solid #34281A', borderRadius: 18, width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto', position: 'relative' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {content}
       </div>
     </div>
   );

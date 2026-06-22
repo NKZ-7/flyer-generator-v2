@@ -43,27 +43,34 @@ function SignInForm() {
   }
 
   return (
-    <main className="min-h-dvh bg-warm-900 flex items-center justify-center p-5">
-      <div className="max-w-sm w-full space-y-7">
-
-        {/* Wordmark */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <span className="text-amber-400 text-2xl leading-none">◈</span>
-            <span className="font-display text-xl font-semibold tracking-[0.2em] uppercase text-zinc-200">
-              Cardonica
-            </span>
+    <main
+      style={{
+        minHeight: '100dvh',
+        background: 'radial-gradient(120% 80% at 50% 0%, #221A11, #16110C)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div style={{ maxWidth: 380, width: '100%' }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(150deg,#E3A93C,#B47C2A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1C160F', fontSize: 20, fontWeight: 700 }}>◈</div>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F1E8DB' }}>CARDONICA</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8A7560' }}>AI CARDS &amp; FLYERS</div>
+            </div>
           </div>
-          <p className="text-sm text-[#9A8A7A] leading-relaxed">
-            Sign in to save your cards.{' '}
-            <span className="text-[#6B5B4E]">One tap and you&rsquo;re in.</span>
-          </p>
+          <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 30, fontWeight: 600, color: '#F1E8DB', lineHeight: 1.2, marginBottom: 8 }}>Save every card you make.</p>
+          <p style={{ fontSize: 13, color: '#8A7560', lineHeight: 1.5 }}>Sign in to save your cards and revisit them any time.</p>
         </div>
 
-        {/* Error banner — shown when callback redirects back with ?error= */}
+        {/* Error banner */}
         {error && (
-          <div className="rounded-lg bg-red-900/20 border border-red-500/30 px-4 py-3">
-            <p className="text-xs text-red-300 leading-relaxed">{error}</p>
+          <div style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.3)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+            <p style={{ fontSize: 12, color: '#FCA5A5', lineHeight: 1.5 }}>{error}</p>
           </div>
         )}
 
@@ -71,10 +78,29 @@ function SignInForm() {
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 min-h-[48px] px-4 py-3 bg-white text-[#1f1f1f] text-sm font-medium rounded-lg border border-[#dadce0] hover:bg-[#f8f8f8] active:bg-[#f0f0f0] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            minHeight: 52,
+            padding: '12px 16px',
+            background: '#F6F1EA',
+            color: '#1f1f1f',
+            fontSize: 14,
+            fontWeight: 500,
+            borderRadius: 12,
+            border: '1px solid #dadce0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            marginBottom: 16,
+            transition: 'filter 0.15s',
+          }}
         >
           {loading ? (
-            <span className="text-[#5f6368]">Signing in…</span>
+            <span style={{ color: '#5f6368' }}>Signing in…</span>
           ) : (
             <>
               {/* Official Google G logo */}
@@ -90,36 +116,23 @@ function SignInForm() {
         </button>
 
         {/* Legal notice */}
-        <p className="text-center text-[11px] text-[#6B5B4E] leading-relaxed -mt-3">
+        <p style={{ textAlign: 'center', fontSize: 11, color: '#5E4E3E', lineHeight: 1.6, marginBottom: 20 }}>
           By signing in, you agree to our{' '}
-          <Link href="/terms" className="text-[#9A8A7A] underline underline-offset-2 hover:text-zinc-300 transition-colors">
-            Terms
-          </Link>
+          <Link href="/terms" style={{ color: '#9A8472', textDecoration: 'underline' }}>Terms</Link>
           {' '}and{' '}
-          <Link href="/privacy" className="text-[#9A8A7A] underline underline-offset-2 hover:text-zinc-300 transition-colors">
-            Privacy Policy
-          </Link>.
+          <Link href="/privacy" style={{ color: '#9A8472', textDecoration: 'underline' }}>Privacy Policy</Link>.
         </p>
 
-        <div className="text-center">
-          <Link
-            href="/"
-            className="text-xs text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors"
-          >
-            ← Back to Cardonica
-          </Link>
+        {/* Back link */}
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <Link href="/" style={{ fontSize: 12, color: '#6B5742', textDecoration: 'none' }}>← Back to Cardonica</Link>
         </div>
 
         {/* Footer links */}
-        <div className="flex justify-center gap-5 pt-2">
-          <Link href="/privacy" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
-            Privacy
-          </Link>
-          <Link href="/terms" className="text-[10px] text-[#6B5B4E] hover:text-[#9A8A7A] transition-colors">
-            Terms
-          </Link>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
+          <Link href="/privacy" style={{ fontSize: 10, color: '#6B5742' }}>Privacy</Link>
+          <Link href="/terms" style={{ fontSize: 10, color: '#6B5742' }}>Terms</Link>
         </div>
-
       </div>
     </main>
   );

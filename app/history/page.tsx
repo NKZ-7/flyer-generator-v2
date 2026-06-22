@@ -5,11 +5,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import type { CardRecord } from '@/lib/supabase/db';
 
-function CardThumbnail({ card }: { card: CardRecord }) {
-  const label = card.occasion
-    ? card.occasion.replace(/_/g, ' ')
-    : 'Card';
-
+function CardTile({ card }: { card: CardRecord }) {
+  const label = card.occasion ? card.occasion.replace(/_/g, ' ') : 'Card';
   const date = new Date(card.created_at).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -17,28 +14,29 @@ function CardThumbnail({ card }: { card: CardRecord }) {
   });
 
   return (
-    <Link href={`/cards/${card.id}`} className="group space-y-2">
-      <div className="relative aspect-square rounded overflow-hidden border border-warm-600 bg-warm-800 group-hover:border-amber-400/40 transition-colors">
+    <Link href={`/cards/${card.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <div
+        style={{
+          aspectRatio: '4/5',
+          borderRadius: 8,
+          overflow: 'hidden',
+          border: '1px solid #33281B',
+          marginBottom: 8,
+          transition: 'border-color 0.15s',
+          cursor: 'pointer',
+          background: '#241C13',
+        }}
+      >
         {card.image_url ? (
-          <img
-            src={card.image_url}
-            alt={card.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={card.image_url} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#3D3228]">
-            <span className="text-3xl">◈</span>
-          </div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3D3228', fontSize: 36 }}>◈</div>
         )}
       </div>
-      <div>
-        <p className="text-xs font-medium text-zinc-200 truncate leading-snug">
-          {card.title}
-        </p>
-        <p className="text-[10px] text-[#6B5B4E] capitalize">
-          {label} · {date}
-        </p>
-      </div>
+      <p style={{ fontSize: 12, fontWeight: 500, color: '#D8C9B4', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.title || 'Untitled'}</p>
+      <p style={{ fontSize: 10.5, color: '#6B5742', textTransform: 'capitalize' }}>
+        {label} · {date}
+      </p>
     </Link>
   );
 }
@@ -52,41 +50,38 @@ export default async function HistoryPage() {
   const cards = await getUserCards(user.id);
 
   return (
-    <div className="min-h-dvh bg-warm-900 text-zinc-200 font-sans">
-      <header className="flex items-center justify-between px-5 h-12 border-b border-warm-600 bg-warm-800 shrink-0">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <span className="text-amber-400 text-lg leading-none">◈</span>
-          <span className="font-display text-sm font-semibold tracking-[0.2em] uppercase text-zinc-200 group-hover:text-amber-300 transition-colors">
-            Cardonica
-          </span>
+    <div style={{ minHeight: '100dvh', background: '#16110C', color: '#F1E8DB', fontFamily: 'var(--font-sans)' }}>
+      {/* Header — same as studio */}
+      <header style={{ height: 60, background: '#1C160F', borderBottom: '1px solid #2E2418', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', flexShrink: 0 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(150deg,#E3A93C,#B47C2A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1C160F', fontSize: 15, fontWeight: 700 }}>◈</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F1E8DB' }}>CARDONICA</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8A7560' }}>AI CARDS &amp; FLYERS</div>
+          </div>
         </Link>
-        <AuthButton />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/" className="btn-gold" style={{ borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>+ New card</Link>
+          <AuthButton />
+        </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-5 py-8">
-        <h1 className="text-base font-semibold text-zinc-200 mb-6">
-          Your cards
-        </h1>
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 30, fontWeight: 600, color: '#F1E8DB', marginBottom: 4 }}>Your cards</h1>
+          <p style={{ fontSize: 13, color: '#8A7560' }}>{cards.length} card{cards.length !== 1 ? 's' : ''} saved</p>
+        </div>
 
         {cards.length === 0 ? (
-          <div className="text-center py-16 space-y-3">
-            <p className="text-sm text-[#9A8A7A]">
-              You haven&rsquo;t saved any cards yet.
-            </p>
-            <p className="text-xs text-[#6B5B4E]">
-              Make one and it&rsquo;ll show up here.
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center mt-4 px-5 py-2.5 min-h-[44px] bg-amber-400 text-zinc-950 text-sm font-semibold rounded hover:bg-amber-300 transition-colors"
-            >
-              Make a card →
-            </Link>
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 24, color: '#8A7560', marginBottom: 8 }}>No cards yet</p>
+            <p style={{ fontSize: 13, color: '#6B5742', marginBottom: 20 }}>Generate your first card to see it here.</p>
+            <Link href="/" className="btn-gold" style={{ borderRadius: 9, padding: '10px 24px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>Make your first card →</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="history-grid">
             {cards.map((card) => (
-              <CardThumbnail key={card.id} card={card} />
+              <CardTile key={card.id} card={card} />
             ))}
           </div>
         )}

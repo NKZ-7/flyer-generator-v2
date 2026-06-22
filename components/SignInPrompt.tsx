@@ -29,17 +29,31 @@ export function SignInPrompt() {
   if (!show) return null;
 
   return (
-    <div className="relative shrink-0 px-5 py-4 border-t border-cream-border bg-[#C8B89A]/30">
-      <p className="text-sm font-semibold text-[#2A211A] leading-snug">
+    <div
+      style={{
+        position: 'absolute',
+        left: 16,
+        right: 16,
+        bottom: 64,
+        zIndex: 5,
+        background: '#241C13',
+        border: '1px solid #33281B',
+        borderRadius: 12,
+        padding: '14px 16px',
+        boxShadow: '0 18px 40px -12px rgba(0,0,0,0.5)',
+      }}
+    >
+      <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 17, fontWeight: 600, color: '#F1E8DB', lineHeight: 1.3 }}>
         Want to keep track of your cards?
       </p>
-      <p className="mt-1 text-xs text-[#6B5B4E] leading-relaxed">
+      <p style={{ marginTop: 4, fontSize: 12, color: '#8A7560', lineHeight: 1.5 }}>
         Sign in and I&rsquo;ll save your future cards so you can come back to them
         anytime. (This one stays just yours — saving starts from your next card.)
       </p>
       <Link
         href="/sign-in"
-        className="mt-3 inline-flex items-center justify-center min-h-[44px] px-4 py-2 text-sm font-semibold bg-amber-400 text-zinc-950 rounded hover:bg-amber-300 transition-colors"
+        className="btn-gold"
+        style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 40, padding: '0 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, textDecoration: 'none' }}
       >
         Sign in
       </Link>

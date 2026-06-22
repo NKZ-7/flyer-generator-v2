@@ -12,9 +12,9 @@ export function VersionStrip({ versions, currentVersion, onSelect }: VersionStri
   if (versions.length === 0) return null;
 
   return (
-    <div className="shrink-0 border-t border-warm-600 bg-warm-800">
+    <div className="shrink-0" style={{ borderTop: '1px solid #2E2418', background: '#1C160F' }}>
       <div className="flex items-center px-4 py-2 gap-3 overflow-x-auto">
-        <span className="text-[10px] uppercase tracking-[0.15em] text-[#6B5B4E] font-semibold shrink-0">
+        <span className="shrink-0" style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#6B5742', fontWeight: 600 }}>
           Versions
         </span>
 
@@ -25,12 +25,14 @@ export function VersionStrip({ versions, currentVersion, onSelect }: VersionStri
               key={entry.jobId}
               onClick={() => onSelect(entry)}
               title={`Version ${versions.length - i}`}
-              className={`relative shrink-0 rounded overflow-hidden border transition-all ${
-                isActive
-                  ? 'border-amber-400 ring-1 ring-amber-400/30'
-                  : 'border-warm-600 opacity-60 hover:opacity-90 hover:border-[#5A4C40]'
-              }`}
-              style={{ width: 44, height: 60 }}
+              className="relative shrink-0 rounded overflow-hidden transition-all"
+              style={{
+                width: 44,
+                height: 60,
+                border: isActive ? '1px solid #E3A93C' : '1px solid #33281B',
+                boxShadow: isActive ? '0 0 0 1px rgba(227,169,60,0.30)' : 'none',
+                opacity: isActive ? 1 : 0.6,
+              }}
             >
               <img
                 src={entry.imageDataUrl}
@@ -38,7 +40,7 @@ export function VersionStrip({ versions, currentVersion, onSelect }: VersionStri
                 className="w-full h-full object-cover"
               />
               {isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: '#E3A93C' }} />
               )}
               <div className="absolute top-0.5 right-0.5 text-[8px] font-mono bg-black/60 text-zinc-300 px-0.5 rounded-sm leading-tight">
                 v{versions.length - i}

@@ -5,6 +5,7 @@ import { FloatingField } from './FloatingField';
 import { AssetUploader } from './AssetUploader';
 import { OccasionPicker, OCCASIONS } from './OccasionPicker';
 import { VibePicker, VIBES } from './VibePicker';
+import { FONT_STYLE_MAP } from '@/lib/design-constants';
 import type { FlyerPreferences, UserAsset, GeneratorPhase } from '@/lib/types';
 
 // Flip to true to restore the photo-upload section when post-launch photo support ships.
@@ -61,37 +62,6 @@ const FONT_OPTIONS = [
   { value: 'warm_personal',   label: 'Warm Personal',    hint: 'Caveat script · handwritten, personal' },
   { value: 'urban_modern',    label: 'Urban Modern',     hint: 'Bebas Neue · poster, sharp, contemporary' },
 ];
-
-const FONT_FAMILY_MAP: Record<string, string> = {
-  modern:       'var(--font-oswald, Oswald, sans-serif)',
-  classic:      'var(--font-playfair, "Playfair Display", serif)',
-  clean:        'var(--font-sans, "DM Sans", sans-serif)',
-  highContrast: 'var(--font-oswald, Oswald, sans-serif)',
-  vintage:      'var(--font-playfair, "Playfair Display", serif)',
-  minimalType:  'var(--font-sans, "DM Sans", sans-serif)',
-  script_romance:  'var(--font-great-vibes, "Great Vibes", cursive)',
-  editorial_serif: 'var(--font-cormorant, "Cormorant Garamond", serif)',
-  playful_display: 'var(--font-dancing, "Dancing Script", cursive)',
-  bold_geometric:  'var(--font-raleway, Raleway, sans-serif)',
-  warm_personal:   'var(--font-caveat, Caveat, cursive)',
-  urban_modern:    'var(--font-bebas, "Bebas Neue", sans-serif)',
-};
-
-const FONT_LABEL_CLS: Record<string, string> = {
-  modern:       'font-bold uppercase',
-  classic:      'italic',
-  clean:        '',
-  highContrast: 'font-bold',
-  vintage:      'tracking-wide',
-  minimalType:  'font-light',
-  script_romance:  'italic',
-  editorial_serif: 'italic',
-  playful_display: '',
-  bold_geometric:  'font-bold uppercase tracking-wide',
-  warm_personal:   '',
-  urban_modern:    'font-bold uppercase tracking-widest',
-};
-
 
 export function ControlPanel({
   phase,
@@ -187,46 +157,44 @@ export function ControlPanel({
 
   function ProgressIndicator({ current }: { current: 1 | 2 | 3 }) {
     return (
-      <div className="flex items-center justify-center px-5 border-b border-warm-600 shrink-0">
-        {([1, 2, 3] as const).map((n, i) => (
-          <Fragment key={n}>
-            <button
-              type="button"
-              onClick={() => navigate(n)}
-              disabled={isGenerating || n === current}
-              aria-label={`Go to step ${n}: ${STEP_LABELS[n - 1]}`}
-              aria-current={n === current ? 'step' : undefined}
-              style={{ minWidth: 44, minHeight: 44 }}
-              className={`shrink-0 flex items-center justify-center rounded-full transition-opacity ${
-                n === current
-                  ? 'cursor-default'
-                  : isGenerating
-                  ? 'cursor-not-allowed opacity-40'
-                  : 'cursor-pointer hover:opacity-75'
-              }`}
-            >
-              <span
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors pointer-events-none ${
-                  n < current
-                    ? 'bg-amber-400 border-amber-400 text-zinc-950'
-                    : n === current
-                    ? 'bg-amber-400/20 border-amber-400 text-amber-300'
-                    : 'bg-warm-900 border-warm-600 text-[#6B5B4E]'
-                }`}
+      <div
+        className="shrink-0"
+        style={{ padding: '18px 24px', borderBottom: '1px solid #2A2014', display: 'flex', alignItems: 'center', gap: 0 }}
+      >
+        {([1, 2, 3] as const).map((n, i) => {
+          const isDone = current > n;
+          const isCurrent = current === n;
+          const circleStyle: React.CSSProperties = isDone
+            ? { background: '#E3A93C', color: '#1C160F', border: '1px solid #E3A93C' }
+            : isCurrent
+            ? { background: 'rgba(227,169,60,0.16)', color: '#E9B547', border: '1px solid #E3A93C' }
+            : { background: '#241C13', color: '#6B5742', border: '1px solid #33281B' };
+          const labelStyle: React.CSSProperties = isDone
+            ? { color: '#9A8472', fontWeight: 600 }
+            : isCurrent
+            ? { color: '#E9D9BF', fontWeight: 600 }
+            : { color: '#6B5742' };
+          return (
+            <Fragment key={n}>
+              <button
+                type="button"
+                onClick={() => current > n && navigate(n)}
+                disabled={isGenerating}
+                aria-label={`Go to step ${n}: ${STEP_LABELS[n - 1]}`}
+                aria-current={isCurrent ? 'step' : undefined}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: isDone ? 'pointer' : 'default', padding: '0 4px' }}
               >
-                {n < current ? '✓' : n}
-              </span>
-            </button>
-            {i < 2 && (
-              <div
-                className={`h-px w-6 shrink-0 ${n < current ? 'bg-amber-400/50' : 'bg-warm-600'}`}
-              />
-            )}
-          </Fragment>
-        ))}
-        <span className="ml-2 text-[10px] text-[#7B6B5B] uppercase tracking-widest">
-          {STEP_LABELS[current - 1]}
-        </span>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, ...circleStyle }}>
+                  {isDone ? '✓' : n}
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', ...labelStyle }}>{STEP_LABELS[i]}</span>
+              </button>
+              {i < 2 && (
+                <div style={{ flex: 1, height: 1, background: current > n + 1 ? '#7A5D2A' : '#2E2418', marginBottom: 14 }} />
+              )}
+            </Fragment>
+          );
+        })}
       </div>
     );
   }
@@ -234,8 +202,8 @@ export function ControlPanel({
   function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
     return (
       <div className="flex justify-between items-center text-xs py-0.5">
-        <span className="text-zinc-500 shrink-0">{label}</span>
-        <span className="text-zinc-200 text-right ml-2">{value}</span>
+        <span className="shrink-0" style={{ color: '#8A7560' }}>{label}</span>
+        <span className="text-right ml-2" style={{ color: '#D8C9B4' }}>{value}</span>
       </div>
     );
   }
@@ -247,7 +215,7 @@ export function ControlPanel({
     if (step === 1) {
       return (
         <div className="space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
+          <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 21, fontWeight: 600, color: '#F1E8DB', marginBottom: 6 }}>
             Tell us about this card
           </p>
 
@@ -262,28 +230,38 @@ export function ControlPanel({
               disabled={isGenerating}
               rows={6}
               placeholder="Describe your card here..."
-              className={`w-full bg-warm-900 border text-zinc-200 text-sm rounded px-3 py-2.5 placeholder-[#5A4C40] focus:outline-none focus:ring-1 transition-colors resize-none disabled:opacity-40 ${
-                titleError
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                  : 'border-warm-600 focus:border-amber-400/50 focus:ring-amber-400/20'
-              }`}
+              onFocus={(e) => { if (!titleError) { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(227,169,60,0.13)'; e.currentTarget.style.borderColor = '#E3A93C'; } }}
+              onBlur={(e) => { if (!titleError) { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = '#34281A'; } }}
+              className="w-full placeholder-[#5A4C40] focus:outline-none disabled:opacity-40"
+              style={{
+                width: '100%',
+                background: '#241C13',
+                border: titleError ? '1px solid #ef4444' : '1px solid #34281A',
+                borderRadius: 10,
+                padding: 13,
+                color: '#C4B49E',
+                fontSize: 13,
+                lineHeight: 1.5,
+                resize: 'none',
+                outline: 'none',
+              }}
             />
             {titleError && (
               <p className="mt-1 text-[11px] text-red-400">Describe the card so we know what to make</p>
             )}
-            <p className="mt-2 text-[11px] italic text-[#7B6B5B]/70 leading-snug">
+            <p className="mt-2 text-[11px] italic leading-snug" style={{ color: 'rgba(123,107,91,0.7)' }}>
               💡 Tip: Mention a name, relationship, or who&rsquo;s signing
               (e.g. &ldquo;birthday card for Ada&rdquo;, &ldquo;from his sister&rdquo;)
             </p>
           </div>
 
-          <div className="border-t border-warm-600" />
+          <div style={{ borderTop: '1px solid #2A2014', margin: '16px 0' }} />
 
           {/* Occasion */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 10, display: 'block' }}>
             Occasion
           </p>
-          <p className="text-[10px] text-[#6B5B4E] -mt-3">optional — AI infers if blank</p>
+          <p className="text-[10px] -mt-3" style={{ color: '#6B5742' }}>optional — AI infers if blank</p>
           <OccasionPicker
             value={prefs.occasion}
             onChange={(v) => onPrefsChange('occasion', v)}
@@ -291,10 +269,10 @@ export function ControlPanel({
           />
 
           {/* Vibe */}
-          <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mt-3">
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 10, marginTop: 18, display: 'block' }}>
             Vibe
           </p>
-          <p className="text-[10px] text-[#6B5B4E] -mt-3">optional — AI infers if blank</p>
+          <p className="text-[10px] -mt-3" style={{ color: '#6B5742' }}>optional — AI infers if blank</p>
           <VibePicker
             value={prefs.vibe}
             onChange={(v) => onPrefsChange('vibe', v)}
@@ -308,10 +286,10 @@ export function ControlPanel({
             }`}
           >
             <div className="space-y-4 pt-3">
-              <div className="border-t border-warm-600/50" />
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B]/80 font-semibold">
+              <div style={{ borderTop: '1px solid #2A2014' }} />
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', display: 'block' }}>
                 Event Details
-                <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
+                <span style={{ color: '#6B5742', fontWeight: 400, textTransform: 'none', letterSpacing: 'normal', marginLeft: 4 }}>
                   — optional
                 </span>
               </p>
@@ -351,7 +329,7 @@ export function ControlPanel({
             </div>
           </div>
 
-          <div className="border-t border-warm-600" />
+          <div style={{ borderTop: '1px solid #2A2014', margin: '16px 0' }} />
 
           {/* Region */}
           <FloatingField
@@ -365,9 +343,9 @@ export function ControlPanel({
           {/* Photos & Assets — hidden until post-launch photo support ships */}
           {SHOW_PHOTO_UPLOAD && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-1">
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 4, display: 'block' }}>
                 Your Photos & Assets
-                <span className="text-[#6B5B4E] font-normal normal-case tracking-normal ml-1">
+                <span style={{ color: '#6B5742', fontWeight: 400, textTransform: 'none', letterSpacing: 'normal', marginLeft: 4 }}>
                   — optional
                 </span>
               </p>
@@ -394,53 +372,65 @@ export function ControlPanel({
     if (step === 2) {
       return (
         <div className="space-y-5">
+          <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 21, fontWeight: 600, color: '#F1E8DB', marginBottom: 6 }}>
+            Choose your style
+          </p>
+
           {/* Surprise Me */}
           <button
             type="button"
             onClick={surpriseMe}
             disabled={isGenerating || surpriseSpinning}
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-xs border border-warm-600 text-[#9A8A7A] rounded hover:border-[#5A4C40] hover:text-zinc-200 transition-all min-h-[44px]"
+            style={{
+              width: '100%',
+              background: '#241C13',
+              border: '1px dashed #45371F',
+              borderRadius: 9,
+              padding: '10px 0',
+              color: '#C4B49E',
+              fontSize: 13,
+              cursor: isGenerating || surpriseSpinning ? 'not-allowed' : 'pointer',
+              marginBottom: 8,
+              transition: 'all 0.15s',
+            }}
           >
-            <span className={surpriseSpinning ? 'animate-spin inline-block' : ''}>🎲</span>
-            Surprise Me — random style
+            <span className={surpriseSpinning ? 'animate-spin inline-block' : ''}>✦</span>{' '}
+            Surprise me
           </button>
 
           {/* Color scheme */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 10, display: 'block' }}>
               Color Scheme
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {COLOR_OPTIONS.map((opt) => {
                 const strips = COLOR_STRIPS[opt.value] ?? [];
-                const isActive = prefs.colorScheme === opt.value;
+                const selected = prefs.colorScheme === opt.value;
                 return (
-                  <button
+                  <div
                     key={opt.value}
-                    type="button"
-                    onClick={() => onPrefsChange('colorScheme', opt.value as FlyerPreferences['colorScheme'])}
-                    disabled={isGenerating}
-                    className={`rounded-lg border overflow-hidden transition-all ${
-                      isActive
-                        ? 'border-amber-400 scale-[1.03] shadow-lg shadow-amber-400/20'
-                        : 'border-warm-600 hover:border-[#5A4C40]'
-                    }`}
+                    onClick={() => !isGenerating && onPrefsChange('colorScheme', opt.value as FlyerPreferences['colorScheme'])}
+                    style={{
+                      background: selected ? 'rgba(227,169,60,0.08)' : '#241C13',
+                      border: selected ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      cursor: isGenerating ? 'not-allowed' : 'pointer',
+                      transform: selected ? 'translateY(-1px)' : 'none',
+                      boxShadow: selected ? '0 0 0 1px #E3A93C,0 8px 22px -10px rgba(227,169,60,0.6)' : 'none',
+                      transition: 'all 0.15s',
+                    }}
                   >
-                    {/* Gradient strip */}
-                    <div className="h-10 flex">
+                    <div style={{ display: 'flex', height: 44 }}>
                       {strips.map((c, i) => (
-                        <div key={i} className="flex-1" style={{ backgroundColor: c }} />
+                        <div key={i} style={{ flex: 1, background: c }} />
                       ))}
                     </div>
-                    {/* Label */}
-                    <div
-                      className={`px-2 py-1.5 text-xs text-center bg-warm-900 ${
-                        isActive ? 'text-amber-300' : 'text-[#9A8A7A]'
-                      }`}
-                    >
+                    <div style={{ background: '#1F1810', padding: '6px 10px', fontSize: 10, fontWeight: 500, color: '#A8957F' }}>
                       {opt.label}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -448,39 +438,33 @@ export function ControlPanel({
 
           {/* Font style */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold mb-2">
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 10, display: 'block' }}>
               Font Style
             </p>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {FONT_OPTIONS.map((opt) => {
-                const isActive = prefs.fontStyle === opt.value;
+                const selected = prefs.fontStyle === opt.value;
+                const fontMeta = FONT_STYLE_MAP[opt.value];
+                if (!fontMeta) return null;
                 return (
-                  <button
+                  <div
                     key={opt.value}
-                    type="button"
-                    onClick={() => onPrefsChange('fontStyle', opt.value as FlyerPreferences['fontStyle'])}
-                    disabled={isGenerating}
-                    className={`px-3 py-2.5 text-left rounded border transition-all ${
-                      isActive
-                        ? 'bg-amber-400/10 border-amber-400/50'
-                        : 'bg-warm-900 border-warm-600 hover:border-[#5A4C40]'
-                    }`}
+                    onClick={() => !isGenerating && onPrefsChange('fontStyle', opt.value as FlyerPreferences['fontStyle'])}
+                    style={{
+                      background: selected ? 'rgba(227,169,60,0.08)' : '#241C13',
+                      border: selected ? '1px solid rgba(227,169,60,0.50)' : '1px solid #33281B',
+                      borderRadius: 12,
+                      padding: '14px 10px',
+                      cursor: isGenerating ? 'not-allowed' : 'pointer',
+                      textAlign: 'center',
+                      transform: selected ? 'translateY(-1px)' : 'none',
+                      boxShadow: selected ? '0 0 0 1px #E3A93C,0 8px 22px -10px rgba(227,169,60,0.6)' : 'none',
+                      transition: 'all 0.15s',
+                    }}
                   >
-                    <div
-                      className={`text-sm ${FONT_LABEL_CLS[opt.value] ?? ''} ${
-                        isActive ? 'text-amber-200' : 'text-zinc-200'
-                      }`}
-                      style={{ fontFamily: FONT_FAMILY_MAP[opt.value] }}
-                    >
-                      {opt.label}
-                    </div>
-                    <div
-                      className="text-[10px] opacity-60 mt-0.5 leading-tight text-zinc-500"
-                      style={{ fontFamily: 'var(--font-sans)' }}
-                    >
-                      {opt.hint}
-                    </div>
-                  </button>
+                    <p className={fontMeta.className} style={{ fontSize: 22, color: '#D8C9B4', marginBottom: 4, ...fontMeta.style }}>{fontMeta.label}</p>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: '#73604D', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opt.label}</p>
+                  </div>
                 );
               })}
             </div>
@@ -498,20 +482,20 @@ export function ControlPanel({
 
     return (
       <div className="space-y-4">
-        <p className="text-[10px] uppercase tracking-[0.12em] text-[#7B6B5B] font-semibold">
+        <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: 21, fontWeight: 600, color: '#F1E8DB', marginBottom: 6 }}>
           Review & Generate
         </p>
 
         {/* Content card */}
-        <div className="bg-warm-900/80 border border-warm-600 rounded-lg px-4 py-3 space-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] uppercase tracking-widest text-[#7B6B5B] font-semibold">
+        <div style={{ background: '#241C13', border: '1px solid #33281B', borderRadius: 12, padding: 16 }} className="space-y-1">
+          <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A7560' }}>
               Content
             </span>
             <button
               type="button"
               onClick={() => navigate(1)}
-              className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors"
+              style={{ color: '#E3A93C', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             >
               Edit
             </button>
@@ -543,15 +527,15 @@ export function ControlPanel({
         </div>
 
         {/* Style card */}
-        <div className="bg-warm-900/80 border border-warm-600 rounded-lg px-4 py-3 space-y-1">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] uppercase tracking-widest text-[#7B6B5B] font-semibold">
+        <div style={{ background: '#241C13', border: '1px solid #33281B', borderRadius: 12, padding: 16 }} className="space-y-1">
+          <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8A7560' }}>
               Style
             </span>
             <button
               type="button"
               onClick={() => navigate(2)}
-              className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors"
+              style={{ color: '#E3A93C', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             >
               Edit
             </button>
@@ -564,11 +548,17 @@ export function ControlPanel({
         <button
           type="submit"
           disabled={isGenerating}
-          className={`w-full h-14 text-sm font-semibold rounded transition-colors relative overflow-hidden mt-4 ${
-            isGenerating
-              ? 'bg-amber-400/20 text-amber-400/60 cursor-not-allowed border border-amber-400/20'
-              : 'btn-generate-shimmer text-zinc-950'
-          }`}
+          className={isGenerating ? '' : 'btn-gold'}
+          style={{
+            width: '100%',
+            height: 52,
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 600,
+            marginTop: 16,
+            cursor: isGenerating ? 'not-allowed' : 'pointer',
+            ...(isGenerating ? { background: 'rgba(227,169,60,0.2)', color: 'rgba(227,169,60,0.6)', border: '1px solid rgba(227,169,60,0.2)' } : {}),
+          }}
         >
           {isGenerating ? (
             <span className="flex items-center justify-center gap-2">
@@ -587,52 +577,57 @@ export function ControlPanel({
   const exitClass  = direction === 'forward' ? 'step-exit-forward'  : 'step-exit-backward';
 
   return (
-    <form onSubmit={handleSubmit} className="h-full bg-warm-800 flex flex-col">
+    <form
+      onSubmit={handleSubmit}
+      className="h-full flex flex-col"
+      style={{ background: '#1C160F', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+    >
       {/* Progress indicator — hidden when done */}
       {!isDone && <ProgressIndicator current={currentStep} />}
 
       {/* Step transition container */}
-      <div className="relative overflow-hidden flex-1 min-h-0">
+      <div className="relative overflow-hidden flex-1 min-h-0" style={{ flex: 1 }}>
         {/* Exiting step — absolute, overflow-hidden to prevent scrollbar during animation */}
         {prevStep && (
           <div className={`absolute inset-0 overflow-hidden ${exitClass}`}>
-            <div className="h-full overflow-y-auto px-5 py-5">
+            <div className="h-full" style={{ overflowY: 'auto', overflowX: 'hidden', padding: '20px 24px' }}>
               {renderStepContent(prevStep)}
             </div>
           </div>
         )}
         {/* Current step — normal flow with its own scroll */}
-        <div className={`h-full overflow-y-auto px-5 py-5 ${transitioning ? enterClass : ''}`}>
+        <div className={`h-full ${transitioning ? enterClass : ''}`} style={{ overflowY: 'auto', overflowX: 'hidden', padding: '20px 24px' }}>
           {renderStepContent(currentStep)}
         </div>
       </div>
 
       {/* Sticky footer */}
-      <div className="shrink-0 px-5 pb-5 pt-3 border-t border-warm-600 bg-warm-800">
+      <div className="shrink-0" style={{ borderTop: '1px solid #2A2014', padding: '14px 20px', display: 'flex', gap: 10 }}>
         {isDone ? (
-          <div className="flex gap-2">
+          <div className="flex gap-2" style={{ width: '100%' }}>
             <button
               type="button"
               onClick={onReset}
-              className="flex-1 py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors"
+              style={{ border: '1px solid #33281B', color: '#C4B49E', background: 'transparent', borderRadius: 8, padding: '10px 16px', fontSize: 13, cursor: 'pointer' }}
             >
               New card
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-warm-700 text-[#D4C4B0] border border-warm-600 rounded hover:bg-warm-600 transition-colors"
+              style={{ flex: 1, background: '#2E2417', border: '1px solid #3D2F1D', color: '#E9D9BF', borderRadius: 8, padding: '10px 0', fontSize: 13, cursor: 'pointer' }}
             >
               Regenerate
             </button>
           </div>
         ) : currentStep < 3 ? (
-          <div className="flex gap-2">
+          <div className="flex gap-2" style={{ width: '100%' }}>
             {currentStep > 1 && (
               <button
                 type="button"
                 onClick={goBack}
                 disabled={isGenerating}
-                className="flex-1 py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ border: '1px solid #33281B', color: '#C4B49E', background: 'transparent', borderRadius: 8, padding: '10px 16px', fontSize: 13, cursor: 'pointer' }}
               >
                 ← Back
               </button>
@@ -641,7 +636,8 @@ export function ControlPanel({
               type="button"
               onClick={goNext}
               disabled={isGenerating}
-              className="flex-1 py-2.5 min-h-[44px] text-sm font-semibold bg-amber-400 text-zinc-950 rounded hover:bg-amber-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ flex: 1, borderRadius: 8, padding: '10px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
               Next →
             </button>
@@ -652,7 +648,8 @@ export function ControlPanel({
             type="button"
             onClick={goBack}
             disabled={isGenerating}
-            className="w-full py-2.5 min-h-[44px] text-sm border border-warm-600 text-[#C4B4A4] rounded hover:bg-warm-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ width: '100%', border: '1px solid #33281B', color: '#C4B49E', background: 'transparent', borderRadius: 8, padding: '10px 16px', fontSize: 13, cursor: 'pointer' }}
           >
             ← Back to Style
           </button>
