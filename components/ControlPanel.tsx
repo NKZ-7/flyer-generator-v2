@@ -8,8 +8,7 @@ import { VibePicker, VIBES } from './VibePicker';
 import { FONT_STYLE_MAP } from '@/lib/design-constants';
 import type { FlyerPreferences, UserAsset, GeneratorPhase } from '@/lib/types';
 
-// Flip to true to restore the photo-upload section when post-launch photo support ships.
-const SHOW_PHOTO_UPLOAD = false;
+const SHOW_PHOTO_UPLOAD = true;
 
 interface ControlPanelProps {
   phase: GeneratorPhase;
@@ -342,24 +341,19 @@ export function ControlPanel({
             disabled={isGenerating}
           />
 
-          {/* Photos & Assets — hidden until post-launch photo support ships */}
+          {/* Photos */}
           {SHOW_PHOTO_UPLOAD && (
-            <div>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 4, display: 'block' }}>
-                Your Photos & Assets
+            <div style={{ marginTop: 4 }}>
+              <div style={{ borderTop: '1px solid #2A2014', marginBottom: 16 }} />
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8A7560', marginBottom: 6, display: 'block' }}>
+                Add a photo
                 <span style={{ color: '#6B5742', fontWeight: 400, textTransform: 'none', letterSpacing: 'normal', marginLeft: 4 }}>
                   — optional
                 </span>
               </p>
-              <p className="text-[10px] text-[#7B6B5B]mb-2 leading-relaxed">
-                Upload photos of people, products, or logos you want in your card.
-                We&rsquo;ll blend them into the design seamlessly.
+              <p style={{ fontSize: 10, color: '#6B5742', marginBottom: 10, lineHeight: 1.5 }}>
+                Upload a portrait, product photo, or logo and we&rsquo;ll incorporate it into the card design.
               </p>
-              {userAssets.length > 0 && !prefs.additionalContext && (
-                <p className="text-[10px] text-amber-400/70 mb-2 leading-relaxed">
-                  Tip: use the text box above to explain who or what is in your photos.
-                </p>
-              )}
               <AssetUploader
                 assets={userAssets}
                 onAssetsChange={onAssetsChange}

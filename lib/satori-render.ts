@@ -28,12 +28,68 @@ function slotSpec(typo: TypographyPairing, slot: Slot): FontSpec {
   return typo[slot];
 }
 
+async function buildPortraitComposites(
+  photoBase64: string,
+  W: number,
+  H: number,
+): Promise<sharp.OverlayOptions[]> {
+  const raw = photoBase64.replace(/^data:image\/\w+;base64,/, '');
+  const photoBuffer = Buffer.from(raw, 'base64');
+
+  // Portrait circle: 34% of canvas width
+  const diameter = Math.round(W * 0.34);
+  const r = Math.round(diameter / 2);
+
+  // Circular mask
+  const maskSvg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${diameter}" height="${diameter}">
+      <circle cx="${r}" cy="${r}" r="${r}" fill="white"/>
+    </svg>`,
+  );
+  const circlePhoto = await sharp(photoBuffer)
+    .resize(diameter, diameter, { fit: 'cover', position: 'centre' })
+    .composite([{ input: maskSvg, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  // Outer gold ring
+  const ringSize = diameter + 12;
+  const rR = ringSize / 2;
+  const ringSvg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${ringSize}" height="${ringSize}">
+      <circle cx="${rR}" cy="${rR}" r="${rR - 3}" fill="none" stroke="#E3A93C" stroke-width="4" opacity="0.85"/>
+    </svg>`,
+  );
+  const ringBuf = await sharp(ringSvg).png().toBuffer();
+
+  // Soft glow behind circle
+  const glowSize = diameter + 44;
+  const gR = glowSize / 2;
+  const glowSvg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${glowSize}" height="${glowSize}">
+      <circle cx="${gR}" cy="${gR}" r="${gR}" fill="rgba(227,169,60,0.20)"/>
+    </svg>`,
+  );
+  const glowBuf = await sharp(glowSvg).blur(10).png().toBuffer();
+
+  // Position: centered horizontally, 5% from top
+  const px = Math.round((W - diameter) / 2);
+  const py = Math.round(H * 0.05);
+
+  return [
+    { input: glowBuf, top: py - 22, left: px - 22 },
+    { input: ringBuf, top: py - 6,  left: px - 6 },
+    { input: circlePhoto, top: py,  left: px },
+  ];
+}
+
 export async function renderFlyerToBase64(
   designBrief: DesignBrief,
   copy: FlyerCopyV2,
   gptCanvasBase64: string,
   scaleFactor = 1,
   debugZones = false,
+  photoBase64?: string,
 ): Promise<string> {
   const W = Math.round(CANVAS_W * scaleFactor);
   const H = Math.round(CANVAS_H * scaleFactor);
@@ -63,6 +119,18 @@ export async function renderFlyerToBase64(
     signoff: theme.textColorAccent,
   };
   console.log(`[text-color] theme=${designBrief.decorative_theme} title=${textColors.title} body=${textColors.body} signoff=${textColors.signoff} source=theme`);
+
+  // Photo portrait composites (built first so they sit below text)
+  const photoComposites: sharp.OverlayOptions[] = [];
+  if (photoBase64) {
+    try {
+      const built = await buildPortraitComposites(photoBase64, W, H);
+      photoComposites.push(...built);
+      console.log('[render] Photo portrait composited at top-center');
+    } catch (err) {
+      console.error('[render] Photo compositing skipped (non-fatal):', err instanceof Error ? err.message : err);
+    }
+  }
 
   const composites: { input: Buffer; top: number; left: number }[] = [];
 
@@ -203,9 +271,10 @@ export async function renderFlyerToBase64(
     composites.push({ input: grainBuffer, top: 0, left: 0 });
   } catch { /* skip grain silently */ }
 
+  // Layer order: canvas (base) → photo portrait → text → debug → grain
   const pngBuffer = await sharp(canvasBuffer)
     .resize(W, H, { fit: 'cover', position: 'center' })
-    .composite(composites)
+    .composite([...photoComposites, ...composites])
     .flatten({ background: '#FAEDE3' })
     .png()
     .toBuffer();

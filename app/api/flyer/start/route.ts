@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createJob, getRecentThemes, getRecentPairings, setJobUserId, setJobPrefs } from '@/lib/kv';
+import { createJob, getRecentThemes, getRecentPairings, setJobUserId, setJobPrefs, setJobPhoto } from '@/lib/kv';
 import {
   checkAnonymousLimit,
   checkSignedInLimit,
@@ -126,6 +126,17 @@ export async function POST(request: NextRequest) {
 
   // Store user identity and form prefs for later Supabase card save (non-fatal).
   if (userId) setJobUserId(jobId, userId).catch(() => {});
+
+  // Persist primary user photo for render-time compositing (non-fatal).
+  if (userAssets.length > 0) {
+    const primary = userAssets[0];
+    setJobPhoto(jobId, {
+      base64: primary.image,
+      mimeType: primary.mimeType ?? 'image/jpeg',
+      role: primary.role ?? 'main_person',
+    }).catch(() => {});
+  }
+
   setJobPrefs(jobId, {
     occasion:          preferences.occasion,
     vibe:              preferences.vibe,

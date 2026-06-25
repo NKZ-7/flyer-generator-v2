@@ -3,28 +3,19 @@
 import { useState, useRef } from 'react';
 import type { UserAsset, AssetRole } from '@/lib/types';
 
-const MAX_ASSETS = 5;
+const MAX_ASSETS = 3;
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_DIM = 1024;
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 
 const ROLE_OPTIONS: { value: AssetRole; label: string }[] = [
-  { value: 'main_person',       label: 'Main person' },
-  { value: 'additional_person', label: 'Additional person' },
-  { value: 'product_item',      label: 'Product / Food / Item' },
-  { value: 'logo',              label: 'Logo / Brand mark' },
-  { value: 'background_scene',  label: 'Background / Scene' },
+  { value: 'main_person',       label: 'Person — main subject' },
+  { value: 'additional_person', label: 'Person — additional' },
+  { value: 'product_item',      label: 'Product / food / item' },
+  { value: 'logo',              label: 'Logo / brand mark' },
+  { value: 'background_scene',  label: 'Background / scene' },
   { value: 'other',             label: 'Other' },
 ];
-
-const ROLE_PLACEHOLDERS: Record<AssetRole, string> = {
-  main_person:       'e.g. Place me on the right side, half body visible',
-  additional_person: 'e.g. Smaller, positioned on the left',
-  product_item:      'e.g. Show the product large and centered',
-  logo:              'e.g. Top-left corner, keep it small',
-  background_scene:  'e.g. Use as a faded background element',
-  other:             'e.g. Describe how you want this used',
-};
 
 async function resizeAndEncode(
   file: File
@@ -81,7 +72,7 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
     const remaining = MAX_ASSETS - assets.length;
 
     if (remaining === 0) {
-      setValidationMsg('Maximum 5 images. Remove one to add another.');
+      setValidationMsg(`Maximum ${MAX_ASSETS} photos. Remove one to add another.`);
       return;
     }
 
@@ -96,7 +87,7 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
           continue;
         }
         if (file.size > MAX_SIZE_BYTES) {
-          setValidationMsg('This file is too large. Please use an image under 10MB.');
+          setValidationMsg('File too large — please use an image under 10 MB.');
           continue;
         }
         const encoded = await resizeAndEncode(file);
@@ -110,7 +101,7 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
       }
 
       if (fileArr.length > remaining) {
-        setValidationMsg('Maximum 5 images. Remove one to add another.');
+        setValidationMsg(`Maximum ${MAX_ASSETS} photos reached.`);
       }
       onAssetsChange([...assets, ...newAssets]);
     } finally {
@@ -120,10 +111,6 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
 
   function updateRole(id: string, role: AssetRole) {
     onAssetsChange(assets.map((a) => (a.id === id ? { ...a, role } : a)));
-  }
-
-  function updatePlacement(id: string, placementInstructions: string) {
-    onAssetsChange(assets.map((a) => (a.id === id ? { ...a, placementInstructions } : a)));
   }
 
   function removeAsset(id: string) {
@@ -141,46 +128,59 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
       processFiles(e.target.files);
-      // Reset input so the same file can be re-added after deletion
       e.target.value = '';
     }
   }
 
   const isActive = dragOver || processing;
+  const atMax = assets.length >= MAX_ASSETS;
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Drop zone */}
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        onClick={() => !disabled && fileInputRef.current?.click()}
-        onKeyDown={(e) => e.key === 'Enter' && !disabled && fileInputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        className={`flex flex-col items-center gap-2 p-5 rounded-lg border-2 border-dashed transition-colors cursor-pointer select-none ${
-          disabled
-            ? 'border-zinc-800 opacity-40 cursor-not-allowed'
-            : isActive
-            ? 'border-amber-400/60 bg-amber-400/5'
-            : 'border-amber-400/30 hover:border-amber-400/50 hover:bg-amber-400/[0.03]'
-        }`}
-      >
-        <span className="text-2xl leading-none text-zinc-500">
-          {processing ? '⏳' : '🖼'}
-        </span>
-        <p className="text-xs text-zinc-500 text-center">
-          {processing
-            ? 'Processing…'
-            : assets.length >= MAX_ASSETS
-            ? 'Maximum 5 images reached'
-            : 'Drag photos here or tap to browse'}
+      {!atMax && (
+        <div
+          role="button"
+          tabIndex={disabled ? -1 : 0}
+          onClick={() => !disabled && fileInputRef.current?.click()}
+          onKeyDown={(e) => e.key === 'Enter' && !disabled && fileInputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); if (!disabled) setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            padding: '20px 16px',
+            borderRadius: 10,
+            border: isActive
+              ? '1px dashed rgba(227,169,60,0.60)'
+              : '1px dashed rgba(227,169,60,0.28)',
+            background: isActive ? 'rgba(227,169,60,0.04)' : '#241C13',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.4 : 1,
+            transition: 'all 0.15s',
+            userSelect: 'none',
+          }}
+        >
+          <span style={{ fontSize: 22, lineHeight: 1, opacity: 0.5 }}>
+            {processing ? '⏳' : '📷'}
+          </span>
+          <p style={{ margin: 0, fontSize: 12, color: '#8A7560', textAlign: 'center' }}>
+            {processing ? 'Processing…' : 'Drag photos here or tap to browse'}
+          </p>
+          <p style={{ margin: 0, fontSize: 10, color: '#5A4C40', textAlign: 'center', lineHeight: 1.4 }}>
+            JPG, PNG, WEBP · up to 10 MB · max {MAX_ASSETS}
+          </p>
+        </div>
+      )}
+
+      {atMax && (
+        <p style={{ fontSize: 11, color: '#6B5742', textAlign: 'center', margin: 0 }}>
+          {MAX_ASSETS} photos added — remove one to replace it
         </p>
-        <p className="text-[10px] text-zinc-600 text-center leading-snug">
-          For best results, use clear well-lit photos with the subject easy to see
-        </p>
-      </div>
+      )}
 
       {/* Hidden file input */}
       <input
@@ -188,50 +188,84 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
         type="file"
         multiple
         accept="image/jpeg,image/jpg,image/png,image/webp"
-        className="hidden"
+        style={{ display: 'none' }}
         onChange={handleInputChange}
         disabled={disabled}
       />
 
       {/* Validation message */}
       {validationMsg && (
-        <p className="text-xs text-amber-400 mt-2 leading-snug">{validationMsg}</p>
+        <p style={{ fontSize: 11, color: '#E3A93C', margin: 0, lineHeight: 1.4 }}>{validationMsg}</p>
       )}
 
       {/* Thumbnail grid */}
       {assets.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
           {assets.map((asset) => (
             <div
               key={asset.id}
-              className="relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+              style={{
+                background: '#1C160F',
+                border: '1px solid #33281B',
+                borderRadius: 10,
+                overflow: 'hidden',
+                position: 'relative',
+              }}
             >
               {/* Square thumbnail */}
               <img
                 src={asset.previewUrl}
                 alt={asset.originalFilename}
-                className="w-full aspect-square object-cover"
+                style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }}
               />
 
-              {/* Delete button */}
+              {/* Remove button */}
               <button
                 type="button"
                 onClick={() => removeAsset(asset.id)}
                 disabled={disabled}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-zinc-300 text-[10px] flex items-center justify-center hover:bg-red-900/80 transition-colors disabled:opacity-40"
-                aria-label="Remove image"
+                aria-label="Remove photo"
+                style={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 5,
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: 'rgba(22,17,12,0.80)',
+                  color: '#E3A93C',
+                  border: '1px solid rgba(227,169,60,0.30)',
+                  fontSize: 9,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  padding: 0,
+                  transition: 'all 0.15s',
+                }}
               >
                 ✕
               </button>
 
-              {/* Card controls */}
-              <div className="px-2 pb-2">
-                {/* Role dropdown */}
+              {/* Role selector */}
+              <div style={{ padding: '6px 6px 7px' }}>
                 <select
                   value={asset.role}
                   onChange={(e) => updateRole(asset.id, e.target.value as AssetRole)}
                   disabled={disabled}
-                  className="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-[11px] rounded px-1.5 py-1 mt-1 focus:outline-none focus:border-amber-400/50 disabled:opacity-40"
+                  style={{
+                    width: '100%',
+                    background: '#241C13',
+                    border: '1px solid #33281B',
+                    borderRadius: 6,
+                    color: '#A8957F',
+                    fontSize: 9,
+                    padding: '3px 4px',
+                    outline: 'none',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.4 : 1,
+                  }}
                 >
                   {ROLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -239,16 +273,6 @@ export function AssetUploader({ assets, onAssetsChange, disabled }: AssetUploade
                     </option>
                   ))}
                 </select>
-
-                {/* Placement instruction input */}
-                <input
-                  type="text"
-                  value={asset.placementInstructions}
-                  onChange={(e) => updatePlacement(asset.id, e.target.value)}
-                  disabled={disabled}
-                  placeholder={ROLE_PLACEHOLDERS[asset.role]}
-                  className="w-full bg-transparent border-b border-zinc-700 text-zinc-300 text-[11px] py-1 mt-1 placeholder-zinc-600 focus:outline-none focus:border-amber-400/50 transition-colors disabled:opacity-40"
-                />
               </div>
             </div>
           ))}

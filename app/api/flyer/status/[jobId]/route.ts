@@ -1,4 +1,4 @@
-import { getJobMeta, getJobRender, getJobCanvas, completeRender, failRender, acquireRenderLock, getJobUserId, getJobPrefs, markCardSaved, isCardSaved } from '@/lib/kv';
+import { getJobMeta, getJobRender, getJobCanvas, completeRender, failRender, acquireRenderLock, getJobUserId, getJobPrefs, markCardSaved, isCardSaved, getJobPhoto } from '@/lib/kv';
 import { renderFlyerToBase64 } from '@/lib/satori-render';
 import { renderTemplateToBase64 } from '@/lib/template-render';
 import type { DesignBrief, FlyerCopyV2 } from '@/lib/types';
@@ -68,7 +68,15 @@ export async function GET(
     try {
       const canvasBase64 = await getJobCanvas(jobId);
       if (!canvasBase64) throw new Error('Canvas not found in Redis');
-      dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, 1);
+
+      // Load user photo if present (non-fatal — render proceeds without it on failure)
+      let photoBase64: string | undefined;
+      try {
+        const jobPhoto = await getJobPhoto(jobId);
+        if (jobPhoto?.base64) photoBase64 = jobPhoto.base64;
+      } catch { /* non-fatal */ }
+
+      dataUrl = await renderFlyerToBase64(meta.designBrief, meta.copyV2, canvasBase64, 1, false, photoBase64);
       await completeRender(jobId, dataUrl);
       render = { status: 'done', prerenderedDataUrl: dataUrl };
 

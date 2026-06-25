@@ -147,6 +147,22 @@ export async function getJobPrefs(jobId: string): Promise<JobPrefs | null> {
   return getJson<JobPrefs>(`job:${jobId}:prefs`);
 }
 
+// ── Per-job user photo (for render-time compositing) ─────────────────────────
+
+export interface JobPhoto {
+  base64: string; // raw base64, no data URL prefix
+  mimeType: string;
+  role: string;
+}
+
+export async function setJobPhoto(jobId: string, photo: JobPhoto): Promise<void> {
+  await getRedis().set(`job:${jobId}:photo`, JSON.stringify(photo), { ex: TTL });
+}
+
+export async function getJobPhoto(jobId: string): Promise<JobPhoto | null> {
+  return getJson<JobPhoto>(`job:${jobId}:photo`);
+}
+
 // ── Card-saved flag (prevents duplicate Supabase writes) ─────────────────────
 
 export async function markCardSaved(jobId: string): Promise<void> {
